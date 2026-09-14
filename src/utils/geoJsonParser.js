@@ -134,10 +134,10 @@ export const loadFlyoverData = async () => {
     // 2. Convert road coordinates
     const convertedFeatures = (geojson?.features || []).map(convertFeature);
 
-    console.log(
-      "API FEATURE ORDER:",
-      convertedFeatures.map((f) => f.properties?.flyover)
-    );
+    // console.log(
+    //   "API FEATURE ORDER:",
+    //   convertedFeatures.map((f) => f.properties?.flyover)
+    // );
 
     // 3. Load named points from static GeoJSON
     const allNamedPoints = await loadAllNamedPoints();
@@ -266,7 +266,7 @@ export const loadFlyoverData = async () => {
       });
     });
 
-    console.log("FINAL FLYOVERS:", flyoverShells);
+
 
     return flyoverShells;
   } catch (error) {

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import FlyoverMap from "./FlyoverMap";
 import { CheckCircle2, AlertTriangle, ShieldAlert } from "lucide-react";
 
@@ -35,22 +36,31 @@ export default function FlyoverCard({
   weatherLoading,
   id,
 }) {
-  const handleMapClick = (lat, lng) => {
-    //console.log(`Map clicked on ${highway}:`, lat, lng);
-    if (onMapClick) {
-      onMapClick(lat, lng, id);
-    }
-  };
+  // `point` is the exact flyover marker clicked in FlyoverMap (undefined
+  // for a generic map/polygon click). Forwarded up along with this card's
+  // own id so DashboardPage knows both which segment and which point.
+  //
+  // useCallback keeps this function's identity stable across renders so it
+  // doesn't cause FlyoverMap's Markers to unbind/rebind their click
+  // listeners on every render (which can silently drop a click).
+  const handleMapClick = useCallback(
+    (lat, lng, point) => {
+      //console.log(`Map clicked on ${highway}:`, lat, lng);
+      if (onMapClick) {
+        onMapClick(lat, lng, id, point);
+      }
+    },
+    [onMapClick, id],
+  );
   //console.log("Popup render:", { weather, weatherLoading });
   const RiskIcon = riskIcon[riskStatus];
 
   return (
     <div
-      className={`relative rounded-xl2 overflow-hidden shadow-card transition-all duration-200 cursor-pointer h-full ${
-        isActive
-          ? "ring-4 ring-primary/60 shadow-lg"
-          : "ring-2 ring-gray-200 hover:ring-secondary/50 hover:shadow-lg"
-      }`}
+      className={`relative rounded-xl2 overflow-hidden shadow-card transition-all duration-200 cursor-pointer h-full ${isActive
+        ? "ring-4 ring-[#1366D9] shadow-lg"
+        : "ring-2 ring-gray-200 hover:ring-[#1366D9] hover:shadow-lg"
+        }`}
       onClick={onActivate}
     >
       <div className="w-full h-full">
@@ -85,7 +95,7 @@ export default function FlyoverCard({
 
       {isActive && (
         <span className="absolute top-0.5 right-10 bg-gradient-to-r from-primary to-secondary text-white text-[8px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full z-[1000] shadow-md">
-          ● Active
+          Active
         </span>
       )}
     </div>

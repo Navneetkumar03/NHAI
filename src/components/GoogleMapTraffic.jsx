@@ -84,6 +84,8 @@ export default function GoogleMapComponent() {
   const flyoverLayerIdsRef = useRef([]);
   const openInfoWindowsRef = useRef([]);
 
+  const [activeFlyoverId, setActiveFlyoverId] = useState(null);
+
   // Zoom threshold for showing popups
   const POPUP_ZOOM_THRESHOLD = 16;
 
@@ -323,6 +325,21 @@ export default function GoogleMapComponent() {
     updateLayerVisibility();
   }, [activeLayers, updateLayerVisibility]);
 
+
+
+  useEffect(() => {
+    if (
+      flyoverButtons.length > 0 &&
+      activeFlyoverId === null &&
+      mapRef.current
+    ) {
+      const firstFlyover = flyoverButtons[0];
+
+      setActiveFlyoverId(firstFlyover.value);
+      zoomToFlyover(firstFlyover.value);
+    }
+  }, [flyoverButtons, activeFlyoverId, isMapReady]);
+
   // Handle map load
   const handleMapLoad = (map) => {
     mapRef.current = map;
@@ -419,17 +436,21 @@ export default function GoogleMapComponent() {
 
       map.data.addGeoJson(data);
 
-      map.data.setStyle((feature) => {
-        const layerIndex = feature.getProperty('layerIndex');
-        const color = getFlyoverColor(layerIndex || 0);
-        return {
-          fillColor: color,
-          strokeColor: color,
-          strokeWeight: 6,
-          fillOpacity: 0.4,
-          strokeOpacity: 0.8,
-        };
-      });
+      // map.data.setStyle((feature) => {
+      //   const layerIndex = feature.getProperty('layerIndex');
+      //   const color = getFlyoverColor(layerIndex || 0);
+      //   return {
+      //     fillColor: color,
+      //     strokeColor: color,
+      //     strokeWeight: 6,
+      //     fillOpacity: 0.4,
+      //     strokeOpacity: 0.8,
+      //   };
+      // });
+
+      map.data.setStyle(() => ({
+        visible: false,
+      }));
 
       // Store layer IDs for reference
       flyoverLayerIdsRef.current = [];
@@ -759,7 +780,7 @@ export default function GoogleMapComponent() {
               <span style={{ fontSize: '22px', fontWeight: 'bold', lineHeight: '34px', color: '#333' }}>−</span>
             </button>
           </div>
-          <div
+          {/* <div
             className="absolute z-[500]"
             style={{
               top: isMobile ? "250px" : "20px",
@@ -810,6 +831,66 @@ export default function GoogleMapComponent() {
                 </span>
               </button>
             ))}
+          </div> */}
+
+
+          <div
+            className="absolute z-[500]"
+            style={{
+              top: isMobile ? "250px" : "20px",
+              left: "60px",
+              display: "flex",
+              gap: "4px",
+            }}
+          >
+            {flyoverButtons.map((flyover) => {
+              const isActive = activeFlyoverId === flyover.value;
+
+              return (
+                <button
+                  key={flyover.value}
+                  onClick={() => {
+                    setActiveFlyoverId(flyover.value);
+                    zoomToFlyover(flyover.value);
+                  }}
+                  className={`
+          flex items-center gap-2
+          h-[28px]
+          max-[480px]:h-[28px]
+          w-auto
+          min-w-[80px]
+          max-w-[200px]
+          max-[480px]:min-w-[80px]
+          max-[480px]:max-w-[160px]
+          px-2
+          max-[480px]:px-1.5
+          rounded-[4px]
+          border-2
+          transition-all duration-200
+          focus:outline-none
+          focus:ring-0
+          leaflet-bar
+          ${isActive
+                      ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+                      : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
+                    }
+        `}
+                  style={{
+                    boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
+                  }}
+                  title={`Zoom to ${flyover.name}`}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0 max-[480px]:w-2 max-[480px]:h-2"
+                    style={{ backgroundColor: flyover.color }}
+                  />
+
+                  <span className="text-[10px] max-[480px]:text-[9px] font-semibold truncate text-left">
+                    {flyover.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Fullscreen Button - Top Right */}

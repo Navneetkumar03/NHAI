@@ -802,7 +802,7 @@ function RiskOverviewPanel({ onClose }) {
         <div className="flex items-center justify-between py-1">
           <span className="text-gray-600">Total</span>
           <span className="font-semibold text-gray-900">
-            {overviewData.total.count} ({overviewData.total.distance})
+            {overviewData.total.distance}
           </span>
         </div>
 
@@ -3505,8 +3505,8 @@ export default function LandUseLandCover({
               <span className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                 <Table size={14} />
                 Linear (
-                {segmentData.filter((d) => d.avg_velocity !== null).length}{" "}
-                active)
+                {/* {segmentData.filter((d) => d.avg_velocity !== null).length}{" "} */}
+                active observations)
               </span>
               <button
                 onClick={() => setShowSegmentTable(false)}

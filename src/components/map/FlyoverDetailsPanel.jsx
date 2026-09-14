@@ -18,13 +18,13 @@ export default function FlyoverDetailsPanel({
     const displayName = formatPointName(selectedPoint.name);
     return (
       <div>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-start justify-between px-4 py-3 border-b border-gray-100">
+          <div className="flex items-start gap-2 min-w-0">
             <span
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1"
               style={{ background: selectedHighway?.color || "#8f1b8b" }}
             />
-            <h3 className="text-sm font-bold text-gray-900 truncate">
+            <h3 className="text-xs font-bold text-gray-900 leading-tight break-words min-w-0">
               {displayName}
             </h3>
           </div>
@@ -123,7 +123,7 @@ export default function FlyoverDetailsPanel({
 
       {visibleHighways.length === 0 ? (
         <p className="text-[12px] text-gray-400 mt-2">
-          No flyovers are currently visible — turn one on from the dropdown
+          No flyovers are currently visible â€” turn one on from the dropdown
           above the map.
         </p>
       ) : (

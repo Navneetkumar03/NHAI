@@ -12,11 +12,20 @@ import {
   ChevronRight,
   ShieldAlert,
 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import FlyoverDetailsPanel from "./map/FlyoverDetailsPanel";
 
 // ---------------------------------------------------------------------------
 // Demo data so this file also previews stand-alone. In the real app this is
-// never used — App.js passes `weather` (from sendLocationToAPI) and
+// never used â€” App.js passes `weather` (from sendLocationToAPI) and
 // `loading` (weatherLoading) as props, and those take over automatically.
 // ---------------------------------------------------------------------------
 const DEMO_WEATHER = {
@@ -51,12 +60,37 @@ const conditionIconFor = (code) => {
 };
 
 const RISK_STYLES = {
-  Low: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", dot: "bg-emerald-500" },
-  Moderate: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", dot: "bg-amber-500" },
-  High: { bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600", dot: "bg-rose-500" },
+  Low: {
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-600",
+    dot: "bg-emerald-500",
+  },
+  Moderate: {
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-600",
+    dot: "bg-amber-500",
+  },
+  High: {
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-600",
+    dot: "bg-rose-500",
+  },
 };
 
-export default function WeatherPanel({ weather: weatherProp, loading, hourStep = 1 }) {
+export default function WeatherPanel({
+  weather: weatherProp,
+  loading,
+  hourStep = 1,
+  selectedHighway,
+  selectedPoint,
+  flyoverMarkers,
+  visibleFlyoverIds,
+  onSelectHighway,
+  onSelectPoint,
+}) {
   const weather = weatherProp || DEMO_WEATHER;
   const scrollRef = useRef(null);
   const risk = RISK_STYLES[weather.riskLevel] || RISK_STYLES.Low;
@@ -90,15 +124,19 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-3 flex flex-col h-full min-w-0 transition-opacity duration-300 ${
-        loading ? "opacity-60" : "opacity-100"
-      }`}
+      className={`weather-panel-scroll bg-white rounded-2xl border border-gray-100 shadow-sm p-3 flex flex-col h-full min-w-0 overflow-y-auto transition-opacity duration-300 ${loading ? "opacity-60" : "opacity-100"
+        }`}
     >
       <style>{`
         .wp-scroll::-webkit-scrollbar { height: 5px; }
         .wp-scroll::-webkit-scrollbar-track { background: transparent; }
         .wp-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
         .recharts-wrapper:focus, .recharts-wrapper *:focus, .recharts-surface:focus { outline: none !important; }
+
+        /* vertical scroll on the panel root, styled to match .wp-scroll */
+        .weather-panel-scroll::-webkit-scrollbar { width: 5px; }
+        .weather-panel-scroll::-webkit-scrollbar-track { background: transparent; }
+        .weather-panel-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
       `}</style>
 
       {/* Location header */}
@@ -108,9 +146,13 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
             <MapPin size={13} className="text-blue-600" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-gray-800 truncate">{weather.location}</p>
+            <p className="text-sm font-bold text-gray-800 truncate">
+              {weather.location}
+            </p>
             {weather.structureId && (
-              <p className="text-[10px] text-gray-400 truncate">{weather.structureId}</p>
+              <p className="text-[10px] text-gray-400 truncate">
+                {weather.structureId}
+              </p>
             )}
           </div>
         </div>
@@ -122,20 +164,32 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
           Live
         </span> */}
       </div>
+      <div className="relative overflow-hidden rounded-xl border border-gray-200 p-3 mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
+        <FlyoverDetailsPanel
+          selectedHighway={selectedHighway}
+          selectedPoint={selectedPoint}
+          flyoverMarkers={flyoverMarkers}
+          visibleFlyoverIds={visibleFlyoverIds}
+          onSelectHighway={onSelectHighway}
+          onSelectPoint={onSelectPoint}
+        />
+      </div>
 
-      {/* Hero — current conditions */}
+      {/* Hero â€” current conditions */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 p-3 mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
         <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-md pointer-events-none" />
 
         <div className="flex items-start justify-between relative mb-3">
           <div>
-            <p className="text-[11px]  mb-0.5">Current Weather</p>
+            <p className="text-sm  text-gray-700">Current Weather</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold leading-none">{weather.temp}°</span>
-              <span className="text-sm ">C</span>
+              <span className="text-3xl font-bold leading-none">
+                {weather.temp}
+              </span>
+              <span className="text-sm ">°C</span>
             </div>
             <div className="flex items-center gap-1 mt-1 text-xs  bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full w-fit">
-              <HeroIcon size={12}  />
+              <HeroIcon size={12} />
               <span className="font-medium">{weather.condition}</span>
             </div>
           </div>
@@ -144,8 +198,10 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
             <div className="flex flex-col items-end gap-0.5 bg-white/15 rounded-lg px-2 py-1 shrink-0">
               <span className="text-[9px] uppercase tracking-wide ">Risk</span>
               <div className="flex items-center gap-1">
-                <ShieldAlert  />
-                <span className="text-[13px] font-bold ">{weather.riskLevel}</span>
+                <ShieldAlert />
+                <span className="text-[13px] font-bold ">
+                  {weather.riskLevel}
+                </span>
               </div>
             </div>
           )}
@@ -154,12 +210,32 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
         <div className="grid grid-cols-2 gap-1.5 relative">
           {[
             { icon: Wind, label: "Wind", value: weather.wind, unit: "km/h" },
-            { icon: Droplets, label: "Humidity", value: weather.humidity, unit: "%" },
-            { icon: CloudRain, label: "Rainfall", value: weather.rainfall, unit: "mm" },
-            { icon: Eye, label: "Visibility", value: weather.visibility, unit: "km" },
+            {
+              icon: Droplets,
+              label: "Humidity",
+              value: weather.humidity,
+              unit: "%",
+            },
+            {
+              icon: CloudRain,
+              label: "Rainfall",
+              value: weather.rainfall,
+              unit: "mm",
+            },
+            {
+              icon: Eye,
+              label: "Visibility",
+              value: weather.visibility,
+              unit: "km",
+            },
           ].map(({ icon: Icon, label, value, unit }) => (
-            <div key={label} className="flex flex-col gap-0.5 bg-white/10 rounded-lg px-2 py-1.5 min-w-0">
-              <span className="text-[9px]  uppercase tracking-wide truncate">{label}</span>
+            <div
+              key={label}
+              className="flex flex-col gap-0.5 bg-white/10 rounded-lg px-2 py-1.5 min-w-0"
+            >
+              <span className="text-[9px]  uppercase tracking-wide truncate">
+                {label}
+              </span>
               <div className="flex items-center gap-1 min-w-0">
                 <Icon size={16} className=" shrink-0" />
                 <span className="text-[13px] font-bold  truncate">
@@ -172,11 +248,11 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
         </div>
       </div>
 
-      {/* Hourly forecast — horizontal scroll, every hourStep hours */}
+      {/* Hourly forecast â€” horizontal scroll, every hourStep hours */}
       {hourlyForecast.length > 0 && (
         <div className="mb-6 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-bold text-gray-700">Next 24 hours</p>
+            <p className="text-sm  text-gray-700">Next 24 hours</p>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => scrollBy(-1)}
@@ -195,7 +271,10 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
             </div>
           </div>
 
-          <div ref={scrollRef} className="wp-scroll flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory">
+          <div
+            ref={scrollRef}
+            className="wp-scroll flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory"
+          >
             {hourlyForecast.map((f, i) => {
               const Icon = conditionIconFor(f.condition);
               return (
@@ -203,9 +282,13 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
                   key={f.time + i}
                   className="snap-start shrink-0 w-[70px] flex flex-col items-center gap-1.5 bg-gray-100 rounded-lg py-2.5 px-1 border border-gray-300 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer"
                 >
-                  <span className="text-[10px] font-semibold text-gray-500 whitespace-nowrap">{f.time}</span>
+                  <span className="text-[10px] font-semibold text-gray-500 whitespace-nowrap">
+                    {f.time}
+                  </span>
                   <Icon size={30} className="text-blue-500" />
-                  <span className="text-sm font-bold text-gray-800">{f.temp}°</span>
+                  <span className="text-sm font-bold text-gray-800">
+                    {f.temp}Â°
+                  </span>
 
                   {typeof f.precipProbability === "number" && (
                     <>
@@ -215,7 +298,9 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
                           style={{ width: `${f.precipProbability}%` }}
                         />
                       </div>
-                      <span className="text-[8px] text-gray-400">{f.precipProbability}%</span>
+                      <span className="text-[8px] text-gray-400">
+                        {f.precipProbability}%
+                      </span>
                     </>
                   )}
 
@@ -226,7 +311,9 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
                         className="text-amber-500"
                         style={{ transform: `rotate(${f.windDirection}deg)` }}
                       />
-                      <span className="text-[8px] text-gray-400">{f.windSpeed}</span>
+                      <span className="text-[8px] text-gray-400">
+                        {f.windSpeed}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -236,15 +323,24 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
         </div>
       )}
 
-      {/* Rainfall intensity chart — bottom, full width */}
+      {/* Rainfall intensity chart â€” bottom, full width */}
       {weather.rainfallIntensity && weather.rainfallIntensity.length > 0 && (
         <div className="min-w-0">
-          <p className="text-sm font-bold text-gray-700 mb-1.5">Rainfall intensity (mm/hr)</p>
+          <p className="text-sm  text-gray-700">Rainfall intensity (mm/hr)</p>
           <div className="bg-gray-50 rounded-lg p-1.5 h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weather.rainfallIntensity} margin={{ top: 6, right: 4, left: -20, bottom: 0 }}>
+              <AreaChart
+                data={weather.rainfallIntensity}
+                margin={{ top: 6, right: 4, left: -20, bottom: 0 }}
+              >
                 <defs>
-                  <linearGradient id="rainFillLight" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="rainFillLight"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.35} />
                     <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
                   </linearGradient>
@@ -257,14 +353,23 @@ export default function WeatherPanel({ weather: weatherProp, loading, hourStep =
                   tickLine={false}
                   interval={tickInterval}
                 />
-                <YAxis tick={{ fontSize: 8, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={20} />
+                <YAxis
+                  tick={{ fontSize: 8, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={20}
+                />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="bg-white border border-gray-200 rounded-lg shadow-md px-2 py-1 text-[10px]">
-                          <p className="font-medium text-gray-500 mb-0.5">{payload[0].payload.time}</p>
-                          <p className="text-blue-600 font-semibold">{payload[0].value} mm</p>
+                          <p className="font-medium text-gray-500 mb-0.5">
+                            {payload[0].payload.time}
+                          </p>
+                          <p className="text-blue-600 font-semibold">
+                            {payload[0].value} mm
+                          </p>
                         </div>
                       );
                     }
