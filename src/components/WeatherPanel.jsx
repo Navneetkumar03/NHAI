@@ -128,15 +128,15 @@ export default function WeatherPanel({
         }`}
     >
       <style>{`
-        .wp-scroll::-webkit-scrollbar { height: 5px; }
+        .wp-scroll::-webkit-scrollbar { height: 9px; }
         .wp-scroll::-webkit-scrollbar-track { background: transparent; }
-        .wp-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
+        .wp-scroll::-webkit-scrollbar-thumb { background: #1366D9; border-radius: 999px; }
         .recharts-wrapper:focus, .recharts-wrapper *:focus, .recharts-surface:focus { outline: none !important; }
 
         /* vertical scroll on the panel root, styled to match .wp-scroll */
-        .weather-panel-scroll::-webkit-scrollbar { width: 5px; }
+        .weather-panel-scroll::-webkit-scrollbar { width: 7px; }
         .weather-panel-scroll::-webkit-scrollbar-track { background: transparent; }
-        .weather-panel-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
+        .weather-panel-scroll::-webkit-scrollbar-thumb { background:#1366D9; border-radius: 999px; }
       `}</style>
 
       {/* Location header */}
@@ -207,9 +207,15 @@ export default function WeatherPanel({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-1.5 relative">
+        <div className="grid grid-cols-2 gap-0.5 relative">
           {[
-            { icon: Wind, label: "Wind", value: weather.wind, unit: "km/h" },
+            {
+              icon: Wind,
+              label: "Wind",
+              value: weather.wind,
+              unit: "km/h"
+            },
+
             {
               icon: Droplets,
               label: "Humidity",
@@ -231,14 +237,14 @@ export default function WeatherPanel({
           ].map(({ icon: Icon, label, value, unit }) => (
             <div
               key={label}
-              className="flex flex-col gap-0.5 bg-white/10 rounded-lg px-2 py-1.5 min-w-0"
+              className="flex flex-col gap-0.5 bg-white/10 rounded-lg px-1 py-1.5 min-w-0"
             >
               <span className="text-[9px]  uppercase tracking-wide truncate">
                 {label}
               </span>
               <div className="flex items-center gap-1 min-w-0">
-                <Icon size={16} className=" shrink-0" />
-                <span className="text-[13px] font-bold  truncate">
+                <Icon size={12} className=" shrink-0" />
+                <span className="text-[12px] font-bold  truncate">
                   {value}
                   <span className=" font-medium">{unit}</span>
                 </span>
@@ -287,7 +293,8 @@ export default function WeatherPanel({
                   </span>
                   <Icon size={30} className="text-blue-500" />
                   <span className="text-sm font-bold text-gray-800">
-                    {f.temp}Â°
+                    {f.temp}
+                    <span className="text-sm ">°C</span>
                   </span>
 
                   {typeof f.precipProbability === "number" && (
@@ -348,7 +355,7 @@ export default function WeatherPanel({
                 <CartesianGrid vertical={false} stroke="#eef2f7" />
                 <XAxis
                   dataKey="time"
-                  tick={{ fontSize: 8, fontWeight: 600, fill: "#94a3b8" }}
+                  tick={{ fontSize: 10, fontWeight: 600, fill: "#94a3b8" }}
                   axisLine={false}
                   tickLine={false}
                   interval={tickInterval}

@@ -35,7 +35,7 @@ export function useMovementPoints() {
             setPoints(data.features || []);
             setTotal(data.total || 0);
             setAvailableDates(data.available_dates || []);
-            console.log('📅 Available dates:', data.available_dates);
+            // console.log('📅 Available dates:', data.available_dates);
         } catch (err) {
             setError(err.message || 'Failed to fetch movement points');
             console.error('Error fetching points:', err);

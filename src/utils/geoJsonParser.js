@@ -162,9 +162,9 @@ export const loadFlyoverData = async () => {
       grouped[type].push(feature);
     });
 
-    console.log("GROUPED TYPES:", Object.keys(grouped));
+    // console.log("GROUPED TYPES:", Object.keys(grouped));
 
-    console.log("GROUPED KEYS IN ORDER:", Object.keys(grouped));
+    // console.log("GROUPED KEYS IN ORDER:", Object.keys(grouped));
 
     // 5. Build flyover shells
     const flyoverShells = Object.keys(grouped)
