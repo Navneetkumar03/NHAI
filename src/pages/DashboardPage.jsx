@@ -29,11 +29,11 @@ export default function DashboardPage() {
     flyovers.length > 0
       ? getStatsFromFlyovers(flyovers)
       : {
-        total: 0,
-        low: 0,
-        moderate: 0,
-        high: 0,
-      };
+          total: 0,
+          low: 0,
+          moderate: 0,
+          high: 0,
+        };
 
   // ===========================================================================
   // ACTIVE FLYOVER
@@ -293,21 +293,25 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center px-4">
         <div className="text-center">
           <div
             className="
               mx-auto
-              h-12
-              w-12
+              h-10
+              w-10
               animate-spin
               rounded-full
               border-b-2
               border-blue-500
+              sm:h-12
+              sm:w-12
             "
           />
 
-          <p className="mt-4 text-gray-600">Loading flyover data...</p>
+          <p className="mt-4 text-sm text-gray-600 sm:text-base">
+            Loading flyover data...
+          </p>
         </div>
       </div>
     );
@@ -319,11 +323,13 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-lg text-red-500">Error loading data</p>
+          <p className="text-base text-red-500 sm:text-lg">
+            Error loading data
+          </p>
 
-          <p className="mt-2 text-gray-500">{error}</p>
+          <p className="mt-2 text-sm text-gray-500 sm:text-base">{error}</p>
         </div>
       </div>
     );
@@ -335,9 +341,11 @@ export default function DashboardPage() {
 
   if (flyovers.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-lg text-gray-600">No flyover data available</p>
+          <p className="text-base text-gray-600 sm:text-lg">
+            No flyover data available
+          </p>
         </div>
       </div>
     );
@@ -348,7 +356,7 @@ export default function DashboardPage() {
   // ===========================================================================
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-3 px-3 sm:gap-4 sm:px-4 lg:px-0">
       {/* ---------------------------------------------------------------------
           ALERT MARQUEE
       ---------------------------------------------------------------------- */}
@@ -363,7 +371,8 @@ export default function DashboardPage() {
           min-h-0
           flex-1
           flex-col
-          gap-4
+          gap-3
+          sm:gap-4
           lg:grid
           lg:grid-cols-10
           lg:gap-5
@@ -374,7 +383,7 @@ export default function DashboardPage() {
             Maps + Statistics
         ==================================================================== */}
 
-        <div className="flex flex-col gap-4 lg:col-span-8">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:col-span-8">
           {/* -----------------------------------------------------------------
               Statistics
           ------------------------------------------------------------------ */}
@@ -399,8 +408,9 @@ export default function DashboardPage() {
             className="
               grid
               grid-cols-1
-              gap-4
+              gap-3
               sm:grid-cols-2
+              sm:gap-4
               lg:flex-1
               lg:min-h-0
             "
@@ -409,7 +419,7 @@ export default function DashboardPage() {
               <div
                 key={flyover.id}
                 className="
-                    h-80
+                    h-72
                     sm:h-96
                     md:h-104
                     lg:h-full
@@ -447,9 +457,12 @@ export default function DashboardPage() {
               border
               border-gray-100
               bg-white
-              px-4
-              py-2.5
+              px-3
+              py-2
+              text-center
               shadow-card
+              sm:px-4
+              sm:py-2.5
             "
           >
             <span
@@ -464,7 +477,7 @@ export default function DashboardPage() {
                 bg-warning/10
               "
             >
-              <span className="text-[11px] text-warning">âš ï¸</span>
+              <span className="text-[11px] text-warning">⚠️</span>
             </span>
 
             <p
@@ -483,33 +496,35 @@ export default function DashboardPage() {
 
         {/* ===================================================================
             RIGHT SECTION
-            Flyover Details + Weather
+            Weather panel (now also renders FlyoverDetailsPanel internally)
         ==================================================================== */}
 
         <div
           className="
-            mt-4
             flex
-            h-155
-            min-h-0
+            min-h-[480px]
             flex-col
-            gap-4
+            gap-3
+            sm:min-h-[540px]
+            sm:gap-4
             lg:col-span-2
-            lg:mt-0
             lg:h-full
+            lg:min-h-0
+            lg:mt-0
           "
         >
           {/* -----------------------------------------------------------------
-              Flyover Details
+              Weather + Flyover Details
 
               IMPORTANT:
-              This is now displayed automatically because
-              selectedHighway/selectedPoint are initialized
-              when the first flyover loads.
-          ------------------------------------------------------------------ */}
-
-          {/* -----------------------------------------------------------------
-              Weather
+              WeatherPanel now renders FlyoverDetailsPanel internally, so
+              this column no longer needs a separate wrapper/height for it.
+              WeatherPanel itself guards a min-h-[420px] and scrolls its
+              own content, so this column just needs to give it room to
+              breathe rather than squeeze it — min-h here (not a fixed h)
+              lets the column grow if content needs more space on mobile,
+              while lg:h-full + lg:min-h-0 restores the old fill-the-column
+              behavior on desktop.
           ------------------------------------------------------------------ */}
 
           <div className="min-h-0 flex-1">

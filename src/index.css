@@ -176,3 +176,41 @@ body {
   overflow: hidden !important;
   padding: 0 !important;
 }
+/* Hide horizontal scrollbars used by mobile map controls */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Prevent Leaflet controls from creating unwanted mobile spacing */
+@media (max-width: 768px) {
+  .leaflet-control {
+    margin: 0 !important;
+  }
+
+  .leaflet-control-zoom {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .leaflet-control-attribution {
+    font-size: 8px !important;
+    padding: 1px 3px !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 8px !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  .leaflet-tooltip {
+    font-size: 10px !important;
+  }
+}

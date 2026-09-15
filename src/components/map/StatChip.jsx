@@ -1,13 +1,12 @@
-// Small stat chip used inside FlyoverDetailsPanel's summary grid.
 export default function StatChip({ label, value }) {
   return (
-    <div className="flex flex-col gap-0.5 bg-gray-50 rounded-lg px-2 py-1.5 min-w-0 border border-gray-100">
-      <span className="text-[9px] text-gray-400 uppercase tracking-wide truncate">
+    <div className="rounded-lg bg-gray-50 border border-gray-100 px-1 py-1 h-full">
+      <p className="text-[8px] font-bold uppercase tracking-tight text-gray-400 leading-snug break-words">
         {label}
-      </span>
-      <span className="text-[13px] font-bold text-gray-800 truncate">
+      </p>
+      <p className="text-[13px] font-bold text-gray-800 leading-tight mt-0.5 break-words">
         {value}
-      </span>
+      </p>
     </div>
   );
 }
