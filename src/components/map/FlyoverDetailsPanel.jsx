@@ -29,7 +29,7 @@ export default function FlyoverDetailsPanel({
             </h3>
           </div>
         </div>
-        <div className="px-4 py-3">
+        <div className="px-0.5 py-1">
           <div className="flex flex-row flex-wrap gap-1.5">
             {selectedPoint.chainage && (
               <div className="flex-1 min-w-[45%]">
@@ -123,7 +123,7 @@ export default function FlyoverDetailsPanel({
 
       {visibleHighways.length === 0 ? (
         <p className="text-[12px] text-gray-400 mt-2">
-          No flyovers are currently visible â€” turn one on from the dropdown
+          No flyovers are currently visible  turn one on from the dropdown
           above the map.
         </p>
       ) : (

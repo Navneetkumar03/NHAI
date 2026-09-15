@@ -452,20 +452,7 @@ export default function DashboardPage() {
               shadow-card
             "
           >
-            <span
-              className="
-                flex
-                h-5
-                w-5
-                shrink-0
-                items-center
-                justify-center
-                rounded-full
-                bg-warning/10
-              "
-            >
-              <span className="text-[11px] text-warning">âš ï¸</span>
-            </span>
+
 
             <p
               className="
@@ -486,33 +473,8 @@ export default function DashboardPage() {
             Flyover Details + Weather
         ==================================================================== */}
 
-        <div
-          className="
-            mt-4
-            flex
-            h-155
-            min-h-0
-            flex-col
-            gap-4
-            lg:col-span-2
-            lg:mt-0
-            lg:h-full
-          "
-        >
-          {/* -----------------------------------------------------------------
-              Flyover Details
-
-              IMPORTANT:
-              This is now displayed automatically because
-              selectedHighway/selectedPoint are initialized
-              when the first flyover loads.
-          ------------------------------------------------------------------ */}
-
-          {/* -----------------------------------------------------------------
-              Weather
-          ------------------------------------------------------------------ */}
-
-          <div className="min-h-0 flex-1">
+        <div className="mt-4 flex flex-col gap-4 lg:col-span-2 lg:mt-0 lg:h-full lg:min-h-0">
+          <div className="h-[70vh] min-h-0 lg:h-full lg:flex-1">
             <WeatherPanel
               weather={weather}
               loading={weatherLoading}

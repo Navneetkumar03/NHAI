@@ -23,7 +23,7 @@ const authFetch = async (url, options = {}) => {
   if (response.status === 401) {
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("authUser");
-    window.location.href = "/login"; // adjust to your actual login route
+    window.location.href = "/InfraRisk/NH-152/login"; // adjust to your actual login route
   }
 
   return response;

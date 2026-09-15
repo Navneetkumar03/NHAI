@@ -9,7 +9,7 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 1,
+        "id": 4,
         "Chainage": "5+194",
         "Descriptio": "MNB",
         "Length": "25.5 Mtr",
@@ -30,7 +30,7 @@
         "Chainage": "4+474",
         "Descriptio": "Flyover",
         "Length": "60 Mtr",
-        "Detail": "02 x 30.00 m",
+        "Detail": "02 x 30.0 m",
         "Remarks": "NH 152",
         "flyover": "F2",
         "NAME": "2-Flyover"
@@ -47,7 +47,7 @@
         "Chainage": "0+930",
         "Descriptio": "ROB",
         "Length": "171.5 Mtr",
-        "Detail": "04 x 31.50 + 1 x 45.50 m",
+        "Detail": "04 x 31.5 m",
         "Remarks": "NH 152",
         "flyover": "F3",
         "NAME": "3-ROB (Chainage 0+930)"
@@ -60,7 +60,7 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 4,
+        "id": 1,
         "Chainage": "5+362",
         "Descriptio": "ROB",
         "Length": "56 Mtr",
