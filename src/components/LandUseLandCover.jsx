@@ -289,8 +289,7 @@ function VelocityDiffLegend({ range }) {
   const midDiff =
     minDiff !== null && maxDiff !== null ? (minDiff + maxDiff) / 2 : null;
 
-  const fmt = (v) =>
-    v === null || Number.isNaN(v) ? "—" : `${Math.round(v)}`;
+  const fmt = (v) => (v === null || Number.isNaN(v) ? "—" : `${Math.round(v)}`);
 
   return (
     <div className="absolute bottom-3 left-3 z-[1500] bg-white/95 backdrop-blur-sm rounded-md shadow-md border border-gray-200 px-3 py-2 max-w-[220px] max-[480px]:px-2 max-[480px]:py-1.5 max-[480px]:max-w-[150px] max-[480px]:bottom-2 max-[480px]:left-2">
@@ -312,7 +311,6 @@ function VelocityDiffLegend({ range }) {
           {fmt(maxDiff)}
         </span>
       </div>
-
     </div>
   );
 }
@@ -399,20 +397,42 @@ function YearSelect({ label, value, onChange, disabledYears = [] }) {
   );
 }
 
+/* 🆕 CHANGED: sizing reduced to match zoom control + Layers button at the
+   smaller footprint (28px desktop / 24px mobile), per TL's "reduce all
+   three buttons" request. Border/radius already matched the leaflet-bar
+   look from the earlier "align styles" pass. */
 function FullscreenButton({ isFullscreen, onToggle }) {
   return (
     <button
       onClick={onToggle}
-      className={`flex items-center justify-center w-[30px] h-[30px] bg-white rounded-md shadow-md border border-gray-200 transition-all duration-200 hover:bg-gray-50 hover:shadow-lg max-[480px]:w-[26px] max-[480px]:h-[26px] ${isFullscreen
-        ? "bg-blue-50 border-blue-300 text-blue-600"
-        : "text-gray-700"
-        }`}
+      title="Toggle fullscreen"
+      className={`
+        flex items-center justify-center
+        w-[22px] h-[22px]
+        max-[480px]:w-[18px] max-[480px]:h-[18px]
+        bg-white
+        rounded-[4px]
+        border-2
+        transition-all duration-200
+        hover:bg-gray-50
+        ${
+          isFullscreen
+            ? "border-blue-500 bg-blue-50 text-blue-600"
+            : "border-gray-400 text-gray-700 hover:border-gray-500"
+        }
+        focus:outline-none
+        focus:ring-0
+        leaflet-bar
+      `}
+      style={{
+        boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
+      }}
       aria-label="Toggle fullscreen"
     >
       {isFullscreen ? (
-        <Minimize className="w-4 h-4 max-[480px]:w-3.5 max-[480px]:h-3.5" />
+        <Minimize className="w-3 h-3 max-[480px]:w-2.5 max-[480px]:h-2.5" />
       ) : (
-        <Maximize className="w-4 h-4 max-[480px]:w-3.5 max-[480px]:h-3.5" />
+        <Maximize className="w-3 h-3 max-[480px]:w-2.5 max-[480px]:h-2.5" />
       )}
     </button>
   );
@@ -476,8 +496,9 @@ function LayerSelector({ selectedLayer, onLayerChange }) {
         <span>{getLayerLabel(selectedLayer)}</span>
         <ChevronDown
           size={12}
-          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-            }`}
+          className={`transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
       {isOpen && (
@@ -489,10 +510,11 @@ function LayerSelector({ selectedLayer, onLayerChange }) {
                 onLayerChange(opt);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs ${selectedLayer === opt
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-700"
-                }`}
+              className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs ${
+                selectedLayer === opt
+                  ? "bg-blue-50 text-blue-700 font-medium"
+                  : "text-gray-700"
+              }`}
             >
               {getLayerLabel(opt)}
             </button>
@@ -548,8 +570,9 @@ function DateRangeSelector({
           </span>
           <ChevronDown
             size={12}
-            className={`text-gray-400 transition-transform ${isStartOpen ? "rotate-180" : ""
-              }`}
+            className={`text-gray-400 transition-transform ${
+              isStartOpen ? "rotate-180" : ""
+            }`}
           />
         </button>
         {isStartOpen && availableDates.length > 0 && (
@@ -570,10 +593,11 @@ function DateRangeSelector({
                     onEndDateChange(date);
                   }
                 }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${startDate === date
-                  ? "bg-blue-100 text-blue-700 font-medium"
-                  : "text-gray-700"
-                  }`}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${
+                  startDate === date
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "text-gray-700"
+                }`}
               >
                 {formatDisplayDate(date)}
               </button>
@@ -592,8 +616,9 @@ function DateRangeSelector({
           </span>
           <ChevronDown
             size={12}
-            className={`text-gray-400 transition-transform ${isEndOpen ? "rotate-180" : ""
-              }`}
+            className={`text-gray-400 transition-transform ${
+              isEndOpen ? "rotate-180" : ""
+            }`}
           />
         </button>
         {isEndOpen && availableDates.length > 0 && (
@@ -613,10 +638,11 @@ function DateRangeSelector({
                     onEndDateChange(date);
                     setIsEndOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${endDate === date
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-700"
-                    }`}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${
+                    endDate === date
+                      ? "bg-blue-100 text-blue-700 font-medium"
+                      : "text-gray-700"
+                  }`}
                 >
                   {formatDisplayDate(date)}
                 </button>
@@ -730,8 +756,9 @@ function SegmentTable({ data, onRowClick, selectedId, loading }) {
             <tr
               key={item.id}
               onClick={() => onRowClick(item.id)}
-              className={`cursor-pointer hover:bg-blue-50 transition-colors ${selectedId === item.id ? "bg-blue-100" : ""
-                } ${item.avg_velocity === null ? "opacity-50" : ""}`}
+              className={`cursor-pointer hover:bg-blue-50 transition-colors ${
+                selectedId === item.id ? "bg-blue-100" : ""
+              } ${item.avg_velocity === null ? "opacity-50" : ""}`}
             >
               <td className="px-2 py-1.5 border-b border-gray-100">
                 {item.id}
@@ -784,42 +811,53 @@ function RiskOverviewPanel({ onClose }) {
   };
 
   return (
-    <div className="absolute top-12 right-3 z-[1500] max-w-[260px] w-full bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
-        <span className="text-xs font-semibold text-gray-700 flex items-center gap-2">
-          <Table size={14} />
-          Linear Assets · Risk
+    <div className="absolute top-2 right-3 z-[1500] max-w-[260px] w-full bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 overflow-hidden max-[480px]:top-auto max-[480px]:bottom-3 max-[480px]:right-2 max-[480px]:max-w-[145px]">
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 max-[480px]:px-2 max-[480px]:py-1.5">
+        <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5 max-[480px]:text-[9px]">
+          <Table
+            size={14}
+            className="max-[480px]:w-3 max-[480px]:h-3 flex-shrink-0"
+          />
+          <span className="max-[480px]:leading-tight">
+            Linear Assets · Risk
+          </span>
         </span>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-red-500 transition-colors"
+          className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
         >
-          <X size={14} />
+          <X size={14} className="max-[480px]:w-3 max-[480px]:h-3" />
         </button>
       </div>
 
-      <div className="px-3 py-3 text-xs">
-        <div className="flex items-center justify-between py-1">
+      <div className="px-3 py-3 text-xs max-[480px]:px-2 max-[480px]:py-2 max-[480px]:text-[9px]">
+        <div className="flex items-center justify-between py-1 gap-2">
           <span className="text-gray-600">Total</span>
           <span className="font-semibold text-gray-900">
             {overviewData.total.distance}
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-1">
-          <span className="text-gray-600">Low Risk (1-2)</span>
+        <div className="flex items-center justify-between py-1 gap-2">
+          <span className="text-gray-600 max-[480px]:text-[8px]">
+            Low (1-2)
+          </span>
           <span className="font-medium text-blue-600">{overviewData.low}</span>
         </div>
 
-        <div className="flex items-center justify-between py-1">
-          <span className="text-gray-600">Medium Risk (3)</span>
+        <div className="flex items-center justify-between py-1 gap-2">
+          <span className="text-gray-600 max-[480px]:text-[8px]">
+            Medium (3)
+          </span>
           <span className="font-medium text-orange-500">
             {overviewData.medium}
           </span>
         </div>
 
-        <div className="flex items-center justify-between py-1">
-          <span className="text-gray-600">High Risk (4-5)</span>
+        <div className="flex items-center justify-between py-1 gap-2">
+          <span className="text-gray-600 max-[480px]:text-[8px]">
+            High (4-5)
+          </span>
           <span className="font-medium text-red-500">{overviewData.high}</span>
         </div>
       </div>
@@ -889,13 +927,11 @@ export default function LandUseLandCover({
   const isMapReadyRef = useRef(false);
   const hasFitBoundsRef = useRef(false);
 
-
   const flyoverButtonsContainerRef = useRef(null);
   const flyoverBoundsRef = useRef([]); // [{ id, name, bounds, layers, markers }]
 
   /* ---------------- State ---------------- */
   const [activeFlyoverId, setActiveFlyoverId] = useState(null);
-
 
   const [showChart, setShowChart] = useState(false);
   const [selectedPointForChart, setSelectedPointForChart] = useState(null);
@@ -1043,15 +1079,16 @@ export default function LandUseLandCover({
                   ${velocity !== null && velocity !== undefined ? velocity + " mm/yr" : "N/A"}
                 </td>
               </tr>
-              ${props.insert_at
-            ? `
+              ${
+                props.insert_at
+                  ? `
               <tr>
                 <td style="padding: 2px 0; color: #6b7280;">Updated:</td>
                 <td style="padding: 2px 0; font-weight: 600; font-size: 10px;">${new Date(props.insert_at).toLocaleString()}</td>
               </tr>
               `
-            : ""
-          }
+                  : ""
+              }
             </table>
           </div>
         `);
@@ -1187,14 +1224,15 @@ export default function LandUseLandCover({
               <td style="padding: 2px 0; color: #6b7280;">Risk:</td>
               <td style="padding: 2px 0; font-weight: 600;">${props.risk || "N/A"}</td>
             </tr>
-            ${props.insert_at
-              ? `
+            ${
+              props.insert_at
+                ? `
             <tr>
               <td style="padding: 2px 0; color: #6b7280;">Updated:</td>
               <td style="padding: 2px 0; font-weight: 600; font-size: 10px;">${new Date(props.insert_at).toLocaleString()}</td>
             </tr>
             `
-              : ""
+                : ""
             }
           </table>
         </div>
@@ -1535,10 +1573,7 @@ export default function LandUseLandCover({
             this.setStyle(getSelectedCircleStyle(map.getZoom()));
           } else {
             this.setStyle(
-              getDiffRestingCircleStyle(
-                this._movementColor,
-                map.getZoom(),
-              ),
+              getDiffRestingCircleStyle(this._movementColor, map.getZoom()),
             );
           }
           this.closeTooltip();
@@ -1548,10 +1583,7 @@ export default function LandUseLandCover({
           // Toggle off if already selected
           if (selectedMovementMarkerRef.current === this) {
             this.setStyle(
-              getDiffRestingCircleStyle(
-                this._movementColor,
-                map.getZoom(),
-              ),
+              getDiffRestingCircleStyle(this._movementColor, map.getZoom()),
             );
             selectedMovementMarkerRef.current = null;
             setShowChart(false);
@@ -1563,10 +1595,7 @@ export default function LandUseLandCover({
           if (selectedMovementMarkerRef.current) {
             const prev = selectedMovementMarkerRef.current;
             prev.setStyle(
-              getDiffRestingCircleStyle(
-                prev._movementColor,
-                map.getZoom(),
-              ),
+              getDiffRestingCircleStyle(prev._movementColor, map.getZoom()),
             );
           }
 
@@ -1788,22 +1817,6 @@ export default function LandUseLandCover({
    * FLYOVER LAYERS
    * ========================================================================*/
 
-  // const updateLayerVisibility = useCallback(() => {
-  //   if (!mapRef.current) {
-  //     return;
-  //   }
-
-  //   if (activeLayers.includes("flyover")) {
-  //     addAllToMap(mapRef.current, flyoverLayersRef.current);
-  //     addAllToMap(mapRef.current, flyoverMarkersRef.current);
-  //   } else {
-  //     removeAllFromMap(mapRef.current, flyoverLayersRef.current);
-  //     removeAllFromMap(mapRef.current, flyoverMarkersRef.current);
-  //   }
-  // }, [activeLayers]);
-
-
-
   const updateLayerVisibility = useCallback(() => {
     if (!mapRef.current) {
       return;
@@ -1819,12 +1832,6 @@ export default function LandUseLandCover({
       removeAllFromMap(mapRef.current, flyoverMarkersRef.current);
     }
   }, [activeLayers]);
-
-
-
-
-
-
 
   const addFlyoverLayers = useCallback(
     (map) => {
@@ -1891,34 +1898,38 @@ export default function LandUseLandCover({
                     const popupContent = `
                       <div style="padding: 8px; font-family: Arial, sans-serif;">
                         <h4 style="margin: 0 0 4px 0; color: ${escapeHtml(
-                      color,
-                    )};">
+                          color,
+                        )};">
                           ${escapeHtml(pointName)}
                         </h4>
-                        ${point.chainage
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
-                          point.chainage,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.description
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
-                          point.description,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.length
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
-                          point.length,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.detail
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
-                          point.detail,
-                        )}</p>`
-                        : ""
-                      }
+                        ${
+                          point.chainage
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
+                                point.chainage,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.description
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
+                                point.description,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.length
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
+                                point.length,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.detail
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
+                                point.detail,
+                              )}</p>`
+                            : ""
+                        }
                       </div>
                     `;
 
@@ -1977,7 +1988,6 @@ export default function LandUseLandCover({
     [flyovers, updateLayerVisibility],
   );
 
-
   /* ==========================================================================
    * UI HANDLERS
    * ========================================================================*/
@@ -2017,67 +2027,6 @@ export default function LandUseLandCover({
       setDiffDetailData(null);
     }
   }, []);
-
-
-
-  /* 🆕 Zoom + highlight a single flyover */
-  // const handleFlyoverButtonClick = useCallback(
-  //   (flyoverEntry) => {
-  //     const map = mapRef.current;
-  //     if (!map || !flyoverEntry) return;
-
-  //     // Toggle off if the same button is clicked again
-  //     if (activeFlyoverId === flyoverEntry.id) {
-  //       setActiveFlyoverId(null);
-  //       // Reset all styles to resting
-  //       flyoverBoundsRef.current.forEach((f) => {
-  //         f.layers.forEach((layer) => {
-  //           layer.setStyle({
-  //             color: f.color,
-  //             weight: 3,
-  //             opacity: 0.8,
-  //             fillColor: f.color,
-  //             fillOpacity: 0.2,
-  //           });
-  //         });
-  //       });
-  //       return;
-  //     }
-
-  //     setActiveFlyoverId(flyoverEntry.id);
-
-  //     // Reset all flyovers to resting, then highlight the selected one
-  //     flyoverBoundsRef.current.forEach((f) => {
-  //       const isActive = f.id === flyoverEntry.id;
-  //       f.layers.forEach((layer) => {
-  //         layer.setStyle({
-  //           color: isActive ? "#facc15" : f.color,
-  //           weight: isActive ? 6 : 3,
-  //           opacity: isActive ? 1 : 0.8,
-  //           fillColor: isActive ? "#facc15" : f.color,
-  //           fillOpacity: isActive ? 0.35 : 0.2,
-  //         });
-  //       });
-  //       // Bring active layers to front
-  //       if (isActive) {
-  //         f.layers.forEach((layer) => {
-  //           if (typeof layer.bringToFront === "function") layer.bringToFront();
-  //         });
-  //       }
-  //     });
-
-  //     // Zoom to the flyover bounds
-  //     if (flyoverEntry.bounds && flyoverEntry.bounds.isValid()) {
-  //       map.fitBounds(flyoverEntry.bounds, {
-  //         padding: [60, 60],
-  //         maxZoom: 18,
-  //         animate: true,
-  //       });
-  //     }
-  //   },
-  //   [activeFlyoverId],
-  // );
-
 
   /* 🆕 Zoom + highlight a single flyover */
   const handleFlyoverButtonClick = useCallback(
@@ -2133,10 +2082,6 @@ export default function LandUseLandCover({
     },
     [activeFlyoverId],
   );
-
-
-
-
 
   const handleLayerToggle = useCallback(
     async (layerId) => {
@@ -2210,9 +2155,7 @@ export default function LandUseLandCover({
                   return {
                     id,
                     name:
-                      stat?.name ||
-                      feature.properties?.name ||
-                      "NH 152 Ambala",
+                      stat?.name || feature.properties?.name || "NH 152 Ambala",
                     avg_velocity:
                       stat?.avg_velocity ??
                       (feature.properties?.avg_velocity !== undefined
@@ -2268,8 +2211,6 @@ export default function LandUseLandCover({
       addFlyoverLayers,
     ],
   );
-
-
 
   const handleBaseLayerChange = useCallback((layerType) => {
     setBaseLayer(layerType);
@@ -2476,17 +2417,36 @@ export default function LandUseLandCover({
     }
   }, [loading, error]);
 
+  /* 🆕 CHANGED: added `.leaflet-bar a` override so the native Leaflet
+     zoom control (+/-) matches the reduced size of the FullscreenButton
+     and Layers button (28px desktop / 24px mobile) in the same stack.
+     Leaflet's own CSS ships a fixed size for these anchors that can't be
+     changed via className since they're rendered by Leaflet itself. */
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
-      .leaflet-interactive:focus,
-      .leaflet-interactive:focus-visible {
-        outline: none !important;
+    .leaflet-interactive:focus,
+    .leaflet-interactive:focus-visible {
+      outline: none !important;
+    }
+    path.leaflet-interactive:focus {
+      outline: none !important;
+    }
+    .leaflet-bar a {
+      width: 22px !important;
+      height: 22px !important;
+      line-height: 22px !important;
+      font-size: 14px !important;
+    }
+    @media (max-width: 480px) {
+      .leaflet-bar a {
+        width: 18px !important;
+        height: 18px !important;
+        line-height: 18px !important;
+        font-size: 12px !important;
       }
-      path.leaflet-interactive:focus {
-        outline: none !important;
-      }
-    `;
+    }
+  `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
   }, []);
@@ -2594,9 +2554,6 @@ export default function LandUseLandCover({
       dividerLineRef.current.style.opacity = String(opacity);
     }
   }, [showLULC, ensureLULCLayersExist]);
-
-
-
 
   /* 🆕 Auto-activate the first flyover button once the entries exist, so the
      map zooms to it by default without any user interaction. A small delay
@@ -3060,10 +3017,11 @@ export default function LandUseLandCover({
                 setShowSegmentTable((prev) => !prev);
                 setShowOverview(false);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${showSegmentTable
-                ? "bg-purple-100 text-purple-800 border-purple-300 shadow-sm"
-                : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${
+                showSegmentTable
+                  ? "bg-purple-100 text-purple-800 border-purple-300 shadow-sm"
+                  : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
+              }`}
             >
               <Table size={14} />
               Linear
@@ -3074,10 +3032,11 @@ export default function LandUseLandCover({
                 setShowOverview((prev) => !prev);
                 setShowSegmentTable(false);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${showOverview
-                ? "bg-blue-100 text-blue-800 border-blue-300 shadow-sm"
-                : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${
+                showOverview
+                  ? "bg-blue-100 text-blue-800 border-blue-300 shadow-sm"
+                  : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
+              }`}
             >
               Overview
             </button>
@@ -3128,198 +3087,50 @@ export default function LandUseLandCover({
           </>
         )}
 
-        {/* FULLSCREEN BUTTON */}
-        <div className="absolute top-3 right-3 z-[1500] max-[480px]:top-2 max-[480px]:right-2">
-          <FullscreenButton
-            isFullscreen={isFullscreen}
-            onToggle={toggleFullscreen}
-          />
-        </div>
-
-        {/* LAYER BUTTON + PANEL */}
-        {/* {!loading && !error && (
-          <div
-            ref={layerControlWrapperRef}
-            className="absolute top-2 left-2 z-[1500] flex flex-col items-start gap-1 max-[480px]:gap-0.5"
-          >
-            <div className="relative">
-              <button
-                onClick={() => setIsLayerPanelOpen(!isLayerPanelOpen)}
-                title="Layer Control"
-                className={`
-                  flex items-center justify-center
-                  w-[34px] h-[34px]
-                  max-[480px]:w-[28px] max-[480px]:h-[28px]
-                  bg-white
-                  rounded-[4px]
-                  border-2
-                  transition-all duration-200
-                  hover:bg-gray-50
-                  ${isLayerPanelOpen
-                    ? "border-blue-500 bg-blue-50 text-blue-600"
-                    : "border-gray-400 text-gray-700 hover:border-gray-500"
-                  }
-                  focus:outline-none
-                  focus:ring-0
-                  leaflet-bar
-                `}
-                style={{
-                  boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
-                }}
-                aria-label="Toggle layer control"
-              >
-                <Layers size={20} className="max-[480px]:w-4 max-[480px]:h-4" />
-              </button>
-
-              {isLayerPanelOpen && (
-                <div
-                  className="
-                    absolute top-0 left-full ml-2
-                    bg-white
-                    rounded-[4px]
-                    border-2 border-gray-300
-                    p-3
-                    min-w-[140px]
-                    max-w-[200px]
-                    max-[480px]:min-w-[140px]
-                    max-[480px]:max-w-[190px]
-                    max-[480px]:p-2
-                    shadow-lg
-                  "
-                  style={{
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-1 pb-1 border-b border-gray-200">
-                    <h3 className="text-xs font-semibold text-gray-700 max-[500px]:text-[10px] whitespace-nowrap">
-                      Add-on Layer
-                    </h3>
-                    <button
-                      onClick={() => setIsLayerPanelOpen(false)}
-                      className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full p-0.5 transition-all duration-200"
-                    >
-                      <X
-                        size={16}
-                        strokeWidth={3}
-                        className="max-[480px]:w-3.5 max-[480px]:h-3.5"
-                      />
-                    </button>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 max-[480px]:text-[9px]">
-                      Overlays
-                    </p>
-                    <div className="flex flex-col gap-1.5">
-                      {availableLayers.map((layer) => (
-                        <label
-                          key={layer.id}
-                          className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              layer.id === "lulc"
-                                ? showLULC
-                                : layer.id === "soil"
-                                  ? showSoil
-                                  : layer.id === "linear"
-                                    ? activeLayers.includes("linear")
-                                    : activeLayers.includes(layer.id)
-                            }
-                            onChange={() => handleLayerToggle(layer.id)}
-                            className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                          />
-                          <span className="whitespace-nowrap">
-                            {layer.name}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-2 pt-1 border-t border-gray-100">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 max-[480px]:text-[9px]">
-                      Base Map
-                    </p>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
-                        <input
-                          type="radio"
-                          name="baseLayer"
-                          checked={baseLayer === "streets"}
-                          onChange={() => handleBaseLayerChange("streets")}
-                          className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                        />
-                        <span className="whitespace-nowrap">Streets</span>
-                      </label>
-                      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
-                        <input
-                          type="radio"
-                          name="baseLayer"
-                          checked={baseLayer === "satellite"}
-                          onChange={() => handleBaseLayerChange("satellite")}
-                          className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                        />
-                        <span className="whitespace-nowrap">
-                          Google Satellite
-                        </span>
-                      </label>
-                      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
-                        <input
-                          type="radio"
-                          name="baseLayer"
-                          checked={baseLayer === "esri_satellite"}
-                          onChange={() =>
-                            handleBaseLayerChange("esri_satellite")
-                          }
-                          className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                        />
-                        <span className="whitespace-nowrap">Satellite</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )} */}
-
-
-
+        {/* LAYER BUTTON + PANEL (Zoom control is inserted as firstChild via
+            the layerControlWrapperRef effect, so the stacking order ends
+            up: Zoom In/Out → Fullscreen → Layers, per TL request.) */}
         {!loading && !error && (
           <div
             ref={layerControlWrapperRef}
             className="absolute top-2 left-2 z-[1500] flex flex-col items-start gap-1 max-[480px]:gap-0.5"
           >
+            <FullscreenButton
+              isFullscreen={isFullscreen}
+              onToggle={toggleFullscreen}
+            />
             {/* Layer button + panel */}
             <div className="relative">
               <button
                 onClick={() => setIsLayerPanelOpen(!isLayerPanelOpen)}
                 title="Layer Control"
                 className={`
-          flex items-center justify-center
-          w-[34px] h-[34px]
-          max-[480px]:w-[28px] max-[480px]:h-[28px]
-          bg-white
-          rounded-[4px]
-          border-2
-          transition-all duration-200
-          hover:bg-gray-50
-          ${isLayerPanelOpen
-                    ? "border-blue-500 bg-blue-50 text-blue-600"
-                    : "border-gray-400 text-gray-700 hover:border-gray-500"
-                  }
-          focus:outline-none
-          focus:ring-0
-          leaflet-bar
-        `}
+    flex items-center justify-center
+    w-[22px] h-[22px]
+    max-[480px]:w-[18px] max-[480px]:h-[18px]
+    bg-white
+    rounded-[4px]
+    border-2
+    transition-all duration-200
+    hover:bg-gray-50
+    ${
+      isLayerPanelOpen
+        ? "border-blue-500 bg-blue-50 text-blue-600"
+        : "border-gray-400 text-gray-700 hover:border-gray-500"
+    }
+    focus:outline-none
+    focus:ring-0
+    leaflet-bar
+  `}
                 style={{
                   boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
                 }}
                 aria-label="Toggle layer control"
               >
-                <Layers size={20} className="max-[480px]:w-4 max-[480px]:h-4" />
+                <Layers
+                  size={13}
+                  className="max-[480px]:w-2.5 max-[480px]:h-2.5"
+                />
               </button>
 
               {isLayerPanelOpen && (
@@ -3436,18 +3247,20 @@ export default function LandUseLandCover({
           </div>
         )}
 
-
-        {/* 🆕 Flyover quick-jump buttons — top-right, horizontal row */}
+        {/* Flyover quick-jump buttons — top row on desktop, 2-column grid
+            on mobile (per TL: keep them at the top like desktop, but wrap
+            into 2 buttons per row below 480px instead of a horizontal
+            scroll or single vertical column). */}
         {!loading &&
           !error &&
           activeLayers.includes("linear") &&
           flyoverEntries.length > 0 && (
             <div
               ref={flyoverButtonsContainerRef}
-              className="absolute top-2 left-10 z-[1500] flex flex-row items-center gap-1.5 max-[480px]:top-2 max-[480px]:right-2 max-[480px]:gap-1"
+              className="absolute top-2 left-10 right-14 z-[1500] flex flex-row items-center gap-1.5 overflow-x-auto max-[480px]:grid max-[480px]:grid-cols-2 max-[480px]:gap-1 max-[480px]:overflow-visible"
               style={{ pointerEvents: "auto" }}
             >
-              {flyoverEntries.map((f, idx) => {
+              {flyoverEntries.map((f) => {
                 const isActive = activeFlyoverId === f.id;
                 return (
                   <button
@@ -3457,39 +3270,36 @@ export default function LandUseLandCover({
                     className={`
               flex items-center gap-2
               h-[28px]
-              max-[480px]:h-[28px]
+              max-[480px]:h-[22px]
               w-auto
               min-w-[80px]
-              max-w-[200px]
-              max-[480px]:min-w-[80px]
-              max-[480px]:max-w-[160px]
+              max-w-[160px]
+              max-[480px]:w-full
+              max-[480px]:min-w-0
+              max-[480px]:max-w-none
               px-2
-              max-[480px]:px-1.5
+              max-[480px]:px-1
               rounded-[4px]
               border-2
+              flex-shrink-0
               transition-all duration-200
               focus:outline-none
               focus:ring-0
               leaflet-bar
-              ${isActive
-                        ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                        : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
-                      }
+              ${
+                isActive
+                  ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+                  : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
+              }
             `}
-                    style={{
-                      boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
-                    }}
+                    style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.1)" }}
                     aria-label={`Zoom to ${f.name}`}
                   >
-                    {/* Color dot — smaller, single, aligned left */}
                     <span
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0 max-[480px]:w-2 max-[480px]:h-2"
+                      className="w-2.5 h-2.5 max-[480px]:w-2 max-[480px]:h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: f.color }}
                     />
-
-                    {/* Flyover name — grows with content, ellipsis only if it
-                exceeds max-width */}
-                    <span className="text-[10px] max-[480px]:text-[9px] font-semibold truncate text-left">
+                    <span className="text-[10px] max-[480px]:text-[9px] font-semibold truncate text-left min-w-0">
                       {f.name}
                     </span>
                   </button>
@@ -3500,7 +3310,20 @@ export default function LandUseLandCover({
 
         {/* SEGMENT / LINEAR TABLE OVERLAY */}
         {showSegmentsUI && showSegmentTable && (
-          <div className="absolute top-12 right-3 z-[1500] max-w-[260px] w-full max-h-[350px] bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 overflow-hidden max-[480px]:max-w-[220px] max-[480px]:max-h-[250px]">
+          <div
+            className=" absolute top-2 right-3 z-[1500]
+      max-w-[260px] w-full max-h-[320px]
+      bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200
+      overflow-hidden
+
+      max-[480px]:top-auto
+      max-[480px]:bottom-14
+      max-[480px]:right-2
+      max-[480px]:left-auto
+      max-[480px]:w-auto
+      max-[480px]:max-w-[220px]
+      max-[480px]:max-h-[220px]"
+          >
             <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
               <span className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                 <Table size={14} />
@@ -3524,6 +3347,11 @@ export default function LandUseLandCover({
           </div>
         )}
 
+        {/* RiskOverviewPanel: bottom-right on mobile (matching the corner
+            LULC/Soil/Risk legends use), top-right on desktop. If it ever
+            needs to coexist on mobile with those legends, consider adding
+            a conditional bottom offset the same way the flyover row's
+            lift was explored earlier. */}
         {showOverview && (
           <RiskOverviewPanel onClose={() => setShowOverview(false)} />
         )}
@@ -3570,25 +3398,25 @@ export default function LandUseLandCover({
           (showSoil && soilLoading) ||
           (showSegmentsUI && segmentLoading) ||
           (showDifferenceUI && velocityDiffLoading)) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
-              <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
-                <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
-                <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
-                  {loading
-                    ? "Initializing map..."
-                    : showSoil && soilLoading
-                      ? "Loading soil data..."
-                      : movementLoading
-                        ? "Loading movement points..."
-                        : showDifferenceUI && velocityDiffLoading
-                          ? "Loading velocity difference..."
-                          : showSegmentsUI && segmentLoading
-                            ? "Loading segment data..."
-                            : "Loading flyover data..."}
-                </p>
-              </div>
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
+            <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
+              <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
+                {loading
+                  ? "Initializing map..."
+                  : showSoil && soilLoading
+                    ? "Loading soil data..."
+                    : movementLoading
+                      ? "Loading movement points..."
+                      : showDifferenceUI && velocityDiffLoading
+                        ? "Loading velocity difference..."
+                        : showSegmentsUI && segmentLoading
+                          ? "Loading segment data..."
+                          : "Loading flyover data..."}
+              </p>
             </div>
-          )}
+          </div>
+        )}
 
         {/* ERROR */}
         {(error ||
@@ -3596,20 +3424,20 @@ export default function LandUseLandCover({
           soilError ||
           segmentsError.live ||
           (showDifferenceUI && velocityDiffError)) && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
-              <AlertTriangle
-                size={16}
-                className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
-              />
-              <span>
-                {error ||
-                  movementError ||
-                  soilError ||
-                  segmentsError.live ||
-                  (showDifferenceUI && velocityDiffError)}
-              </span>
-            </div>
-          )}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
+            <AlertTriangle
+              size={16}
+              className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
+            />
+            <span>
+              {error ||
+                movementError ||
+                soilError ||
+                segmentsError.live ||
+                (showDifferenceUI && velocityDiffError)}
+            </span>
+          </div>
+        )}
 
         {/* MOVEMENT CHART */}
         {showChart && selectedPointForChart && selectedDetailForChart && (
@@ -3642,16 +3470,3 @@ export default function LandUseLandCover({
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

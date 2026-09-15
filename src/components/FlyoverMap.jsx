@@ -253,7 +253,7 @@ function FullscreenControl({ containerRef }) {
 // portaled, positioned via the button's on-screen coordinates.
 // ---------------------------------------------------------------------
 function BaseMapPicker({ baseMap, onChange }) {
-  const map = useMap(); // now needs to be inside <MapContainer>, like FullscreenControl
+  const map = useMap();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
@@ -261,10 +261,7 @@ function BaseMapPicker({ baseMap, onChange }) {
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    setPanelPos({
-      top: rect.bottom + 6,
-      left: rect.left,
-    });
+    setPanelPos({ top: rect.bottom + 6, left: rect.left });
   }, []);
 
   useEffect(() => {
@@ -278,41 +275,66 @@ function BaseMapPicker({ baseMap, onChange }) {
     };
   }, [open, updatePosition]);
 
-  // Register the toggle button as a native Leaflet control instead of an
-  // absolutely-positioned div. Leaflet stacks same-corner controls
-  // (zoom, this) with correct spacing automatically on every screen
-  // size, so we no longer need a hardcoded top offset that breaks on
-  // mobile when the zoom control's height differs.
+  // Instead of registering a SEPARATE Leaflet control (which always gets its
+  // own margin-top gap from the zoom control, plus its own width if it
+  // doesn't exactly match 26x26), we append our button as an extra row
+  // INSIDE the zoom control's own container. That makes it the same box as
+  // +/-, so it lines up with zero gap and identical width on any screen.
   useEffect(() => {
     let root;
+    let btnEl;
+    let cancelled = false;
+    let attempts = 0;
 
-    const Control = L.Control.extend({
-      onAdd: () => {
-        const el = L.DomUtil.create("div", "leaflet-bar leaflet-control");
-        el.style.width = "30px";
-        el.style.height = "30px";
-        el.style.display = "flex";
-        el.style.alignItems = "center";
-        el.style.justifyContent = "center";
-        el.style.background = "white";
-        el.style.cursor = "pointer";
-        L.DomEvent.disableClickPropagation(el);
-        L.DomEvent.on(el, "click", () => {
-          setOpen((o) => !o);
-        });
+    const tryAttach = () => {
+      if (cancelled) return;
+      const zoomContainer = map
+        .getContainer()
+        .querySelector(".leaflet-control-zoom");
 
-        buttonRef.current = el;
-        root = createRoot(el);
-        root.render(<Layers size={16} className="text-blue-600" />);
-        return el;
-      },
-    });
+      if (!zoomContainer) {
+        if (attempts++ < 20) requestAnimationFrame(tryAttach);
+        return;
+      }
 
-    const control = new Control({ position: "topleft" });
-    control.addTo(map);
+      // Leaflet styles its zoom buttons via ".leaflet-bar a" — since this is a
+      // <div>, not an <a>, none of those rules apply automatically. Set the
+      // same look explicitly instead of relying on the class name.
+      btnEl = L.DomUtil.create("div", "leaflet-control-zoom-in");
+      btnEl.style.cursor = "pointer";
+      btnEl.style.display = "flex";
+      btnEl.style.alignItems = "center";
+      btnEl.style.justifyContent = "center";
+      btnEl.style.width = "26px";
+      btnEl.style.height = "26px";
+      btnEl.style.background = "#ffffff";
+      btnEl.style.borderTop = "1px solid #ccc"; // separates it from the "-" button above
+      btnEl.title = "Layer control";
+
+      L.DomEvent.disableClickPropagation(btnEl);
+      L.DomEvent.on(btnEl, "click", (e) => {
+        L.DomEvent.stop(e);
+        setOpen((o) => !o);
+      });
+      L.DomEvent.on(btnEl, "mouseover", () => {
+        btnEl.style.background = "#f4f4f4";
+      });
+      L.DomEvent.on(btnEl, "mouseout", () => {
+        btnEl.style.background = "#ffffff";
+      });
+
+      zoomContainer.appendChild(btnEl);
+      buttonRef.current = btnEl;
+
+      root = createRoot(btnEl);
+      root.render(<Layers size={14} className="text-blue-600" />);
+    };
+
+    tryAttach();
 
     return () => {
-      control.remove();
+      cancelled = true;
+      if (btnEl && btnEl.parentNode) btnEl.parentNode.removeChild(btnEl);
     };
   }, [map]);
 
