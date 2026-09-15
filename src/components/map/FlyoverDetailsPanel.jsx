@@ -30,7 +30,7 @@ export default function FlyoverDetailsPanel({
           </div>
         </div>
         <div className="px-0.5 py-1">
-          <div className="flex flex-row flex-wrap gap-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
             {selectedPoint.chainage && (
               <StatChip label="Chainage" value={selectedPoint.chainage} />
             )}
