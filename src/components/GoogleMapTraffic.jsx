@@ -449,7 +449,7 @@ export default function GoogleMapComponent() {
       // });
 
       map.data.setStyle(() => ({
-        visible: true,
+        visible: false,
       }));
 
       // Store layer IDs for reference

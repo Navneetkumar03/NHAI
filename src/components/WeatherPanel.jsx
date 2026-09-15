@@ -164,7 +164,7 @@ export default function WeatherPanel({
           Live
         </span> */}
       </div>
-      <div className="relative overflow-hidden rounded-xl border border-gray-200 p-3 mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
+      <div className="relative overflow-hidden rounded-xl border border-gray-200 p-2 mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
         <FlyoverDetailsPanel
           selectedHighway={selectedHighway}
           selectedPoint={selectedPoint}

@@ -23,7 +23,7 @@ const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.DASHBOARD },
   { label: "InfraRisk", icon: Mountain, id: ROUTES.Topography },
   { label: "Traffic", icon: TrafficCone, id: ROUTES.TRAFFIC },
-  { label: "Intense RF", icon: CloudSun, id: ROUTES.WEATHER },
+  // { label: "Intense RF", icon: CloudSun, id: ROUTES.WEATHER },
   { label: "Reports", icon: FileText, id: ROUTES.REPORTS },
 
   //{ label: "Monitoring", icon: Radar, id: ROUTES.MONITORING },
