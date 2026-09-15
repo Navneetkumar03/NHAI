@@ -248,12 +248,12 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
             <div className="p-3 sm:p-4">
                 {/* Header - Drag handle area */}
                 <div
-                    className="mb-2 sm:mb-3 cursor-grab active:cursor-grabbing"
+                    className="relative mb-2 sm:mb-3 cursor-grab active:cursor-grabbing"
                     onMouseDown={handleMouseDown}
                     style={{ touchAction: 'none' }}
                 >
                     {/* Row 1: Title + Checkboxes + Close */}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pr-7 sm:pr-0">
                         <div className="flex items-center gap-2">
                             <GripVertical size={16} className="text-gray-400 flex-shrink-0" />
                             <h4 className="text-base sm:text-lg font-semibold text-gray-800">
@@ -291,9 +291,12 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
                                     <span className="text-gray-700">Trend</span>
                                 </label>
                             </div>
+                            {/* Close button: pinned to top-right corner on mobile so it
+                                stays put regardless of how the checkboxes wrap; reverts
+                                to normal inline flow at sm+ (desktop) as before. */}
                             <button
                                 onClick={onClose}
-                                className="p-1 sm:p-1.5 bg-white hover:bg-red-50 hover:scale-105 rounded-full transition-all duration-200 hover:shadow-md"
+                                className="absolute top-0 right-0 sm:static p-1 sm:p-1.5 bg-white hover:bg-red-50 hover:scale-105 rounded-full transition-all duration-200 hover:shadow-md z-10"
                                 style={{ pointerEvents: 'auto' }}
                             >
                                 <X size={14} className="sm:w-4 sm:h-4 text-gray-500 hover:text-red-500" />

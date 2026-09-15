@@ -18,7 +18,7 @@ export default function FlyoverDetailsPanel({
     const displayName = formatPointName(selectedPoint.name);
     return (
       <div>
-        <div className="flex items-start justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-start justify-between px-2 py-1 ">
           <div className="flex items-start gap-2 min-w-0">
             <span
               className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1"
@@ -32,24 +32,16 @@ export default function FlyoverDetailsPanel({
         <div className="px-0.5 py-1">
           <div className="flex flex-row flex-wrap gap-1.5">
             {selectedPoint.chainage && (
-              <div className="flex-1 min-w-[45%]">
-                <StatChip label="Chainage" value={selectedPoint.chainage} />
-              </div>
+              <StatChip label="Chainage" value={selectedPoint.chainage} />
             )}
             {selectedPoint.length && (
-              <div className="flex-1 min-w-[45%]">
-                <StatChip label="Length" value={selectedPoint.length} />
-              </div>
+              <StatChip label="Length" value={selectedPoint.length} />
             )}
             {selectedPoint.description && (
-              <div className="flex-1 min-w-[45%]">
-                <StatChip label="Type" value={selectedPoint.description} />
-              </div>
+              <StatChip label="Type" value={selectedPoint.description} />
             )}
             {selectedPoint.detail && (
-              <div className="flex-1 min-w-[45%]">
-                <StatChip label="Structure" value={selectedPoint.detail} />
-              </div>
+              <StatChip label="Structure" value={selectedPoint.detail} />
             )}
           </div>
         </div>

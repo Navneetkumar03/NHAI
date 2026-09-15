@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   MapContainer,
   TileLayer,
@@ -163,6 +164,8 @@ function MapClickHandler({ onMapClick }) {
   useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
+      // Generic click on bare map (no specific marker/point) — no point
+      // object to pass, downstream code treats this as a segment-level click.
       if (onMapClick) onMapClick(lat, lng);
     },
   });
@@ -233,97 +236,163 @@ function FullscreenControl({ containerRef }) {
   return null;
 }
 
-
-function BaseMapPanel({ open, setOpen, baseMap, onChange }) {
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="flex h-[30px] w-[30px] items-center justify-center bg-white rounded-md shadow"
-        title="Layer control"
-      >
-        <Layers size={16} className="text-blue-600" />
-      </button>
-    );
-  }
-  return (
-    <div className="w-44 rounded-lg bg-white shadow-lg p-3 text-sm">
-      <div className="flex items-center justify-between mb-2">
-        <span className="font-semibold text-gray-800">Layers</span>
-        <button
-          onClick={() => setOpen(false)}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          <X size={14} />
-        </button>
-      </div>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
-        Base map
-      </p>
-      <div className="space-y-1.5">
-        {[
-          { key: "streets", label: "Street" },
-          { key: "satellite", label: "Google Satellite" },
-          { key: "esriSatellite", label: "Satellite" },
-        ].map((opt) => (
-          <label
-            key={opt.key}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <input
-              type="radio"
-              name="basemap"
-              checked={baseMap === opt.key}
-              onChange={() => onChange(opt.key)}
-              className="accent-blue-600"
-            />
-            <span className="text-gray-700">{opt.label}</span>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function BaseMapControl({ baseMap, onChange }) {
+// ---------------------------------------------------------------------
+// Base-map (Layers) picker.
+//
+// The OPEN PANEL is rendered through a React portal directly into
+// document.body — not as a descendant of the card, the grid, or the
+// Leaflet map at all. This is the only way to guarantee it always
+// renders above everything else: as long as the panel lives anywhere
+// inside the card's DOM tree, it's subject to whatever stacking
+// context that tree ends up inside (which can change independent of
+// this file — e.g. a sibling badge's z-index, a parent's transform,
+// etc.). A portal to <body> sidesteps that entirely.
+//
+// The toggle button itself stays inline (it just needs to sit roughly
+// where the Layers icon should appear on the card); only the panel is
+// portaled, positioned via the button's on-screen coordinates.
+// ---------------------------------------------------------------------
+function BaseMapPicker({ baseMap, onChange }) {
   const map = useMap();
-  const rootRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const buttonRef = useRef(null);
+  const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
+
+  const updatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setPanelPos({ top: rect.bottom + 6, left: rect.left });
+  }, []);
 
   useEffect(() => {
-    const Control = L.Control.extend({
-      onAdd: () => {
-        const el = L.DomUtil.create(
-          "div",
-          "leaflet-bar leaflet-control basemap-control",
-        );
-        L.DomEvent.disableClickPropagation(el);
-        L.DomEvent.disableScrollPropagation(el);
-        rootRef.current = createRoot(el);
-        return el;
-      },
-    });
-    const control = new Control({ position: "topleft" });
-    control.addTo(map);
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
     return () => {
-      rootRef.current?.unmount();
-      control.remove();
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition]);
+
+  // Instead of registering a SEPARATE Leaflet control (which always gets its
+  // own margin-top gap from the zoom control, plus its own width if it
+  // doesn't exactly match 26x26), we append our button as an extra row
+  // INSIDE the zoom control's own container. That makes it the same box as
+  // +/-, so it lines up with zero gap and identical width on any screen.
+  useEffect(() => {
+    let root;
+    let btnEl;
+    let cancelled = false;
+    let attempts = 0;
+
+    const tryAttach = () => {
+      if (cancelled) return;
+      const zoomContainer = map
+        .getContainer()
+        .querySelector(".leaflet-control-zoom");
+
+      if (!zoomContainer) {
+        if (attempts++ < 20) requestAnimationFrame(tryAttach);
+        return;
+      }
+
+      // Leaflet styles its zoom buttons via ".leaflet-bar a" — since this is a
+      // <div>, not an <a>, none of those rules apply automatically. Set the
+      // same look explicitly instead of relying on the class name.
+      btnEl = L.DomUtil.create("div", "leaflet-control-zoom-in");
+      btnEl.style.cursor = "pointer";
+      btnEl.style.display = "flex";
+      btnEl.style.alignItems = "center";
+      btnEl.style.justifyContent = "center";
+      btnEl.style.width = "26px";
+      btnEl.style.height = "26px";
+      btnEl.style.background = "#ffffff";
+      btnEl.style.borderTop = "1px solid #ccc"; // separates it from the "-" button above
+      btnEl.title = "Layer control";
+
+      L.DomEvent.disableClickPropagation(btnEl);
+      L.DomEvent.on(btnEl, "click", (e) => {
+        L.DomEvent.stop(e);
+        setOpen((o) => !o);
+      });
+      L.DomEvent.on(btnEl, "mouseover", () => {
+        btnEl.style.background = "#f4f4f4";
+      });
+      L.DomEvent.on(btnEl, "mouseout", () => {
+        btnEl.style.background = "#ffffff";
+      });
+
+      zoomContainer.appendChild(btnEl);
+      buttonRef.current = btnEl;
+
+      root = createRoot(btnEl);
+      root.render(<Layers size={14} className="text-blue-600" />);
+    };
+
+    tryAttach();
+
+    return () => {
+      cancelled = true;
+      if (btnEl && btnEl.parentNode) btnEl.parentNode.removeChild(btnEl);
     };
   }, [map]);
 
-  useEffect(() => {
-    rootRef.current?.render(
-      <BaseMapPanel
-        open={open}
-        setOpen={setOpen}
-        baseMap={baseMap}
-        onChange={onChange}
-      />,
-    );
-  }, [open, baseMap, onChange]);
-
-  return null;
+  return (
+    open &&
+    createPortal(
+      <>
+        <div
+          className="fixed inset-0 z-[99998]"
+          onClick={() => setOpen(false)}
+        />
+        <div
+          className="fixed z-[99999] w-44 max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-3 text-sm"
+          style={{ top: panelPos.top, left: panelPos.left }}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-semibold text-gray-800">Layers</span>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+            Base map
+          </p>
+          <div className="space-y-1.5">
+            {[
+              { key: "streets", label: "Street" },
+              { key: "satellite", label: "Google Satellite" },
+              { key: "esriSatellite", label: "Satellite" },
+            ].map((opt) => (
+              <label
+                key={opt.key}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="basemap"
+                  checked={baseMap === opt.key}
+                  onChange={() => onChange(opt.key)}
+                  className="accent-blue-600"
+                />
+                <span className="text-gray-700">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </>,
+      document.body,
+    )
+  );
 }
+
 const locationIcon = L.divIcon({
   className: "flyover-location-marker",
   html: `
@@ -346,7 +415,6 @@ const locationIcon = L.divIcon({
   iconAnchor: [15, 34],
   popupAnchor: [0, -30],
 });
-
 
 const CONDITIONS = {
   clear: { icon: Sun, accent: "#fdba55", glow: "rgba(253,186,85,0.35)" },
@@ -501,6 +569,7 @@ function FlyoverGeoJsonLayer({ data, color, isActive, onFeatureClick }) {
       click: (e) => {
         L.DomEvent.stopPropagation(e);
         const { lat, lng } = e.latlng;
+        // Polygon/segment click, not a specific marker — no point object.
         if (onFeatureClick) onFeatureClick(lat, lng);
       },
       mouseover: (e) => {
@@ -542,7 +611,6 @@ export default function FlyoverMap({
   const [baseMap, setBaseMap] = useState("satellite");
   const riskColorMap = { low: "#22c55e", moderate: "#f97316", high: "#ef4444" };
 
-
   useEffect(() => {
     const handleChange = () => {
       setIsFullscreen(document.fullscreenElement === containerRef.current);
@@ -564,9 +632,22 @@ export default function FlyoverMap({
   const validCenter =
     center && center.length === 2 ? center : [28.6139, 77.229];
 
-  const handleClick = (lat, lng) => {
-    if (onMapClick) onMapClick(lat, lng);
-  };
+  // `point` is undefined for a bare map/polygon click (no specific marker
+  // involved) and is the actual flyover point object when a marker is
+  // clicked. Forwarded up to FlyoverCard -> DashboardPage as-is so the
+  // dashboard can open the exact detail card instead of guessing.
+  //
+  // useCallback keeps this stable across re-renders — react-leaflet
+  // unbinds/rebinds a Marker's click listener whenever its eventHandlers
+  // prop changes identity, and an unstable handleClick here was causing
+  // that churn on every render (the "need to click twice" bug).
+  const handleClick = useCallback(
+    (lat, lng, point) => {
+      if (onMapClick) onMapClick(lat, lng, point);
+    },
+    [onMapClick],
+  );
+
   const layerMarkers = (points || []).filter(
     (point) => Array.isArray(point.latlng) && point.latlng.length === 2,
   );
@@ -603,7 +684,7 @@ export default function FlyoverMap({
     return null;
   }
   return (
-    <div ref={containerRef} className="w-full h-full bg-black">
+    <div ref={containerRef} className="relative w-full h-full bg-black">
       <style>{`
         .pin-pop {
           position: relative;
@@ -686,7 +767,6 @@ export default function FlyoverMap({
         <FullscreenFit geojson={geojson} isFullscreen={isFullscreen} />
         <MapClickHandler onMapClick={handleClick} />
         <FullscreenControl containerRef={containerRef} />
-        <BaseMapControl baseMap={baseMap} onChange={setBaseMap} />
         <PopupOpener
           markerRef={markerRef}
           markerPosition={markerPosition}
@@ -725,12 +805,16 @@ export default function FlyoverMap({
               eventHandlers={{
                 click: (e) => {
                   e.originalEvent.stopPropagation();
-                  handleClick(point.latlng[0], point.latlng[1]);
+                  // Pass the point itself up, not just its coordinates —
+                  // this is what lets the dashboard open the exact flyover
+                  // detail card instead of guessing which point was clicked.
+                  handleClick(point.latlng[0], point.latlng[1], point);
                 },
               }}
             />
           );
         })}
+        <BaseMapPicker baseMap={baseMap} onChange={setBaseMap} />
       </MapContainer>
     </div>
   );

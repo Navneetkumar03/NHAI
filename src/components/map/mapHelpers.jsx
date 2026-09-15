@@ -409,7 +409,7 @@ export function makeFlyoverIcon({
   name,
   detailFields = [],
 }) {
-  const { dataUrl, width, height, pinX, pinY } = createUnifiedMarkerIcon({
+  const { dataUrl, width, height, pinX, pinY, pinRadius } = createUnifiedMarkerIcon({
     color,
     labelText,
     detailed,
@@ -431,7 +431,7 @@ export function makeFlyoverIcon({
     // this keeps the lat/lng point accurate under the pin, with label
     // floating to the right of it
     iconAnchor: [pinX, pinY],
-    popupAnchor: [width / 2 - pinX, -(pinY + 10)],
+    popupAnchor: [0, -(pinRadius + 8)],
   });
 }
 

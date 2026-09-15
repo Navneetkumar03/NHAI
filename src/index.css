@@ -177,47 +177,41 @@ body {
   padding: 0 !important;
 }
 
-
-
-
-
-
-
-.animated-gradient-border {
-  position: relative;
-  background: white;
-  isolation: isolate;
+/* Hide horizontal scrollbars used by mobile map controls */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
-.animated-gradient-border::before {
-  content: "";
-  position: absolute;
-  inset: -100%;
-  z-index: -1;
-  background: conic-gradient(from var(--angle),
-      #ff2d55, #ff9500, #ffd60a, #34c759, #007aff, #af52de, #ff2d55);
-  animation: spinPulse 2.5s linear infinite;
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes spinPulse {
-  0% {
-    --angle: 0deg;
-    transform: scale(1);
+/* Prevent Leaflet controls from creating unwanted mobile spacing */
+@media (max-width: 768px) {
+  .leaflet-control {
+    margin: 0 !important;
   }
 
-  50% {
-    --angle: 180deg;
-    transform: scale(1.15);
+  .leaflet-control-zoom {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
   }
 
-  100% {
-    --angle: 360deg;
-    transform: scale(1);
+  .leaflet-control-attribution {
+    font-size: 8px !important;
+    padding: 1px 3px !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 8px !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  .leaflet-tooltip {
+    font-size: 10px !important;
   }
 }

@@ -1,4 +1,9 @@
-import { Waypoints, CheckCircle2, AlertTriangle, ShieldAlert } from "lucide-react";
+import {
+  Waypoints,
+  CheckCircle2,
+  AlertTriangle,
+  ShieldAlert,
+} from "lucide-react";
 
 const cardConfig = [
   {
@@ -38,24 +43,35 @@ const cardConfig = [
 export default function StatsCards({ stats }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {cardConfig.map(({ key, label, icon: Icon, accent, iconBg, iconColor }) => (
-        <div
-          key={key}
-          className={`relative bg-white border border-gray-100 border-l-4 ${accent} rounded-xl2 p-3 sm:p-4 flex items-center gap-3 shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200`}
-        >
-          <div className={`${iconBg} p-2 sm:p-2.5 rounded-lg shrink-0`}>
-            <Icon size={18} className={iconColor} strokeWidth={2.25} />
+      {cardConfig.map(
+        ({ key, label, icon: Icon, accent, iconBg, iconColor }) => (
+          <div
+            key={key}
+            className={`relative bg-white border border-gray-100 border-l-4 ${accent} rounded-xl2 p-3 sm:p-4 flex items-center gap-2 sm:gap-3 shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200`}
+          >
+            <div className={`${iconBg} p-1.5 sm:p-2.5 rounded-lg shrink-0`}>
+              <Icon
+                size={16}
+                className={`sm:hidden ${iconColor}`}
+                strokeWidth={2.25}
+              />
+              <Icon
+                size={18}
+                className={`hidden sm:block ${iconColor}`}
+                strokeWidth={2.25}
+              />
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <p className="text-xl sm:text-2xl font-bold text-gray-800 leading-tight">
+                {stats[key]}
+              </p>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-semibold leading-snug break-words">
+                {label}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <p className="text-xl sm:text-2xl font-bold text-gray-800 leading-tight">
-              {stats[key]}
-            </p>
-            <p className="text-[10px] sm:text-xs text-gray-500 font-semibold leading-tight truncate">
-              {label}
-            </p>
-          </div>
-        </div>
-      ))}
+        ),
+      )}
     </div>
   );
 }

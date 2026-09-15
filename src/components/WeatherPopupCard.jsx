@@ -1,157 +1,391 @@
+import { useRef } from "react";
 import {
   CloudRain,
   Cloud,
   Sun,
-  CloudSun,
-  CloudDrizzle,
-  CloudLightning,
-  CloudSnow,
   Wind,
   Droplets,
   Eye,
-  Loader2,
   MapPin,
+  Navigation,
+  ChevronLeft,
+  ChevronRight,
+  ShieldAlert,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import FlyoverDetailsPanel from "./map/FlyoverDetailsPanel";
 
-// ---- condition -> visual language -----------------------------------
-// The card itself is a single neutral dark-glass surface (see
-// CARD_BACKGROUND below) so it holds up against any map terrain —
-// green farmland, gray city blocks, blue coastline, dark satellite.
-// Only the icon badge and its glow carry the condition's color, so the
-// weather is still legible at a glance without recoloring the whole card.
-const CONDITIONS = {
-  clear: { icon: Sun, accent: "#fdba55", glow: "rgba(253,186,85,0.35)" },
-  "partly cloudy": {
-    icon: CloudSun,
-    accent: "#63b3ed",
-    glow: "rgba(99,179,237,0.3)",
-  },
-  cloudy: { icon: Cloud, accent: "#9aa5b1", glow: "rgba(154,165,177,0.25)" },
-  rain: { icon: CloudRain, accent: "#4fa3d1", glow: "rgba(79,163,209,0.3)" },
-  drizzle: {
-    icon: CloudDrizzle,
-    accent: "#7ec8e3",
-    glow: "rgba(126,200,227,0.28)",
-  },
-  storm: {
-    icon: CloudLightning,
-    accent: "#b39ddb",
-    glow: "rgba(179,157,219,0.35)",
-  },
-  snow: { icon: CloudSnow, accent: "#d9ecfb", glow: "rgba(217,236,251,0.35)" },
+// ---------------------------------------------------------------------------
+// Demo data so this file also previews stand-alone. In the real app this is
+// never used — App.js passes `weather` (from sendLocationToAPI) and
+// `loading` (weatherLoading) as props, and those take over automatically.
+// ---------------------------------------------------------------------------
+const DEMO_WEATHER = {
+  location: "NH-44, Chainage 128+400",
+  structureId: "VB-STR-0128",
+  temp: 30,
+  condition: "Light Rain",
+  conditionCode: "rain",
+  wind: 14,
+  humidity: 78,
+  rainfall: 3.4,
+  visibility: 6.2,
+  riskLevel: "Moderate",
+  forecast: Array.from({ length: 24 }).map((_, i) => ({
+    time: `${(4 + i) % 24}:00`.padStart(5, "0"),
+    temp: Math.round(25 + 4 * Math.sin(i / 4)),
+    condition: ["clear", "cloudy", "rain"][Math.floor(Math.random() * 3)],
+    precipProbability: Math.round(Math.random() * 60),
+    windSpeed: Math.round(8 + Math.random() * 18),
+    windDirection: Math.round(Math.random() * 360),
+  })),
+  rainfallIntensity: Array.from({ length: 24 }).map((_, i) => ({
+    time: `${(4 + i) % 24}:00`.padStart(5, "0"),
+    mm: +(Math.random() * 10).toFixed(1),
+  })),
 };
 
-// One dark glass surface, used for every condition, so the card always
-// reads as a distinct floating panel no matter what's underneath it.
-const CARD_BACKGROUND =
-  "linear-gradient(165deg, rgba(30,35,46,0.94) 0%, rgba(14,17,23,0.96) 100%)";
+const conditionIconFor = (code) => {
+  if (code === "rain" || code === "storm") return CloudRain;
+  if (code === "cloudy" || code === "clouds") return Cloud;
+  return Sun;
+};
 
-function resolveCondition(conditionCode) {
-  const key = (conditionCode || "").toLowerCase();
-  if (key.includes("clear") || key.includes("sun")) return CONDITIONS.clear;
-  if (key.includes("partly")) return CONDITIONS["partly cloudy"];
-  if (key.includes("storm") || key.includes("thunder")) return CONDITIONS.storm;
-  if (key.includes("drizzle")) return CONDITIONS.drizzle;
-  if (key.includes("rain")) return CONDITIONS.rain;
-  if (key.includes("snow")) return CONDITIONS.snow;
-  if (key.includes("cloud")) return CONDITIONS.cloudy;
-  return CONDITIONS["partly cloudy"];
-}
+const RISK_STYLES = {
+  Low: {
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-600",
+    dot: "bg-emerald-500",
+  },
+  Moderate: {
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-600",
+    dot: "bg-amber-500",
+  },
+  High: {
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-600",
+    dot: "bg-rose-500",
+  },
+};
 
-// Compact weather card rendered inside a Leaflet popup. Handles its own
-// loading state so the popup can open the instant the marker is placed,
-// before the weather API response has come back.
-export default function WeatherPopupCard({ weather, loading }) {
-  if (loading || !weather) {
+export default function WeatherPanel({
+  weather: weatherProp,
+  loading,
+  hourStep = 1,
+  selectedHighway,
+  selectedPoint,
+  flyoverMarkers,
+  visibleFlyoverIds,
+  onSelectHighway,
+  onSelectPoint,
+}) {
+  const weather = weatherProp || DEMO_WEATHER;
+  const scrollRef = useRef(null);
+  const risk = RISK_STYLES[weather.riskLevel] || RISK_STYLES.Low;
+  const HeroIcon = conditionIconFor(weather.conditionCode);
+
+  // Show every Nth hour (e.g. 10am, 4pm, 10pm for hourStep=6) instead of
+  // all 24 entries. Assumes weather.forecast is hourly, ordered from now.
+  const hourlyForecast = weather.forecast
+    ? weather.forecast.filter((_, i) => i % hourStep === 0)
+    : [];
+
+  const scrollBy = (dir) => {
+    scrollRef.current?.scrollBy({ left: dir * 140, behavior: "smooth" });
+  };
+
+  // Cap chart x-axis labels to ~5 regardless of how narrow the column is.
+  const tickInterval = weather.rainfallIntensity
+    ? Math.max(0, Math.ceil(weather.rainfallIntensity.length / 5) - 1)
+    : 0;
+
+  if (loading && !weatherProp) {
     return (
-      <div className="w-72 rounded-[28px] bg-white/90 backdrop-blur-xl p-6 shadow-2xl ring-1 ring-black/5">
-        <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
-          <Loader2 size={16} className="animate-spin" />
-          Fetching weather…
-        </div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 flex flex-col min-h-[420px] h-full gap-3">
+        <div className="h-4 w-2/3 bg-gray-100 rounded animate-pulse" />
+        <div className="h-28 bg-gray-100 rounded-xl animate-pulse" />
+        <div className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+        <div className="h-32 bg-gray-100 rounded-xl animate-pulse" />
       </div>
     );
   }
 
-  const theme = resolveCondition(weather.conditionCode || weather.condition);
-  const Icon = theme.icon;
-
-  const stats = [
-    { icon: Wind, value: weather.wind, unit: "km/h", label: "Wind" },
-    { icon: Droplets, value: weather.humidity, unit: "%", label: "Humidity" },
-    { icon: CloudRain, value: weather.rainfall, unit: "mm", label: "Rainfall" },
-    { icon: Eye, value: weather.visibility, unit: "km", label: "Visibility" },
-  ];
-
   return (
     <div
-      className="relative w-70 overflow-hidden rounded-[28px] p-5 text-white shadow-[0_24px_60px_-12px_rgba(0,0,0,0.65)] ring-2 ring-white/15 backdrop-blur-xl"
-      style={{ background: CARD_BACKGROUND }}
+      className={`weather-panel-scroll bg-white rounded-2xl border border-gray-100 shadow-sm p-2.5 sm:p-3 flex flex-col min-h-[420px] h-full min-w-0 overflow-y-auto transition-opacity duration-300 ${loading ? "opacity-60" : "opacity-100"
+        }`}
     >
-      {/* faint top sheen so the glass panel reads as a lit surface, not a flat fill */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-transparent" />
+      <style>{`
+        .wp-scroll::-webkit-scrollbar { height: 5px; }
+        .wp-scroll::-webkit-scrollbar-track { background: transparent; }
+        .wp-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
+        .recharts-wrapper:focus, .recharts-wrapper *:focus, .recharts-surface:focus { outline: none !important; }
 
-      {/* header */}
-      <div className="relative flex items-start justify-between">
-        <div className="flex items-center gap-1.5">
-          <MapPin size={13} className="text-white/60" strokeWidth={2.5} />
-          <p className="text-[14px] font-semibold tracking-wide text-white/90">
-            {weather.location}
-          </p>
-        </div>
-      </div>
+        /* vertical scroll on the panel root, styled to match .wp-scroll */
+        .weather-panel-scroll::-webkit-scrollbar { width: 5px; }
+        .weather-panel-scroll::-webkit-scrollbar-track { background: transparent; }
+        .weather-panel-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
+      `}</style>
 
-      {/* hero temperature */}
-      <div className="relative mt-4 flex items-center justify-between">
-        <div>
-          <div className="flex items-start leading-none">
-            <span className="text-[56px] font-bold tracking-tight">
-              {weather.temp}
-            </span>
-            <span className="mt-1.5 text-2xl font-semibold text-white/50">
-              °
-            </span>
+      {/* Location header */}
+      <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="bg-blue-50 p-1.5 rounded-lg shrink-0">
+            <MapPin size={13} className="text-blue-600" />
           </div>
-          <p className="mt-1 text-sm font-medium text-white/70">
-            {weather.condition}
-          </p>
-        </div>
-
-        {/* the only place condition color shows up: icon + its glow */}
-        <div className="relative flex h-16 w-16 items-center justify-center">
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl blur-xl"
-            style={{ background: theme.glow }}
-          />
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.06] ring-1 ring-white/10">
-            <Icon size={32} strokeWidth={1.8} style={{ color: theme.accent }} />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-gray-800 truncate">
+              {weather.location}
+            </p>
+            {weather.structureId && (
+              <p className="text-[10px] text-gray-400 truncate">
+                {weather.structureId}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* divider */}
-      <div className="relative mt-5 h-px w-full bg-white/10" />
+      <div className="relative overflow-hidden rounded-xl border border-gray-200 p-2.5 sm:p-3 mb-4 sm:mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
+        <FlyoverDetailsPanel
+          selectedHighway={selectedHighway}
+          selectedPoint={selectedPoint}
+          flyoverMarkers={flyoverMarkers}
+          visibleFlyoverIds={visibleFlyoverIds}
+          onSelectHighway={onSelectHighway}
+          onSelectPoint={onSelectPoint}
+        />
+      </div>
 
-      {/* stats row — compact glass pills instead of four heavy tiles */}
-      <div className="relative mt-4 grid grid-cols-4 gap-2">
-        {stats.map(({ icon: StatIcon, value, unit, label }) => (
-          <div
-            key={label}
-            className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.06] py-3 ring-1 ring-white/10"
-          >
-            <StatIcon size={15} className="text-white/70" strokeWidth={2} />
-            <p className="text-[13px] font-bold leading-none text-white">
-              {value}
-              <span className="ml-0.5 text-[9px] font-medium text-white/50">
-                {unit}
+      {/* Hero — current conditions */}
+      <div className="relative overflow-hidden rounded-xl border border-gray-200 p-2.5 sm:p-3 mb-4 sm:mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
+        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-md pointer-events-none" />
+
+        <div className="flex items-start justify-between relative mb-2.5 sm:mb-3">
+          <div>
+            <p className="text-xs sm:text-sm text-gray-700">Current Weather</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-bold leading-none">
+                {weather.temp}
               </span>
-            </p>
-            <p className="text-[9px] font-medium uppercase tracking-wide text-white/45">
-              {label}
-            </p>
+              <span className="text-xs sm:text-sm">°C</span>
+            </div>
+            <div className="flex items-center gap-1 mt-1 text-[11px] sm:text-xs bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full w-fit">
+              <HeroIcon size={12} />
+              <span className="font-medium">{weather.condition}</span>
+            </div>
           </div>
-        ))}
+
+          {weather.riskLevel && (
+            <div className="flex flex-col items-end gap-0.5 bg-white/15 rounded-lg px-2 py-1 shrink-0">
+              <span className="text-[9px] uppercase tracking-wide">Risk</span>
+              <div className="flex items-center gap-1">
+                <ShieldAlert />
+                <span className="text-[12px] sm:text-[13px] font-bold">
+                  {weather.riskLevel}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-1.5 relative">
+          {[
+            { icon: Wind, label: "Wind", value: weather.wind, unit: "km/h" },
+            {
+              icon: Droplets,
+              label: "Humidity",
+              value: weather.humidity,
+              unit: "%",
+            },
+            {
+              icon: CloudRain,
+              label: "Rainfall",
+              value: weather.rainfall,
+              unit: "mm",
+            },
+            {
+              icon: Eye,
+              label: "Visibility",
+              value: weather.visibility,
+              unit: "km",
+            },
+          ].map(({ icon: Icon, label, value, unit }) => (
+            <div
+              key={label}
+              className="flex flex-col gap-0.5 bg-white/10 rounded-lg px-2 py-1.5 min-w-0"
+            >
+              <span className="text-[9px] uppercase tracking-wide truncate">
+                {label}
+              </span>
+              <div className="flex items-center gap-1 min-w-0">
+                <Icon size={16} className="shrink-0" />
+                <span className="text-[12px] sm:text-[13px] font-bold truncate">
+                  {value}
+                  <span className="font-medium">{unit}</span>
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* Hourly forecast — horizontal scroll, every hourStep hours */}
+      {hourlyForecast.length > 0 && (
+        <div className="mb-4 sm:mb-6 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs sm:text-sm text-gray-700">Next 24 hours</p>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => scrollBy(-1)}
+                className="p-0.5 rounded-md bg-gray-50 border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
+                aria-label="Scroll to earlier hours"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => scrollBy(1)}
+                className="p-0.5 rounded-md bg-gray-50 border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
+                aria-label="Scroll to later hours"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div
+            ref={scrollRef}
+            className="wp-scroll flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory"
+          >
+            {hourlyForecast.map((f, i) => {
+              const Icon = conditionIconFor(f.condition);
+              return (
+                <div
+                  key={f.time + i}
+                  className="snap-start shrink-0 w-[62px] sm:w-[70px] flex flex-col items-center gap-1.5 bg-gray-100 rounded-lg py-2 sm:py-2.5 px-1 border border-gray-300 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer"
+                >
+                  <span className="text-[10px] font-semibold text-gray-500 whitespace-nowrap">
+                    {f.time}
+                  </span>
+                  <Icon size={26} className="text-blue-500 sm:hidden" />
+                  <Icon size={30} className="text-blue-500 hidden sm:block" />
+                  <span className="text-sm font-bold text-gray-800">
+                    {f.temp}°
+                  </span>
+
+                  {typeof f.precipProbability === "number" && (
+                    <>
+                      <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden mt-0.5">
+                        <div
+                          className="h-full bg-blue-400 rounded-full"
+                          style={{ width: `${f.precipProbability}%` }}
+                        />
+                      </div>
+                      <span className="text-[8px] text-gray-400">
+                        {f.precipProbability}%
+                      </span>
+                    </>
+                  )}
+
+                  {typeof f.windDirection === "number" && (
+                    <div className="flex items-center gap-0.5 mt-0.5">
+                      <Navigation
+                        size={9}
+                        className="text-amber-500"
+                        style={{ transform: `rotate(${f.windDirection}deg)` }}
+                      />
+                      <span className="text-[8px] text-gray-400">
+                        {f.windSpeed}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Rainfall intensity chart — bottom, full width */}
+      {weather.rainfallIntensity && weather.rainfallIntensity.length > 0 && (
+        <div className="min-w-0">
+          <p className="text-xs sm:text-sm text-gray-700">
+            Rainfall intensity (mm/hr)
+          </p>
+          <div className="bg-gray-50 rounded-lg p-1.5 h-36 sm:h-40 md:h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={weather.rainfallIntensity}
+                margin={{ top: 6, right: 4, left: -20, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient
+                    id="rainFillLight"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="#eef2f7" />
+                <XAxis
+                  dataKey="time"
+                  tick={{ fontSize: 8, fontWeight: 600, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={tickInterval}
+                />
+                <YAxis
+                  tick={{ fontSize: 8, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={20}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white border border-gray-200 rounded-lg shadow-md px-2 py-1 text-[10px]">
+                          <p className="font-medium text-gray-500 mb-0.5">
+                            {payload[0].payload.time}
+                          </p>
+                          <p className="text-blue-600 font-semibold">
+                            {payload[0].value} mm
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="mm"
+                  stroke="#3B82F6"
+                  fill="url(#rainFillLight)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
