@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Mountain,
   TrafficCone,
+  Activity,
 } from "lucide-react";
 import { ROUTES } from "../router/routes";
 
@@ -27,7 +28,8 @@ const navItems = [
   { label: "Reports", icon: FileText, id: ROUTES.REPORTS },
 
   //{ label: "Monitoring", icon: Radar, id: ROUTES.MONITORING },
-  { label: "Alerts", icon: Bell, badge: 3, id: ROUTES.ALERTS }, // { label: "Integrations", icon: Puzzle, id: ROUTES.INTEGRATIONS },
+  { label: "Alerts", icon: Bell, badge: 3, id: ROUTES.ALERTS },
+  // { label: "Activity Log", icon: Activity, id: ROUTES.ActivityLog }, // { label: "Integrations", icon: Puzzle, id: ROUTES.INTEGRATIONS },
 ];
 
 export default function Sidebar({ activeItem, onNavClick, onClose }) {
@@ -51,10 +53,10 @@ export default function Sidebar({ activeItem, onNavClick, onClose }) {
                 disabled={!id}
                 onClick={() => id && handleNavClick(id)}
                 className={`group relative w-full flex flex-col items-center justify-center  py-2 rounded-xl text-[14px] font-medium transition-all duration-200 ${!id
-                  ? "cursor-not-allowed opacity-50"
-                  : isActive
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/40"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    ? "cursor-not-allowed opacity-50"
+                    : isActive
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/40"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white"
                   }`}
               >
                 <Icon

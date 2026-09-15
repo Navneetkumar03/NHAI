@@ -197,9 +197,10 @@ function FullscreenControl({ containerRef }) {
       onAdd: () => {
         const el = L.DomUtil.create("div", "leaflet-bar leaflet-control");
         el.style.background = "white";
-        el.style.width = "30px";
-        el.style.height = "30px";
+        el.style.width = "25px";
+        el.style.height = "25px";
         el.style.display = "flex";
+        el.style.marginTop = "25px";
         el.style.alignItems = "center";
         el.style.justifyContent = "center";
         el.style.cursor = "pointer";

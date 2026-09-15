@@ -22,6 +22,7 @@ const BASE = import.meta.env.BASE_URL;
 import { useFlyoverData } from "../hooks/useFlyoverData";
 import { useMovementPoints } from "../hooks/useMovementPoints";
 import { useFlyoverSegments } from "../hooks/useFlyoverSegments";
+import { sendUserActivity } from "../services/api";
 import {
   getFlyoverColor,
   getFlyoverDisplayName,
@@ -291,6 +292,7 @@ function VelocityDiffLegend({ range }) {
   const midDiff =
     minDiff !== null && maxDiff !== null ? (minDiff + maxDiff) / 2 : null;
 
+  // const fmt = (v) => (v === null || Number.isNaN(v) ? "—" : `${Math.round(v)}`);
   const fmt = (v) => (v === null || Number.isNaN(v) ? "—" : `${Math.round(v)}`);
 
   return (
@@ -509,6 +511,10 @@ function LayerSelector({ selectedLayer, onLayerChange }) {
               onClick={() => {
                 onLayerChange(opt);
                 setIsOpen(false);
+                sendUserActivity(
+                  `Selected Layer: ${getLayerLabel(opt)}`,
+                  "InfraRisk",
+                );
               }}
               className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs ${selectedLayer === opt
                 ? "bg-blue-50 text-blue-700 font-medium"
@@ -587,6 +593,7 @@ function DateRangeSelector({
                 onClick={() => {
                   onStartDateChange(date);
                   setIsStartOpen(false);
+                  sendUserActivity(`Selected Start Date: ${date}`, "InfraRisk");
                   if (!endDate || endDate < date) {
                     onEndDateChange(date);
                   }
@@ -633,6 +640,7 @@ function DateRangeSelector({
                   onClick={() => {
                     onEndDateChange(date);
                     setIsEndOpen(false);
+                    sendUserActivity(`Selected End Date: ${date}`, "InfraRisk");
                   }}
                   className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${endDate === date
                     ? "bg-blue-100 text-blue-700 font-medium"
@@ -1425,6 +1433,11 @@ export default function LandUseLandCover({
 
             return;
           }
+          // Capture actual velocity point click
+          sendUserActivity(
+            `Clicked Velocity Point: ${id} (${velocity} mm/yr)`,
+            "InfraRisk",
+          );
 
           if (selectedMovementMarkerRef.current) {
             const previousMarker = selectedMovementMarkerRef.current;
@@ -2249,6 +2262,13 @@ export default function LandUseLandCover({
     }
   }, []);
 
+  const flyoverActivityNames = {
+    F1: "1ROB(Chainage 5+362)-Button",
+    F2: "2-Flyover-Button",
+    F3: "3ROB(Chainage 0+930)-Button",
+    F4: "4MNB-Button",
+  };
+
   /* 🆕 Zoom + highlight a single flyover */
   const handleFlyoverButtonClick = useCallback(
     (flyoverEntry) => {
@@ -2273,6 +2293,12 @@ export default function LandUseLandCover({
       }
 
       setActiveFlyoverId(flyoverEntry.id);
+      // Capture flyover activity
+      sendUserActivity(
+        flyoverActivityNames[flyoverEntry.flyover] ||
+        ` ${flyoverEntry.name}-Button`,
+        "InfraRisk",
+      );
 
       flyoverBoundsRef.current.forEach((f) => {
         const isActive = f.id === flyoverEntry.id;
@@ -3235,8 +3261,14 @@ export default function LandUseLandCover({
 
             <button
               onClick={() => {
-                setShowSegmentTable((prev) => !prev);
+                const willOpen = !showSegmentTable;
+
+                setShowSegmentTable(willOpen);
                 setShowOverview(false);
+
+                if (willOpen) {
+                  sendUserActivity("Liner-Button", "InfraRisk");
+                }
               }}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${showSegmentTable
                 ? "bg-purple-100 text-purple-800 border-purple-300 shadow-sm"
@@ -3249,6 +3281,8 @@ export default function LandUseLandCover({
 
             <button
               onClick={() => {
+                sendUserActivity(" Overview-Button", "InfraRisk");
+
                 setShowOverview((prev) => !prev);
                 setShowSegmentTable(false);
               }}

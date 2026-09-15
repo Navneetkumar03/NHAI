@@ -186,10 +186,8 @@ export const fetchMovementPointById = async (pointId) => {
   }
 };
 
-
 //  POST /get_velocity_diff?from_date=YYYY-MM-DD&to_date=YYYY-MM-DD
 //  Fetch the velocity difference for every movement point between two dates
-
 
 export const fetchVelocityDiff = async (fromDate, toDate) => {
   try {
@@ -414,5 +412,34 @@ export const forceLogoutUser = async (username) => {
   } catch (error) {
     console.error("Error force logging out:", error);
     throw error;
+  }
+};
+
+export const sendUserActivity = async (activity, tab) => {
+  try {
+    const authUser = JSON.parse(sessionStorage.getItem("authUser"));
+
+    const activityData = {
+      userId: authUser?.userId,
+      username: authUser?.username,
+      activity,
+      tab,
+    };
+    const response = await fetch(`${BASE_URL}/activity_log`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(activityData),
+    });
+    if (!response.ok) {
+      throw new Error(`Activity API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return;
+  } catch (error) {
+    console.error("Failed to send user activity:", error);
   }
 };
