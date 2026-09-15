@@ -4,6 +4,7 @@ import ReportsPage from "../pages/ReportsPage";
 import Alertspage from "../pages/AlertsPage";
 import TopographyPage from "../pages/TopographyPage";
 import TrafficPage from "../pages/TrafiicPage";
+import ActivityLog from "../components/ActivityLog";
 
 export const ROUTES = {
   DASHBOARD: "dashboard",
@@ -12,6 +13,7 @@ export const ROUTES = {
   TRAFFIC: "traffic",
   REPORTS: "reports",
   ALERTS: "alerts",
+  ActivityLog:"activity log"
 };
 
 export const PAGE_COMPONENTS = {
@@ -21,6 +23,7 @@ export const PAGE_COMPONENTS = {
   [ROUTES.TRAFFIC]: TrafficPage,
   [ROUTES.REPORTS]: ReportsPage,
   [ROUTES.ALERTS]: Alertspage,
+  [ROUTES.ActivityLog]: ActivityLog,
 };
 
 export const getPageComponent = (route) => {

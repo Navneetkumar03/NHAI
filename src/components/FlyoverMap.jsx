@@ -194,9 +194,10 @@ function FullscreenControl({ containerRef }) {
       onAdd: () => {
         const el = L.DomUtil.create("div", "leaflet-bar leaflet-control");
         el.style.background = "white";
-        el.style.width = "30px";
-        el.style.height = "30px";
+        el.style.width = "25px";
+        el.style.height = "25px";
         el.style.display = "flex";
+        el.style.marginTop = "25px";
         el.style.alignItems = "center";
         el.style.justifyContent = "center";
         el.style.cursor = "pointer";
@@ -233,7 +234,6 @@ function FullscreenControl({ containerRef }) {
   return null;
 }
 
-
 function BaseMapPanel({ open, setOpen, baseMap, onChange }) {
   if (!open) {
     return (
@@ -247,7 +247,7 @@ function BaseMapPanel({ open, setOpen, baseMap, onChange }) {
     );
   }
   return (
-    <div className="w-44 rounded-lg bg-white shadow-lg p-3 text-sm">
+    <div className="w-36 rounded-lg bg-white shadow-lg p-3 text-sm">
       <div className="flex items-center justify-between mb-2">
         <span className="font-semibold text-gray-800">Layers</span>
         <button
@@ -297,6 +297,7 @@ function BaseMapControl({ baseMap, onChange }) {
           "div",
           "leaflet-bar leaflet-control basemap-control",
         );
+        el.style.zIndex = "2000";
         L.DomEvent.disableClickPropagation(el);
         L.DomEvent.disableScrollPropagation(el);
         rootRef.current = createRoot(el);
@@ -346,7 +347,6 @@ const locationIcon = L.divIcon({
   iconAnchor: [15, 34],
   popupAnchor: [0, -30],
 });
-
 
 const CONDITIONS = {
   clear: { icon: Sun, accent: "#fdba55", glow: "rgba(253,186,85,0.35)" },
@@ -541,7 +541,6 @@ export default function FlyoverMap({
   const [isDetailZoom, setIsDetailZoom] = useState(false);
   const [baseMap, setBaseMap] = useState("satellite");
   const riskColorMap = { low: "#22c55e", moderate: "#f97316", high: "#ef4444" };
-
 
   useEffect(() => {
     const handleChange = () => {

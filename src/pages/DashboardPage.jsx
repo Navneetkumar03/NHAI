@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useFlyoverData } from "../hooks/useFlyoverData";
 import { getStatsFromFlyovers } from "../utils/geoJsonParser";
-import { sendLocationToAPI } from "../services/api";
+import { sendLocationToAPI, sendUserActivity } from "../services/api";
 
 import StatsCards from "../components/StatsCards";
 import FlyoverCard from "../components/FlyoverCards";
@@ -13,6 +13,7 @@ import AlertMarquee from "../components/AlertMarquess";
 import { getFlyoverColor } from "../components/map/mapHelpers";
 import ObservationInfo from "../components/ObservationInfo";
 import FlyoverDetailsPanel from "../components/map/FlyoverDetailsPanel";
+
 
 export default function DashboardPage() {
   // ===========================================================================
@@ -266,6 +267,11 @@ export default function DashboardPage() {
   // ===========================================================================
 
   const handleCardActivate = useCallback((flyover) => {
+      const activityName = flyover.namedPoints?.[0]?.name;
+
+      console.log("Selected Flyover:", activityName);
+
+      sendUserActivity(`Selected Flyover: ${activityName}`, "Dashboard");
     setActiveId(flyover.id);
 
     const resolvedPoint = flyover.namedPoints?.[0] || null;

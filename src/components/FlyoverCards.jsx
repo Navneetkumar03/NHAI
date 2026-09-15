@@ -128,7 +128,7 @@ export default function FlyoverCard({
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
         <span
-          className={`absolute bottom-2.5 left-2.5 flex items-center gap-1 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-lg z-[1000] shadow-md ${riskStyles[riskStatus]}`}
+          className={`absolute bottom-2.5 left-2.5 flex items-center gap-1 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-lg z-[999] shadow-md ${riskStyles[riskStatus]}`}
         >
           <RiskIcon size={12} />
           {riskLabel[riskStatus]}
