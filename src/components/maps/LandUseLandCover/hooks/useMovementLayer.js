@@ -18,7 +18,7 @@ export function useMovementLayer({
   setShowChart,
   setShowDiffChart
 }) {
-const updateCircleWeights = useCallback(() => {
+  const updateCircleWeights = useCallback(() => {
     if (!mapRef.current) return;
     const zoom = mapRef.current.getZoom();
     const weight = getWeightForZoom(zoom);
@@ -120,7 +120,7 @@ const updateCircleWeights = useCallback(() => {
           }
           // Capture actual velocity point click
           sendUserActivity(
-            `Clicked Velocity Point: ${id} (${velocity} mm/yr)`,
+            `Clicked Velocity PointID: ${id} `,
             "InfraRisk",
           );
 

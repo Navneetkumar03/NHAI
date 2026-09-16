@@ -8,7 +8,7 @@ export function useGeolocation({
   userAccuracyCircleRef,
   userLocationMarkerRef
 }) {
-const handleLocateMe = useCallback(() => {
+  const handleLocateMe = useCallback(() => {
     if (!mapRef.current) return;
 
     if (!("geolocation" in navigator)) {
@@ -113,14 +113,7 @@ const handleLocateMe = useCallback(() => {
           keyboard: false,
         }).addTo(map);
 
-        marker.bindPopup(
-          `<div style="font-size:12px; font-family:Arial,sans-serif; padding:2px 4px;">
-           <strong>You are here</strong><br/>
-           Lat: ${latitude.toFixed(5)}<br/>
-           Lng: ${longitude.toFixed(5)}<br/>
-           Accuracy: ±${Math.round(accuracy)} m
-         </div>`
-        );
+
 
         userLocationMarkerRef.current = marker;
 
@@ -164,10 +157,9 @@ const handleLocateMe = useCallback(() => {
         setTimeout(() => setGpsError(null), 4000);
       },
       {
-        // 🔑 The three biggest fixes for "wrong location":
-        enableHighAccuracy: false, // let the browser use Wi-Fi/IP when GPS is absent
-        timeout: 15000,            // give it more time than 10 s
-        maximumAge: 30000,         // accept a fix up to 30 s old
+        enableHighAccuracy: true,   // actually use the GPS chip
+        timeout: 15000,
+        maximumAge: 0,              // always get a fresh fix on a button press
       }
     );
   }, []);
