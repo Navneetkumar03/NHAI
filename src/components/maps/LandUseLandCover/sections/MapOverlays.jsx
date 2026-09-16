@@ -76,12 +76,11 @@ export function MapOverlays({
   velocityDiffLoading,
   velocityDiffRange,
   yearLeft,
-  yearRight
+  yearRight,
 }) {
   return (
     <>
       {/* LEGENDS */}
-
       {!loading && !error && !soilError && (
         <>
           {!showSoil && showLULC && <LULCLegend />}
@@ -95,9 +94,8 @@ export function MapOverlays({
       )}
 
       {/* LAYER BUTTON + PANEL (Zoom control is inserted as firstChild via
-                  the layerControlWrapperRef effect, so the stacking order ends
-                  up: Zoom In/Out → Fullscreen → Layers, per TL request.) */}
-
+          the layerControlWrapperRef effect, so the stacking order ends
+          up: Zoom In/Out → Fullscreen → GPS → Layers, per TL request.) */}
       {!loading && !error && (
         <div
           ref={layerControlWrapperRef}
@@ -114,19 +112,19 @@ export function MapOverlays({
             title="Show my location"
             disabled={gpsLoading}
             className={`
-          flex items-center justify-center
-          w-[22px] h-[22px]
-          max-[480px]:w-[18px] max-[480px]:h-[18px]
-          bg-white
-          rounded-[4px]
-          border-2
-          transition-all duration-200
-          hover:bg-gray-50
-          border-gray-400 text-gray-700 hover:border-gray-500
-          focus:outline-none focus:ring-0
-          leaflet-bar
-          ${gpsLoading ? "opacity-70 cursor-wait" : ""}
-        `}
+              flex items-center justify-center
+              w-[22px] h-[22px]
+              max-[480px]:w-[18px] max-[480px]:h-[18px]
+              bg-white
+              rounded-[4px]
+              border-2
+              transition-all duration-200
+              hover:bg-gray-50
+              border-gray-400 text-gray-700 hover:border-gray-500
+              focus:outline-none focus:ring-0
+              leaflet-bar
+              ${gpsLoading ? "opacity-70 cursor-wait" : ""}
+            `}
             style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.1)" }}
             aria-label="Show my location"
           >
@@ -143,29 +141,28 @@ export function MapOverlays({
             )}
           </button>
 
-
           {/* Layer button + panel */}
           <div className="relative">
             <button
               onClick={() => setIsLayerPanelOpen(!isLayerPanelOpen)}
               title="Layer Control"
               className={`
-          flex items-center justify-center
-          w-[22px] h-[22px]
-          max-[480px]:w-[18px] max-[480px]:h-[18px]
-          bg-white
-          rounded-[4px]
-          border-2
-          transition-all duration-200
-          hover:bg-gray-50
-          ${isLayerPanelOpen
+                flex items-center justify-center
+                w-[22px] h-[22px]
+                max-[480px]:w-[18px] max-[480px]:h-[18px]
+                bg-white
+                rounded-[4px]
+                border-2
+                transition-all duration-200
+                hover:bg-gray-50
+                ${isLayerPanelOpen
                   ? "border-blue-500 bg-blue-50 text-blue-600"
                   : "border-gray-400 text-gray-700 hover:border-gray-500"
                 }
-          focus:outline-none
-          focus:ring-0
-          leaflet-bar
-        `}
+                focus:outline-none
+                focus:ring-0
+                leaflet-bar
+              `}
               style={{
                 boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
               }}
@@ -288,16 +285,11 @@ export function MapOverlays({
               </div>
             )}
           </div>
-
-
         </div>
       )}
 
       {/* Flyover quick-jump buttons — top row on desktop, 2-column grid
-                  on mobile (per TL: keep them at the top like desktop, but wrap
-                  into 2 buttons per row below 480px instead of a horizontal
-                  scroll or single vertical column). */}
-
+          on mobile. */}
       {!loading &&
         !error &&
         activeLayers.includes("linear") &&
@@ -355,21 +347,21 @@ export function MapOverlays({
         )}
 
       {/* SEGMENT / LINEAR TABLE OVERLAY */}
-
       {showSegmentsUI && showSegmentTable && (
         <div
-          className=" absolute top-2 right-3 z-[1500]
+          className="
+            absolute top-2 right-3 z-[1500]
             max-w-[260px] w-full max-h-[320px]
             bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200
             overflow-hidden
-      
             max-[480px]:top-auto
             max-[480px]:bottom-14
             max-[480px]:right-2
             max-[480px]:left-auto
             max-[480px]:w-auto
             max-[480px]:max-w-[220px]
-            max-[480px]:max-h-[220px]"
+            max-[480px]:max-h-[220px]
+          "
         >
           <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
             <span className="text-xs font-semibold text-gray-700 flex items-center gap-2">
@@ -394,18 +386,12 @@ export function MapOverlays({
         </div>
       )}
 
-      {/* RiskOverviewPanel: bottom-right on mobile (matching the corner
-                  LULC/Soil/Risk legends use), top-right on desktop. If it ever
-                  needs to coexist on mobile with those legends, consider adding
-                  a conditional bottom offset the same way the flyover row's
-                  lift was explored earlier. */}
-
+      {/* RiskOverviewPanel — top-right on desktop, bottom-right on mobile */}
       {showOverview && (
         <RiskOverviewPanel onClose={() => setShowOverview(false)} />
       )}
 
       {/* Traffic Analysis Panel — right-side overlay */}
-
       {showTrafficPanel && (
         <div
           className="absolute top-2 right-2 z-[1500]"
@@ -419,17 +405,10 @@ export function MapOverlays({
             pointerEvents: "auto",
           }}
         >
-          {/* <TrafficAnalysisPanel
-                    selectedFlyoverForTraffic={selectedFlyoverForTraffic}
-                    onClose={() => {
-                      setShowTrafficPanel(false);
-                      setSelectedFlyoverForTraffic(null);
-                    }}
-                    isMobile={isMobile}
-                  /> */}
-
           <TrafficAnalysisPanel
-            selectedFlyoverForTraffic={selectedFlyoverForTraffic?.backendName || null}
+            selectedFlyoverForTraffic={
+              selectedFlyoverForTraffic?.backendName || null
+            }
             displayName={selectedFlyoverForTraffic?.displayName || null}
             onClose={() => {
               setShowTrafficPanel(false);
@@ -441,13 +420,11 @@ export function MapOverlays({
       )}
 
       {/* Risk Overview Panel — only when traffic panel is closed */}
-
       {showOverview && !showTrafficPanel && (
         <RiskOverviewPanel onClose={() => setShowOverview(false)} />
       )}
 
       {/* LULC DIVIDER TAG */}
-
       <div
         ref={tagRef}
         className="absolute bottom-4 pointer-events-none max-[480px]:bottom-2"
@@ -467,7 +444,6 @@ export function MapOverlays({
       </div>
 
       {/* LULC DIVIDER LINE */}
-
       <div
         ref={dividerLineRef}
         className="absolute top-0 bottom-0 pointer-events-none"
@@ -484,7 +460,6 @@ export function MapOverlays({
       />
 
       {/* LOADING */}
-
       {(loading ||
         flyoversLoading ||
         movementLoading ||
@@ -512,7 +487,6 @@ export function MapOverlays({
         )}
 
       {/* ERROR */}
-
       {(error ||
         movementError ||
         soilError ||
@@ -534,7 +508,6 @@ export function MapOverlays({
         )}
 
       {/* MOVEMENT CHART */}
-
       {showChart && selectedPointForChart && selectedDetailForChart && (
         <MovementPointsChart
           pointData={selectedPointForChart}
@@ -548,7 +521,6 @@ export function MapOverlays({
       )}
 
       {/* DIFFERENCE CHART */}
-
       {showDiffChart && diffPointData && diffDetailData && (
         <MovementDiffChart
           pointData={diffPointData}

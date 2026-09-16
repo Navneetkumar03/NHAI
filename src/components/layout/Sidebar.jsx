@@ -16,30 +16,47 @@ import {
   Activity,
 } from "lucide-react";
 import { ROUTES } from "../../app/routes";
+function useAuthUser() {
+  try {
+    return JSON.parse(sessionStorage.getItem("authUser")) || null;
+  } catch {
+    return null;
+  }
+}
 
 // NOTE: make sure these keys exist in ../router/routes.js
 // (FLYOVERS, MONITORING, ALERTS, ANALYTICS, INSPECTIONS, REPORTS, WEATHER, INTEGRATIONS, SETTINGS)
-const navItems = [
-  // { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.HOME },
-  { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.DASHBOARD },
-  { label: "InfraRisk", icon: Mountain, id: ROUTES.Topography },
-  // { label: "Traffic", icon: TrafficCone, id: ROUTES.TRAFFIC },
-  // { label: "Intense RF", icon: CloudSun, id: ROUTES.WEATHER },
-  { label: "Reports", icon: FileText, id: ROUTES.REPORTS },
-
-  //{ label: "Monitoring", icon: Radar, id: ROUTES.MONITORING },
-  { label: "Alerts", icon: Bell, badge: 3, id: ROUTES.ALERTS },
-  // { label: "Activity Log", icon: Activity, id: ROUTES.ActivityLog }, // { label: "Integrations", icon: Puzzle, id: ROUTES.INTEGRATIONS },
-];
 
 export default function Sidebar({ activeItem, onNavClick, onClose }) {
+  const authUser = useAuthUser();
+  // const isAdmin = authUser?.role?.toLowerCase() === "admin";
+  const isAdmin = false;
   const handleNavClick = (id) => {
     if (onNavClick) onNavClick(id);
     if (window.innerWidth < 1024 && onClose) {
       onClose();
     }
   };
+  const navItems = [
+    // { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.HOME },
+    { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.DASHBOARD },
+    { label: "InfraRisk", icon: Mountain, id: ROUTES.Topography },
+    // { label: "Traffic", icon: TrafficCone, id: ROUTES.TRAFFIC },
+    // { label: "Intense RF", icon: CloudSun, id: ROUTES.WEATHER },
+    { label: "Reports", icon: FileText, id: ROUTES.REPORTS },
 
+    //{ label: "Monitoring", icon: Radar, id: ROUTES.MONITORING },
+    { label: "Alerts", icon: Bell, badge: 3, id: ROUTES.ALERTS },
+    ...(isAdmin
+      ? [
+        {
+          label: "Activity Log",
+          icon: Activity,
+          id: ROUTES.ActivityLog,
+        },
+      ]
+      : []), // { label: "Integrations", icon: Puzzle, id: ROUTES.INTEGRATIONS },
+  ];
   return (
     <aside className="w-37 h-screen  bg-[#0a1130] flex flex-col">
       <div>
@@ -53,10 +70,10 @@ export default function Sidebar({ activeItem, onNavClick, onClose }) {
                 disabled={!id}
                 onClick={() => id && handleNavClick(id)}
                 className={`group relative w-full flex flex-col items-center justify-center  py-2 rounded-xl text-[14px] font-medium transition-all duration-200 ${!id
-                    ? "cursor-not-allowed opacity-50"
-                    : isActive
-                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/40"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  ? "cursor-not-allowed opacity-50"
+                  : isActive
+                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/40"
+                    : "text-slate-400 hover:bg-white/5 hover:text-white"
                   }`}
               >
                 <Icon
