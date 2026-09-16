@@ -348,24 +348,24 @@ function BaseMapPicker({ baseMap, onChange }) {
           onClick={() => setOpen(false)}
         />
         <div
-          className="fixed z-[99999] w-44 max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-3 text-sm"
+          className="fixed z-[99999] w-40 max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-2 text-sm"
           style={{ top: panelPos.top, left: panelPos.left }}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-semibold text-gray-800">Layers</span>
+          <div className="flex items-center justify-between mb-0">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+            Base map
+          </p>
             <button
               onClick={() => setOpen(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 mb-0"
             >
               <X size={14} />
             </button>
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
-            Base map
-          </p>
+          
           <div className="space-y-1.5">
             {[
               { key: "streets", label: "Street" },
