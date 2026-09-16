@@ -1,6 +1,6 @@
 // src/hooks/useIDWWeather.js
 import { useState, useCallback, useEffect, useRef } from "react";
-import { fetchMonthlyWeatherData } from "../services/api";
+import { fetchMonthlyWeatherData } from "../services/api/weather";
 
 export function useIDWWeather() {
     const [weatherData, setWeatherData] = useState(null);

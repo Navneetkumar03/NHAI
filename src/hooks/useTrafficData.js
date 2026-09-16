@@ -1,6 +1,6 @@
 // src/hooks/useTrafficData.js
 import { useState, useEffect } from 'react';
-import { fetchTrafficData, fetchTrafficDates } from '../services/api';
+import { fetchTrafficData, fetchTrafficDates } from "../services/api/traffic";
 
 export function useTrafficData(flyoverName, selectedDate = null) {
     const [trafficData, setTrafficData] = useState(null);

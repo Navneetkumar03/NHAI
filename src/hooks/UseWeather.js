@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { sendLocationToAPI } from "../services/api";
+import { sendLocationToAPI } from "../services/api/weather";
 
 // target: { flyoverId, lat, lng } | null — pass null to clear/hide weather
 export function useWeather(target) {

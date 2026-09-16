@@ -1,7 +1,7 @@
 // src/layouts/MainLayout.jsx
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
+import Sidebar from "../components/layout/Sidebar";
+import Header from "../components/layout/Header";
 import { Menu, X } from "lucide-react";
 
 export default function MainLayout({ children, activeNav, onNavChange, onLogout, user }) {

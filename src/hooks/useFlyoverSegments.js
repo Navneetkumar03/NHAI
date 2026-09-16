@@ -1,12 +1,6 @@
 // src/hooks/useFlyoverSegments.js
 import { useState, useEffect, useCallback } from 'react';
-import {
-    fetchLiveSegments,
-    fetchPolygonSegment,
-    fetchLiveSegmentStats
-} from '../services/api'
-
-export const useFlyoverSegments = () => {
+import { fetchLiveSegments, fetchPolygonSegment, fetchLiveSegmentStats } from "../services/api/segments";export const useFlyoverSegments = () => {
     const [liveSegments, setLiveSegments] = useState(null);
     const [polygonSegments, setPolygonSegments] = useState(null);
     const [segmentStats, setSegmentStats] = useState(null);

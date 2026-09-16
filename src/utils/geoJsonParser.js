@@ -1,5 +1,5 @@
 import proj4 from "proj4";
-import { fetchLiveSegments } from "../services/api";
+import { fetchLiveSegments } from "../services/api/segments";
 const BASE = import.meta.env.BASE_URL;
 
 const NAMES_GEOJSON_PATH = `${BASE}data/FlyOver_Name.geojson`;
