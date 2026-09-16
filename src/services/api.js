@@ -415,28 +415,31 @@ export const forceLogoutUser = async (username) => {
   }
 };
 
-export const sendUserActivity = async (activity, tab) => {
+export const sendUserActivity = async (activity, tab, layer) => {
   try {
     const authUser = JSON.parse(sessionStorage.getItem("authUser"));
 
     const activityData = {
-      userId: authUser?.userId,
+      userid: authUser?.userId,
       username: authUser?.username,
       activity,
       tab,
+      Layer: layer,
     };
-    const response = await fetch(`${BASE_URL}/activity_log`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(activityData),
-    });
-    if (!response.ok) {
-      throw new Error(`Activity API failed: ${response.status}`);
-    }
+    console.log("activitydata", activityData);
 
-    const data = await response.json();
+    // const response = await fetch(`${BASE_URL}/activity_log`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(activityData),
+    // });
+    // if (!response.ok) {
+    //   throw new Error(`Activity API failed: ${response.status}`);
+    // }
+
+    // const data = await response.json();
 
     return;
   } catch (error) {

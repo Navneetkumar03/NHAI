@@ -419,9 +419,10 @@ function FullscreenButton({ isFullscreen, onToggle }) {
         border-2
         transition-all duration-200
         hover:bg-gray-50
-        ${isFullscreen
-          ? "border-blue-500 bg-blue-50 text-blue-600"
-          : "border-gray-400 text-gray-700 hover:border-gray-500"
+        ${
+          isFullscreen
+            ? "border-blue-500 bg-blue-50 text-blue-600"
+            : "border-gray-400 text-gray-700 hover:border-gray-500"
         }
         focus:outline-none
         focus:ring-0
@@ -499,8 +500,9 @@ function LayerSelector({ selectedLayer, onLayerChange }) {
         <span>{getLayerLabel(selectedLayer)}</span>
         <ChevronDown
           size={12}
-          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-            }`}
+          className={`transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
       {isOpen && (
@@ -516,10 +518,11 @@ function LayerSelector({ selectedLayer, onLayerChange }) {
                   "InfraRisk",
                 );
               }}
-              className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs ${selectedLayer === opt
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-700"
-                }`}
+              className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs ${
+                selectedLayer === opt
+                  ? "bg-blue-50 text-blue-700 font-medium"
+                  : "text-gray-700"
+              }`}
             >
               {getLayerLabel(opt)}
             </button>
@@ -575,8 +578,9 @@ function DateRangeSelector({
           </span>
           <ChevronDown
             size={12}
-            className={`text-gray-400 transition-transform ${isStartOpen ? "rotate-180" : ""
-              }`}
+            className={`text-gray-400 transition-transform ${
+              isStartOpen ? "rotate-180" : ""
+            }`}
           />
         </button>
         {isStartOpen && availableDates.length > 0 && (
@@ -598,10 +602,11 @@ function DateRangeSelector({
                     onEndDateChange(date);
                   }
                 }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${startDate === date
-                  ? "bg-blue-100 text-blue-700 font-medium"
-                  : "text-gray-700"
-                  }`}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${
+                  startDate === date
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "text-gray-700"
+                }`}
               >
                 {formatDisplayDate(date)}
               </button>
@@ -620,8 +625,9 @@ function DateRangeSelector({
           </span>
           <ChevronDown
             size={12}
-            className={`text-gray-400 transition-transform ${isEndOpen ? "rotate-180" : ""
-              }`}
+            className={`text-gray-400 transition-transform ${
+              isEndOpen ? "rotate-180" : ""
+            }`}
           />
         </button>
         {isEndOpen && availableDates.length > 0 && (
@@ -642,10 +648,11 @@ function DateRangeSelector({
                     setIsEndOpen(false);
                     sendUserActivity(`Selected End Date: ${date}`, "InfraRisk");
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${endDate === date
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-700"
-                    }`}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 transition-colors ${
+                    endDate === date
+                      ? "bg-blue-100 text-blue-700 font-medium"
+                      : "text-gray-700"
+                  }`}
                 >
                   {formatDisplayDate(date)}
                 </button>
@@ -759,8 +766,9 @@ function SegmentTable({ data, onRowClick, selectedId, loading }) {
             <tr
               key={item.id}
               onClick={() => onRowClick(item.id)}
-              className={`cursor-pointer hover:bg-blue-50 transition-colors ${selectedId === item.id ? "bg-blue-100" : ""
-                } ${item.avg_velocity === null ? "opacity-50" : ""}`}
+              className={`cursor-pointer hover:bg-blue-50 transition-colors ${
+                selectedId === item.id ? "bg-blue-100" : ""
+              } ${item.avg_velocity === null ? "opacity-50" : ""}`}
             >
               <td className="px-2 py-1.5 border-b border-gray-100">
                 {item.id}
@@ -983,7 +991,8 @@ export default function LandUseLandCover({
   /* ---------------- Google Traffic ---------------- */
 
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
-  const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] = useState(null);
+  const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] =
+    useState(null);
 
   /* ---------------- Data hooks ---------------- */
 
@@ -1086,15 +1095,16 @@ export default function LandUseLandCover({
                   ${velocity !== null && velocity !== undefined ? velocity + " mm/yr" : "N/A"}
                 </td>
               </tr>
-              ${props.insert_at
-            ? `
+              ${
+                props.insert_at
+                  ? `
               <tr>
                 <td style="padding: 2px 0; color: #6b7280;">Updated:</td>
                 <td style="padding: 2px 0; font-weight: 600; font-size: 10px;">${new Date(props.insert_at).toLocaleString()}</td>
               </tr>
               `
-            : ""
-          }
+                  : ""
+              }
             </table>
           </div>
         `);
@@ -1230,14 +1240,15 @@ export default function LandUseLandCover({
               <td style="padding: 2px 0; color: #6b7280;">Risk:</td>
               <td style="padding: 2px 0; font-weight: 600;">${props.risk || "N/A"}</td>
             </tr>
-            ${props.insert_at
-              ? `
+            ${
+              props.insert_at
+                ? `
             <tr>
               <td style="padding: 2px 0; color: #6b7280;">Updated:</td>
               <td style="padding: 2px 0; font-weight: 600; font-size: 10px;">${new Date(props.insert_at).toLocaleString()}</td>
             </tr>
             `
-              : ""
+                : ""
             }
           </table>
         </div>
@@ -1434,10 +1445,7 @@ export default function LandUseLandCover({
             return;
           }
           // Capture actual velocity point click
-          sendUserActivity(
-            `Clicked Velocity Point: ${id} (${velocity} mm/yr)`,
-            "InfraRisk",
-          );
+          sendUserActivity(`Clicked Velocity PointId: ${id}`, "InfraRisk");
 
           if (selectedMovementMarkerRef.current) {
             const previousMarker = selectedMovementMarkerRef.current;
@@ -1843,12 +1851,6 @@ export default function LandUseLandCover({
     }
   }, [activeLayers]);
 
-
-
-
-
-
-
   // const addFlyoverLayers = useCallback(
   //   (map) => {
   //     if (!flyovers || flyovers.length === 0) {
@@ -2000,8 +2002,6 @@ export default function LandUseLandCover({
   //   [flyovers, updateLayerVisibility],
   // );
 
-
-
   const addFlyoverLayers = useCallback(
     (map) => {
       if (!flyovers || flyovers.length === 0) {
@@ -2067,34 +2067,38 @@ export default function LandUseLandCover({
                     const popupContent = `
                       <div style="padding: 8px; font-family: Arial, sans-serif;">
                         <h4 style="margin: 0 0 4px 0; color: ${escapeHtml(
-                      color,
-                    )};">
+                          color,
+                        )};">
                           ${escapeHtml(pointName)}
                         </h4>
-                        ${point.chainage
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
-                          point.chainage,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.description
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
-                          point.description,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.length
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
-                          point.length,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.detail
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
-                          point.detail,
-                        )}</p>`
-                        : ""
-                      }
+                        ${
+                          point.chainage
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
+                                point.chainage,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.description
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
+                                point.description,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.length
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
+                                point.length,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.detail
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
+                                point.detail,
+                              )}</p>`
+                            : ""
+                        }
                       </div>
                     `;
 
@@ -2103,48 +2107,17 @@ export default function LandUseLandCover({
                       autoPan: true,
                     });
 
-                    // 🆕 Click handler — opens TrafficAnalysisPanel on the right
-                    // side (same slot previously used by RiskOverviewPanel).
-                    // marker.on("click", () => {
-                    //   // Keep the flyover name format identical to
-                    //   // GoogleMapComponent so useTrafficData resolves the
-                    //   // correct backend record.
-                    //   console.log("clicked flyover id is:", flyover.id)
-                    //   const flyoverName = `FLYOVER ${flyover.id ?? index}`;
-
-                    //   // Close competing right-side panels so they don't stack
-                    //   setShowOverview(false);
-                    //   setShowSegmentTable(false);
-                    //   setShowChart(false);
-                    //   setShowDiffChart(false);
-                    //   setShowTrafficPanel(false);
-
-                    //   // Small delay lets the previous panel unmount cleanly
-                    //   // before the new one mounts in the same slot.
-                    //   setTimeout(() => {
-                    //     setSelectedFlyoverForTraffic(flyoverName);
-                    //     setShowTrafficPanel(true);
-                    //   }, 0);
-
-                    //   // Highlight the matching quick-jump button
-                    //   setActiveFlyoverId(flyover.id ?? index);
-
-                    //   // Pan + zoom to the clicked marker
-                    //   if (mapRef.current) {
-                    //     mapRef.current.panTo(point.latlng);
-                    //     setTimeout(() => {
-                    //       mapRef.current?.setZoom(14);
-                    //     }, 400);
-                    //   }
-                    // });
-
-
                     marker.on("click", () => {
                       // Backend still expects "FLYOVER N" — keep that format for the API call.
                       const backendName = `FLYOVER ${flyover.id ?? index}`;
+
                       // Friendly name shown on the quick-jump button — used only for the
                       // panel header display.
                       const displayName = thisFlyover.name;
+                      sendUserActivity(
+                        `Clicked Flyover Point: ${pointName}`,
+                        "InfraRisk",
+                      );
 
                       // Close competing right-side panels so they don't stack
                       setShowOverview(false);
@@ -2156,7 +2129,10 @@ export default function LandUseLandCover({
                       // Small delay lets the previous panel unmount cleanly
                       // before the new one mounts in the same slot.
                       setTimeout(() => {
-                        setSelectedFlyoverForTraffic({ backendName, displayName });
+                        setSelectedFlyoverForTraffic({
+                          backendName,
+                          displayName,
+                        });
                         setShowTrafficPanel(true);
                       }, 0);
 
@@ -2296,7 +2272,7 @@ export default function LandUseLandCover({
       // Capture flyover activity
       sendUserActivity(
         flyoverActivityNames[flyoverEntry.flyover] ||
-        ` ${flyoverEntry.name}-Button`,
+          ` ${flyoverEntry.name}-Button`,
         "InfraRisk",
       );
 
@@ -2331,7 +2307,8 @@ export default function LandUseLandCover({
   );
 
   const handleLayerToggle = useCallback(
-    async (layerId) => {
+    async (layerId, layerName) => {
+      sendUserActivity("Selected Overlay Layer", "InfraRisk", layerName);
       if (layerId === "lulc") {
         setShowLULC((prev) => !prev);
         setShowSoil(false);
@@ -3270,10 +3247,11 @@ export default function LandUseLandCover({
                   sendUserActivity("Liner-Button", "InfraRisk");
                 }
               }}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${showSegmentTable
-                ? "bg-purple-100 text-purple-800 border-purple-300 shadow-sm"
-                : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${
+                showSegmentTable
+                  ? "bg-purple-100 text-purple-800 border-purple-300 shadow-sm"
+                  : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
+              }`}
             >
               <Table size={14} />
               Linear
@@ -3286,10 +3264,11 @@ export default function LandUseLandCover({
                 setShowOverview((prev) => !prev);
                 setShowSegmentTable(false);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${showOverview
-                ? "bg-blue-100 text-blue-800 border-blue-300 shadow-sm"
-                : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${
+                showOverview
+                  ? "bg-blue-100 text-blue-800 border-blue-300 shadow-sm"
+                  : "bg-white/80 text-gray-700 border-gray-300 hover:bg-gray-100"
+              }`}
             >
               Overview
             </button>
@@ -3366,10 +3345,11 @@ export default function LandUseLandCover({
     border-2
     transition-all duration-200
     hover:bg-gray-50
-    ${isLayerPanelOpen
-                    ? "border-blue-500 bg-blue-50 text-blue-600"
-                    : "border-gray-400 text-gray-700 hover:border-gray-500"
-                  }
+    ${
+      isLayerPanelOpen
+        ? "border-blue-500 bg-blue-50 text-blue-600"
+        : "border-gray-400 text-gray-700 hover:border-gray-500"
+    }
     focus:outline-none
     focus:ring-0
     leaflet-bar
@@ -3441,7 +3421,9 @@ export default function LandUseLandCover({
                                     ? activeLayers.includes("linear")
                                     : activeLayers.includes(layer.id)
                             }
-                            onChange={() => handleLayerToggle(layer.id)}
+                            onChange={() => {
+                              handleLayerToggle(layer.id, layer.name);
+                            }}
                             className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
                           />
                           <span className="whitespace-nowrap">
@@ -3538,10 +3520,11 @@ export default function LandUseLandCover({
               focus:outline-none
               focus:ring-0
               leaflet-bar
-              ${isActive
-                        ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                        : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
-                      }
+              ${
+                isActive
+                  ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+                  : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
+              }
             `}
                     style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.1)" }}
                     aria-label={`Zoom to ${f.name}`}
@@ -3607,8 +3590,6 @@ export default function LandUseLandCover({
           <RiskOverviewPanel onClose={() => setShowOverview(false)} />
         )}
 
-
-
         {/* Traffic Analysis Panel — right-side overlay */}
 
         {showTrafficPanel && (
@@ -3634,7 +3615,9 @@ export default function LandUseLandCover({
             /> */}
 
             <TrafficAnalysisPanel
-              selectedFlyoverForTraffic={selectedFlyoverForTraffic?.backendName || null}
+              selectedFlyoverForTraffic={
+                selectedFlyoverForTraffic?.backendName || null
+              }
               displayName={selectedFlyoverForTraffic?.displayName || null}
               onClose={() => {
                 setShowTrafficPanel(false);
@@ -3649,14 +3632,6 @@ export default function LandUseLandCover({
         {showOverview && !showTrafficPanel && (
           <RiskOverviewPanel onClose={() => setShowOverview(false)} />
         )}
-
-
-
-
-
-
-
-
 
         {/* LULC DIVIDER TAG */}
         <div
@@ -3700,25 +3675,25 @@ export default function LandUseLandCover({
           (showSoil && soilLoading) ||
           (showSegmentsUI && segmentLoading) ||
           (showDifferenceUI && velocityDiffLoading)) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
-              <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
-                <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
-                <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
-                  {loading
-                    ? "Initializing map..."
-                    : showSoil && soilLoading
-                      ? "Loading soil data..."
-                      : movementLoading
-                        ? "Loading movement points..."
-                        : showDifferenceUI && velocityDiffLoading
-                          ? "Loading velocity difference..."
-                          : showSegmentsUI && segmentLoading
-                            ? "Loading segment data..."
-                            : "Loading flyover data..."}
-                </p>
-              </div>
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
+            <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
+              <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
+                {loading
+                  ? "Initializing map..."
+                  : showSoil && soilLoading
+                    ? "Loading soil data..."
+                    : movementLoading
+                      ? "Loading movement points..."
+                      : showDifferenceUI && velocityDiffLoading
+                        ? "Loading velocity difference..."
+                        : showSegmentsUI && segmentLoading
+                          ? "Loading segment data..."
+                          : "Loading flyover data..."}
+              </p>
             </div>
-          )}
+          </div>
+        )}
 
         {/* ERROR */}
         {(error ||
@@ -3726,20 +3701,20 @@ export default function LandUseLandCover({
           soilError ||
           segmentsError.live ||
           (showDifferenceUI && velocityDiffError)) && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
-              <AlertTriangle
-                size={16}
-                className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
-              />
-              <span>
-                {error ||
-                  movementError ||
-                  soilError ||
-                  segmentsError.live ||
-                  (showDifferenceUI && velocityDiffError)}
-              </span>
-            </div>
-          )}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
+            <AlertTriangle
+              size={16}
+              className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
+            />
+            <span>
+              {error ||
+                movementError ||
+                soilError ||
+                segmentsError.live ||
+                (showDifferenceUI && velocityDiffError)}
+            </span>
+          </div>
+        )}
 
         {/* MOVEMENT CHART */}
         {showChart && selectedPointForChart && selectedDetailForChart && (
