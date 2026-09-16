@@ -103,7 +103,7 @@ export const forceLogoutUser = async (username) => {
   }
 };
 
-export const sendUserActivity = async (activity, tab) => {
+export const sendUserActivity = async (activity, tab, layer) => {
   try {
     const authUser = JSON.parse(sessionStorage.getItem("authUser"));
 
@@ -112,8 +112,9 @@ export const sendUserActivity = async (activity, tab) => {
       username: authUser?.username,
       activity,
       tab,
+      Layer: layer,
     };
-    console.log("*******", activityData)
+    console.log("*******", activityData);
     const response = await fetch(`${BASE_URL}/activity_log`, {
       method: "POST",
       headers: {

@@ -1,6 +1,17 @@
-import { addAllToMap, escapeHtml, logError, removeAllFromMap } from "../mapUtils";
-import { formatPointName, getFlyoverColor, getFlyoverDisplayName, makeFlyoverIcon } from "../../shared/mapHelpers";
+import {
+  addAllToMap,
+  escapeHtml,
+  logError,
+  removeAllFromMap,
+} from "../mapUtils";
+import {
+  formatPointName,
+  getFlyoverColor,
+  getFlyoverDisplayName,
+  makeFlyoverIcon,
+} from "../../shared/mapHelpers";
 import { useCallback } from "react";
+import { sendUserActivity } from "../../../../services/api";
 
 export function useFlyoverLayer({
   activeLayers,
@@ -16,9 +27,9 @@ export function useFlyoverLayer({
   setShowDiffChart,
   setShowOverview,
   setShowSegmentTable,
-  setShowTrafficPanel
+  setShowTrafficPanel,
 }) {
-const updateLayerVisibility = useCallback(() => {
+  const updateLayerVisibility = useCallback(() => {
     if (!mapRef.current) {
       return;
     }
@@ -33,12 +44,6 @@ const updateLayerVisibility = useCallback(() => {
       removeAllFromMap(mapRef.current, flyoverMarkersRef.current);
     }
   }, [activeLayers]);
-
-
-
-
-
-
 
   // const addFlyoverLayers = useCallback(
   //   (map) => {
@@ -191,8 +196,6 @@ const updateLayerVisibility = useCallback(() => {
   //   [flyovers, updateLayerVisibility],
   // );
 
-
-
   const addFlyoverLayers = useCallback(
     (map) => {
       if (!flyovers || flyovers.length === 0) {
@@ -258,34 +261,38 @@ const updateLayerVisibility = useCallback(() => {
                     const popupContent = `
                       <div style="padding: 8px; font-family: Arial, sans-serif;">
                         <h4 style="margin: 0 0 4px 0; color: ${escapeHtml(
-                      color,
-                    )};">
+                          color,
+                        )};">
                           ${escapeHtml(pointName)}
                         </h4>
-                        ${point.chainage
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
-                          point.chainage,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.description
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
-                          point.description,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.length
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
-                          point.length,
-                        )}</p>`
-                        : ""
-                      }
-                        ${point.detail
-                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
-                          point.detail,
-                        )}</p>`
-                        : ""
-                      }
+                        ${
+                          point.chainage
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
+                                point.chainage,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.description
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
+                                point.description,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.length
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
+                                point.length,
+                              )}</p>`
+                            : ""
+                        }
+                        ${
+                          point.detail
+                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
+                                point.detail,
+                              )}</p>`
+                            : ""
+                        }
                       </div>
                     `;
 
@@ -329,13 +336,16 @@ const updateLayerVisibility = useCallback(() => {
                     //   }
                     // });
 
-
                     marker.on("click", () => {
                       // Backend still expects "FLYOVER N" — keep that format for the API call.
                       const backendName = `FLYOVER ${flyover.id ?? index}`;
                       // Friendly name shown on the quick-jump button — used only for the
                       // panel header display.
                       const displayName = thisFlyover.name;
+                      sendUserActivity(
+                        `Clicked Flyover Point: ${pointName}`,
+                        "InfraRisk",
+                      );
 
                       // Close competing right-side panels so they don't stack
                       setShowOverview(false);
@@ -347,7 +357,10 @@ const updateLayerVisibility = useCallback(() => {
                       // Small delay lets the previous panel unmount cleanly
                       // before the new one mounts in the same slot.
                       setTimeout(() => {
-                        setSelectedFlyoverForTraffic({ backendName, displayName });
+                        setSelectedFlyoverForTraffic({
+                          backendName,
+                          displayName,
+                        });
                         setShowTrafficPanel(true);
                       }, 0);
 

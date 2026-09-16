@@ -1,5 +1,6 @@
 import { log, logError, removeAllFromMap } from "../mapUtils";
 import { useCallback } from "react";
+import { sendUserActivity } from "../../../../services/api";
 
 export function useLayerControls({
   activeLayers,
@@ -73,7 +74,8 @@ const handleLayerChange = useCallback((layer) => {
   }, []);
 
 const handleLayerToggle = useCallback(
-    async (layerId) => {
+    async (layerId,layerName) => {
+    sendUserActivity("Selected Overlay Layer", "InfraRisk", layerName);
       if (layerId === "lulc") {
         setShowLULC((prev) => !prev);
         setShowSoil(false);
