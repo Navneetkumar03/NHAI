@@ -1,10 +1,6 @@
 // src/hooks/useMovementPoints.js
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    fetchMovementPoints,
-    fetchMovementPointById,
-    fetchVelocityDiff,
-} from '../services/api';
+import { fetchMovementPoints, fetchMovementPointById, fetchVelocityDiff } from "../services/api/movement";
 
 export function useMovementPoints() {
     const [points, setPoints] = useState([]);

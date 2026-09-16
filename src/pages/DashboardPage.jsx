@@ -4,15 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useFlyoverData } from "../hooks/useFlyoverData";
 import { getStatsFromFlyovers } from "../utils/geoJsonParser";
-import { sendLocationToAPI, sendUserActivity } from "../services/api";
+import { sendLocationToAPI } from "../services/api/weather";
+import { sendUserActivity } from "../services/api/auth";
 
-import StatsCards from "../components/StatsCards";
-import FlyoverCard from "../components/FlyoverCards";
-import WeatherPanel from "../components/WeatherPanel";
-import AlertMarquee from "../components/AlertMarquess";
-import { getFlyoverColor } from "../components/map/mapHelpers";
-import ObservationInfo from "../components/ObservationInfo";
-import FlyoverDetailsPanel from "../components/map/FlyoverDetailsPanel";
+import StatsCards from "../components/dashboard/StatsCards";
+import FlyoverCard from "../components/dashboard/FlyoverCards";
+import WeatherPanel from "../components/weather/WeatherPanel";
+import AlertMarquee from "../components/dashboard/AlertMarquee";
+import { getFlyoverColor } from "../components/maps/shared/mapHelpers";
+import ObservationInfo from "../components/dashboard/ObservationInfo";
+import FlyoverDetailsPanel from "../components/maps/shared/FlyoverDetailsPanel";
 
 
 export default function DashboardPage() {

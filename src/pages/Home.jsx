@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
-import HomeMap from "../components/HomeMap";
-import FlyoverHealthOverview from "../components/FlyoverHealthOverview";
-import AlertMarquee from "../components/AlertMarquess";
+import HomeMap from "../components/maps/HomeMap";
+import FlyoverHealthOverview from "../components/dashboard/FlyoverHealthOverview";
+import AlertMarquee from "../components/dashboard/AlertMarquee";
 
 export default function Home() {
   const alerts = [
