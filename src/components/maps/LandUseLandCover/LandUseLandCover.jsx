@@ -192,7 +192,7 @@ export function LandUseLandCover({
    * SEGMENT FUNCTIONS
    * ========================================================================*/
 
-    const { handleSegmentRowClick, addLiveSegmentLayer } = useSegmentLayer({
+  const { handleSegmentRowClick, addLiveSegmentLayer } = useSegmentLayer({
     isMapReadyRef,
     liveSegmentLayerRef,
     liveSegments,
@@ -215,7 +215,7 @@ export function LandUseLandCover({
    * MOVEMENT POINTS (velocity mode)
    * ========================================================================*/
 
-    const { updateCircleWeights, addMovementPointsToMap, updateMovementVisibility } = useMovementLayer({
+  const { updateCircleWeights, addMovementPointsToMap, updateMovementVisibility } = useMovementLayer({
     diffEndDate,
     diffMarkersRef,
     diffStartDate,
@@ -240,7 +240,7 @@ export function LandUseLandCover({
    * Hover shows a tooltip. Click opens the diff chart.
    * ========================================================================*/
 
-    useDifferenceLayer({
+  useDifferenceLayer({
     clearVelocityDiff,
     diffEndDate,
     diffMarkersRef,
@@ -266,7 +266,7 @@ export function LandUseLandCover({
    * SIDE-BY-SIDE TILE COMPARISON
    * ========================================================================*/
 
-    const { ensureLULCLayersExist, teardownLULCLayers } = useLULCLayer({
+  const { ensureLULCLayersExist, teardownLULCLayers } = useLULCLayer({
     dividerLineRef,
     hasFitBoundsRef,
     leftLayerRef,
@@ -286,7 +286,7 @@ export function LandUseLandCover({
    * FLYOVER LAYERS
    * ========================================================================*/
 
-    const { updateLayerVisibility, addFlyoverLayers } = useFlyoverLayer({
+  const { updateLayerVisibility, addFlyoverLayers } = useFlyoverLayer({
     activeLayers,
     flyoverBoundsRef,
     flyoverLayersRef,
@@ -308,7 +308,7 @@ export function LandUseLandCover({
    * UI HANDLERS
    * ========================================================================*/
 
-    const { handleLayerChange, handleLayerToggle, handleBaseLayerChange, toggleFullscreen } = useLayerControls({
+  const { handleLayerChange, handleLayerToggle, handleBaseLayerChange, toggleFullscreen } = useLayerControls({
     activeLayers,
     addFlyoverLayers,
     addLiveSegmentLayer,
@@ -345,7 +345,7 @@ export function LandUseLandCover({
   });
 
 
-    const { handleFlyoverButtonClick } = useFlyoverInteractions({
+  const { handleFlyoverButtonClick } = useFlyoverInteractions({
     activeFlyoverId,
     flyoverBoundsRef,
     mapRef,
@@ -354,20 +354,20 @@ export function LandUseLandCover({
 
 
   /* 🆕 Zoom + highlight a single flyover */
-  
 
-  
 
-  
 
-  
+
+
+
+
 
 
 
   /* ==========================================================================
  * GPS / LOCATE-ME
  * ========================================================================*/
-    const { handleLocateMe } = useGeolocation({
+  const { handleLocateMe } = useGeolocation({
     mapRef,
     setGpsError,
     setGpsLoading,
@@ -381,7 +381,7 @@ export function LandUseLandCover({
    * EFFECTS
    * ========================================================================*/
 
-    useLayerSyncEffects({
+  useLayerSyncEffects({
     activeLayers,
     addFlyoverLayers,
     addLiveSegmentLayer,
@@ -426,7 +426,7 @@ export function LandUseLandCover({
   });
 
 
-    useSoilData({
+  useSoilData({
     setSoilData,
     setSoilError,
     setSoilLoading,
@@ -435,13 +435,13 @@ export function LandUseLandCover({
   });
 
 
-  
 
-  
 
-  
 
-    useResponsiveUI({
+
+
+
+  useResponsiveUI({
     mapContainerRef,
     mapRef,
     setIsFullscreen,
@@ -449,35 +449,35 @@ export function LandUseLandCover({
   });
 
 
-  
+
 
   /* 🆕 CHANGED: added `.leaflet-bar a` override so the native Leaflet
      zoom control (+/-) matches the reduced size of the FullscreenButton
      and Layers button (28px desktop / 24px mobile) in the same stack.
      Leaflet's own CSS ships a fixed size for these anchors that can't be
      changed via className since they're rendered by Leaflet itself. */
-  
 
-  
 
-  
 
-  
 
-  
+
+
+
+
+
 
   /* 🆕 Auto-activate the first flyover button once the entries exist, so the
      map zooms to it by default without any user interaction. A small delay
      lets the map finish its initial layout before we call fitBounds. */
-  
 
-  
+
+
 
   /* ==========================================================================
    * SOIL LAYER
    * ========================================================================*/
 
-    useSoilLayer({
+  useSoilLayer({
     hasFitSoilBoundsRef,
     isMapReadyRef,
     mapContainerRef,
@@ -492,7 +492,7 @@ export function LandUseLandCover({
    * INITIALIZE MAP
    * ========================================================================*/
 
-    useLandUseMap({
+  useLandUseMap({
     ResizeObserver,
     addFlyoverLayers,
     debounceRef,
@@ -526,15 +526,15 @@ export function LandUseLandCover({
   });
 
 
-  
 
-  
 
-  
 
-  
 
-  
+
+
+
+
+
 
   /* ==========================================================================
    * RENDER
@@ -550,25 +550,25 @@ export function LandUseLandCover({
       }}
     >
       {/* TOP CONTROL BAR */}
-              <TopControlBar
-          availableDates={availableDates}
-          diffEndDate={diffEndDate}
-          diffStartDate={diffStartDate}
-          handleLayerChange={handleLayerChange}
-          selectedLayer={selectedLayer}
-          setDiffEndDate={setDiffEndDate}
-          setDiffStartDate={setDiffStartDate}
-          setShowOverview={setShowOverview}
-          setShowSegmentTable={setShowSegmentTable}
-          setYearLeft={setYearLeft}
-          setYearRight={setYearRight}
-          showDifferenceUI={showDifferenceUI}
-          showLULC={showLULC}
-          showOverview={showOverview}
-          showSegmentTable={showSegmentTable}
-          yearLeft={yearLeft}
-          yearRight={yearRight}
-        />
+      <TopControlBar
+        availableDates={availableDates}
+        diffEndDate={diffEndDate}
+        diffStartDate={diffStartDate}
+        handleLayerChange={handleLayerChange}
+        selectedLayer={selectedLayer}
+        setDiffEndDate={setDiffEndDate}
+        setDiffStartDate={setDiffStartDate}
+        setShowOverview={setShowOverview}
+        setShowSegmentTable={setShowSegmentTable}
+        setYearLeft={setYearLeft}
+        setYearRight={setYearRight}
+        showDifferenceUI={showDifferenceUI}
+        showLULC={showLULC}
+        showOverview={showOverview}
+        showSegmentTable={showSegmentTable}
+        yearLeft={yearLeft}
+        yearRight={yearRight}
+      />
 
       {/* MAP CONTAINER */}
       <div
@@ -580,7 +580,7 @@ export function LandUseLandCover({
       >
         <div ref={mapContainerRef} className="absolute inset-0" />
 
-                <MapOverlays
+        <MapOverlays
           activeFlyoverId={activeFlyoverId}
           activeLayers={activeLayers}
           availableLayers={availableLayers}

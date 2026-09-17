@@ -17,10 +17,6 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
-  Maximize2,
-  Minimize2,
-  Minimize,
-  Maximize,
   CloudRain,
   Cloud,
   Sun,
@@ -37,6 +33,7 @@ import {
   X,
 } from "lucide-react";
 import { createRoot } from "react-dom/client";
+import { FullscreenButton } from "../LandUseLandCover/controls/FullscreenButton";
 
 // ---- base map sources -------------------------------------------------
 const BASE_MAPS = {
@@ -172,69 +169,118 @@ function MapClickHandler({ onMapClick }) {
   return null;
 }
 
-// Fullscreen toggle rendered as a native Leaflet control, positioned next
-// to the zoom buttons. Re-renders its own icon (Maximize2 <-> Minimize2)
-// on every fullscreenchange event instead of staying fixed on one icon.
-function FullscreenControl({ containerRef }) {
+// ---------------------------------------------------------------------
+// Fullscreen toggle.
+//
+// Instead of registering as its own separate Leaflet control (which used
+// to float below the zoom control with its own gap), this button is
+// appended as an extra row INSIDE the zoom control's own container —
+// same trick BaseMapPicker uses for the layers button. That guarantees
+// it lands in the same stacked box as +/-, with zero gap and identical
+// width, and — because this component is rendered in JSX *before*
+// BaseMapPicker — its effect attaches first, so the row order ends up
+// zoom-in, zoom-out, fullscreen, layers.
+// ---------------------------------------------------------------------
+function FullscreenControl({ containerRef, isFullscreen }) {
   const map = useMap();
+  const [zoomContainer, setZoomContainer] = useState(null);
 
   useEffect(() => {
-    let root;
-    let iconEl;
+    let attempts = 0;
+    let cancelled = false;
 
-    const renderIcon = (fullscreen) => {
-      if (!root) return;
-      root.render(
-        fullscreen ? (
-          <Minimize size={15} className="text-gray-700" />
-        ) : (
-          <Maximize size={15} className="text-gray-700" />
-        ),
-      );
+    const findZoomContainer = () => {
+      if (cancelled) return;
+
+      const container = map
+        .getContainer()
+        .querySelector(".leaflet-control-zoom");
+
+      if (container) {
+        setZoomContainer(container);
+        return;
+      }
+
+      if (attempts++ < 20) {
+        requestAnimationFrame(findZoomContainer);
+      }
     };
 
-    const Control = L.Control.extend({
-      onAdd: () => {
-        const el = L.DomUtil.create("div", "leaflet-bar leaflet-control");
-        el.style.background = "white";
-        el.style.width = "25px";
-        el.style.height = "25px";
-        el.style.display = "flex";
-        el.style.marginTop = "25px";
-        el.style.alignItems = "center";
-        el.style.justifyContent = "center";
-        el.style.cursor = "pointer";
-        L.DomEvent.disableClickPropagation(el);
-        L.DomEvent.on(el, "click", () => {
-          if (!document.fullscreenElement) {
-            containerRef.current?.requestFullscreen?.();
-          } else {
-            document.exitFullscreen?.();
-          }
-        });
-
-        iconEl = el;
-        root = createRoot(el);
-        renderIcon(false);
-        return el;
-      },
-    });
-    const control = new Control({ position: "topright" });
-    control.addTo(map);
-
-    const handleChange = () => {
-      renderIcon(document.fullscreenElement === containerRef.current);
-      setTimeout(() => map.invalidateSize(), 100);
-    };
-    document.addEventListener("fullscreenchange", handleChange);
+    findZoomContainer();
 
     return () => {
-      document.removeEventListener("fullscreenchange", handleChange);
-      control.remove();
+      cancelled = true;
     };
-  }, [map, containerRef]);
+  }, [map]);
 
-  return null;
+  // Always keep fullscreen immediately before the layer button.
+  useEffect(() => {
+    if (!zoomContainer) return;
+
+    const moveFullscreenBeforeLayers = () => {
+      const fullscreenRow = zoomContainer.querySelector(
+        ".fullscreen-control-row"
+      );
+
+      const layerButton = zoomContainer.querySelector(
+        ".leaflet-layer-picker-control"
+      );
+
+      if (fullscreenRow && layerButton) {
+        zoomContainer.insertBefore(fullscreenRow, layerButton);
+      }
+    };
+
+    moveFullscreenBeforeLayers();
+
+    const observer = new MutationObserver(() => {
+      moveFullscreenBeforeLayers();
+    });
+
+    observer.observe(zoomContainer, {
+      childList: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [zoomContainer, isFullscreen]);
+
+  const handleToggle = useCallback(() => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  }, [containerRef]);
+
+  if (!zoomContainer) return null;
+
+  return createPortal(
+    <div
+      className="fullscreen-control-row"
+      style={{
+        width: "22px",
+        height: "22px",
+        minWidth: "22px",
+        minHeight: "22px",
+        padding: 0,
+        margin: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxSizing: "border-box",
+        background: "#ffffff",
+        borderTop: "1px solid #ccc",
+      }}
+    >
+      <FullscreenButton
+        isFullscreen={isFullscreen}
+        onToggle={handleToggle}
+      />
+    </div>,
+    zoomContainer
+  );
 }
 
 // ---------------------------------------------------------------------
@@ -301,15 +347,19 @@ function BaseMapPicker({ baseMap, onChange }) {
       // Leaflet styles its zoom buttons via ".leaflet-bar a" — since this is a
       // <div>, not an <a>, none of those rules apply automatically. Set the
       // same look explicitly instead of relying on the class name.
-      btnEl = L.DomUtil.create("div", "leaflet-control-zoom-in");
+      btnEl = L.DomUtil.create(
+        "div",
+        "leaflet-control-zoom-in leaflet-layer-picker-control",
+      );
       btnEl.style.cursor = "pointer";
       btnEl.style.display = "flex";
       btnEl.style.alignItems = "center";
       btnEl.style.justifyContent = "center";
-      btnEl.style.width = "26px";
-      btnEl.style.height = "26px";
+      btnEl.style.boxSizing = "border-box";
+      btnEl.style.width = "22px";
+      btnEl.style.height = "22px";
       btnEl.style.background = "#ffffff";
-      btnEl.style.borderTop = "1px solid #ccc"; // separates it from the "-" button above
+      btnEl.style.borderTop = "1px solid #ccc"; // separates it from the button above
       btnEl.title = "Layer control";
 
       L.DomEvent.disableClickPropagation(btnEl);
@@ -328,7 +378,7 @@ function BaseMapPicker({ baseMap, onChange }) {
       buttonRef.current = btnEl;
 
       root = createRoot(btnEl);
-      root.render(<Layers size={14} className="text-blue-600" />);
+      root.render(<Layers size={11} className="text-blue-600" />);
     };
 
     tryAttach();
@@ -348,14 +398,16 @@ function BaseMapPicker({ baseMap, onChange }) {
           onClick={() => setOpen(false)}
         />
         <div
-          className="fixed z-[99999] w-44 max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-3 text-sm"
+          className="fixed z-[99999] w-35 max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-1 text-sm"
           style={{ top: panelPos.top, left: panelPos.left }}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-semibold text-gray-800">Layers</span>
+          <div className="flex items-center justify-between mb-0.5">
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400 mb-0">
+              Base map
+            </p>
             <button
               onClick={() => setOpen(false)}
               className="text-gray-400 hover:text-gray-600"
@@ -363,10 +415,8 @@ function BaseMapPicker({ baseMap, onChange }) {
               <X size={14} />
             </button>
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
-            Base map
-          </p>
-          <div className="space-y-1.5">
+
+          <div className="space-y-0">
             {[
               { key: "streets", label: "Street" },
               { key: "satellite", label: "Google Satellite" },
@@ -374,7 +424,7 @@ function BaseMapPicker({ baseMap, onChange }) {
             ].map((opt) => (
               <label
                 key={opt.key}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-[11px]"
               >
                 <input
                   type="radio"
@@ -685,7 +735,10 @@ export default function FlyoverMap({
     return null;
   }
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-black">
+    <div
+      ref={containerRef}
+      className="relative w-full h-full bg-black flyover-map-shell"
+    >
       <style>{`
         .pin-pop {
           position: relative;
@@ -711,6 +764,36 @@ export default function FlyoverMap({
           100% { transform: translateX(-50%) scale(2.8); opacity: 0; }
         }
         :fullscreen .leaflet-container { border-radius: 0 !important; }
+
+        /* Scoped to .flyover-map-shell so these always win over unrelated
+           global CSS (e.g. a ".leaflet-top.leaflet-left { top: 65px }"
+           rule meant for a different page with a header above its map,
+           which was shoving this card's controls down into the middle
+           of the map instead of the top-left corner). Selector specificity
+           here (3 classes) beats any 1- or 2-class global rule regardless
+           of which stylesheet loads last. */
+        .flyover-map-shell .leaflet-top.leaflet-left {
+          top: 8px !important;
+          left: 8px !important;
+        }
+
+        .flyover-map-shell .leaflet-control-zoom {
+          margin: 0 !important;
+        }
+
+        /* Match the zoom +/- boxes to the smaller scale of the custom
+           fullscreen/layers rows appended below them, so the whole
+           control stack is one uniform, smaller size end to end —
+           covers both touch and non-touch device class variants. */
+        .flyover-map-shell .leaflet-control-zoom-in,
+        .flyover-map-shell .leaflet-control-zoom-out,
+        .flyover-map-shell .leaflet-touch .leaflet-control-zoom-in,
+        .flyover-map-shell .leaflet-touch .leaflet-control-zoom-out {
+          width: 22px !important;
+          height: 22px !important;
+          line-height: 22px !important;
+          font-size: 14px !important;
+        }
 
         /* Popup chrome now defers almost entirely to the card itself —
            the card carries its own rounded corners, gradient and shadow,
@@ -767,7 +850,13 @@ export default function FlyoverMap({
         {/* <FitBounds geojson={geojson} /> */}
         <FullscreenFit geojson={geojson} isFullscreen={isFullscreen} />
         <MapClickHandler onMapClick={handleClick} />
-        <FullscreenControl containerRef={containerRef} />
+        {/* Rendered before BaseMapPicker so its effect attaches its row
+            into the zoom control first — keeps the stack ordered as
+            zoom-in, zoom-out, fullscreen, layers. */}
+        <FullscreenControl
+          containerRef={containerRef}
+          isFullscreen={isFullscreen}
+        />
         <PopupOpener
           markerRef={markerRef}
           markerPosition={markerPosition}

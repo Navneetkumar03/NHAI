@@ -1,6 +1,5 @@
 import { log, logError, removeAllFromMap } from "../mapUtils";
 import { useCallback } from "react";
-import { sendUserActivity } from "../../../../services/api";
 
 export function useLayerControls({
   activeLayers,
@@ -37,7 +36,7 @@ export function useLayerControls({
   sideBySideRef,
   streetLayerRef
 }) {
-const handleLayerChange = useCallback((layer) => {
+  const handleLayerChange = useCallback((layer) => {
     log("Layer changed to:", layer);
     setSelectedLayer(layer);
 
@@ -73,9 +72,8 @@ const handleLayerChange = useCallback((layer) => {
     }
   }, []);
 
-const handleLayerToggle = useCallback(
-    async (layerId,layerName) => {
-    sendUserActivity("Selected Overlay Layer", "InfraRisk", layerName);
+  const handleLayerToggle = useCallback(
+    async (layerId) => {
       if (layerId === "lulc") {
         setShowLULC((prev) => !prev);
         setShowSoil(false);
@@ -203,7 +201,7 @@ const handleLayerToggle = useCallback(
     ],
   );
 
-const handleBaseLayerChange = useCallback((layerType) => {
+  const handleBaseLayerChange = useCallback((layerType) => {
     setBaseLayer(layerType);
 
     if (!mapRef.current) {
@@ -268,7 +266,7 @@ const handleBaseLayerChange = useCallback((layerType) => {
     }
   }, []);
 
-const toggleFullscreen = useCallback(() => {
+  const toggleFullscreen = useCallback(() => {
     try {
       const container = fullscreenContainerRef.current;
       if (!document.fullscreenElement) {

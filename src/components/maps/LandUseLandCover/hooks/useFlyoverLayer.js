@@ -261,38 +261,34 @@ export function useFlyoverLayer({
                     const popupContent = `
                       <div style="padding: 8px; font-family: Arial, sans-serif;">
                         <h4 style="margin: 0 0 4px 0; color: ${escapeHtml(
-                          color,
-                        )};">
+                      color,
+                    )};">
                           ${escapeHtml(pointName)}
                         </h4>
-                        ${
-                          point.chainage
-                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
-                                point.chainage,
-                              )}</p>`
-                            : ""
-                        }
-                        ${
-                          point.description
-                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
-                                point.description,
-                              )}</p>`
-                            : ""
-                        }
-                        ${
-                          point.length
-                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
-                                point.length,
-                              )}</p>`
-                            : ""
-                        }
-                        ${
-                          point.detail
-                            ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
-                                point.detail,
-                              )}</p>`
-                            : ""
-                        }
+                        ${point.chainage
+                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Chainage:</strong> ${escapeHtml(
+                          point.chainage,
+                        )}</p>`
+                        : ""
+                      }
+                        ${point.description
+                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Type:</strong> ${escapeHtml(
+                          point.description,
+                        )}</p>`
+                        : ""
+                      }
+                        ${point.length
+                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Length:</strong> ${escapeHtml(
+                          point.length,
+                        )}</p>`
+                        : ""
+                      }
+                        ${point.detail
+                        ? `<p style="margin: 2px 0; font-size: 11px;"><strong>Structure:</strong> ${escapeHtml(
+                          point.detail,
+                        )}</p>`
+                        : ""
+                      }
                       </div>
                     `;
 

@@ -120,7 +120,7 @@ export function useMovementLayer({
           }
           // Capture actual velocity point click
           sendUserActivity(
-            `Clicked Velocity PointID: ${id} `,
+            `Clicked Velocity Point: ${id} (${velocity} mm/yr)`,
             "InfraRisk",
           );
 

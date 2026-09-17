@@ -698,9 +698,9 @@ export default function FloodMap({
               >
                 {/* Panel header */}
                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
-                  <h3 className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                    Layers
-                  </h3>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                    Base Map
+                  </p>
                   <button
                     onClick={() => setIsLayerPanelOpen(false)}
                     className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full p-0.5 transition-all duration-200"
@@ -711,9 +711,6 @@ export default function FloodMap({
 
                 {/* Base Layer Section - Radio buttons */}
                 <div className="mb-2 pb-2 border-b border-gray-100">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                    Base Map
-                  </p>
                   <div className="flex flex-col gap-1.5">
                     <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors">
                       <input

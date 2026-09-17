@@ -14,8 +14,6 @@ import {
   X,
   ChevronDown,
   Waypoints,
-  Maximize,
-  Minimize,
   Check,
   Layers,
   Calendar,
@@ -27,7 +25,11 @@ import { loadFlyoverData } from "../../../utils/geoJsonParser";
 import { useWeather } from "../../../hooks/useWeather";
 import { useIDWWeather } from "../../../hooks/useIDWWeather";
 import WeatherPanel from "../../weather/WeatherPanel";
+<<<<<<< HEAD
 import FullscreenButton from "../../common/FullscreenButton";
+=======
+import { FullscreenButton } from "../LandUseLandCover/controls/FullscreenButton";
+>>>>>>> a900ea2b0379dc00762ebe53247a39542b750f5d
 import FlyoverDropdown from "../shared/FlyoverDropdown";
 import IdwLayerDropdown from "../shared/IdwLayerDropdown";
 import MonthTimelineBar from "../shared/MonthTimelineBar";

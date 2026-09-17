@@ -1,53 +1,50 @@
 import "leaflet/dist/leaflet.css";
-import "leaflet-side-by-side";
 import {
-  Loader2,
-  AlertTriangle,
-  Layers,
-  X,
   Maximize,
   Minimize,
-  CircleDot,
-  ChevronDown,
-  Calendar,
-  Table,
-  Map,
-  Eye,
-  EyeOff,
-  Navigation,   // 🆕 add this
 } from "lucide-react";
 
 export function FullscreenButton({ isFullscreen, onToggle }) {
   return (
     <button
+      type="button"
       onClick={onToggle}
       title="Toggle fullscreen"
+      aria-label="Toggle fullscreen"
       className={`
-        flex items-center justify-center
-        w-[22px] h-[22px]
-        max-[480px]:w-[18px] max-[480px]:h-[18px]
+        flex
+        items-center
+        justify-center
+        w-[22px]
+        h-[22px]
+        min-w-[22px]
+        min-h-[22px]
+        p-0
+        m-0
         bg-white
-        rounded-[4px]
-        border-2
-        transition-all duration-200
+        rounded-none
+        border-0
+        transition-colors
+        duration-150
         hover:bg-gray-50
-        ${isFullscreen
-          ? "border-blue-500 bg-blue-50 text-blue-600"
-          : "border-gray-400 text-gray-700 hover:border-gray-500"
-        }
         focus:outline-none
         focus:ring-0
-        leaflet-bar
+        ${isFullscreen
+          ? "text-blue-600 bg-blue-50"
+          : "text-gray-700"
+        }
       `}
-      style={{
-        boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
-      }}
-      aria-label="Toggle fullscreen"
     >
       {isFullscreen ? (
-        <Minimize className="w-3 h-3 max-[480px]:w-2.5 max-[480px]:h-2.5" />
+        <Minimize
+          className="w-[12px] h-[12px]"
+          strokeWidth={2}
+        />
       ) : (
-        <Maximize className="w-3 h-3 max-[480px]:w-2.5 max-[480px]:h-2.5" />
+        <Maximize
+          className="w-[12px] h-[12px]"
+          strokeWidth={2}
+        />
       )}
     </button>
   );

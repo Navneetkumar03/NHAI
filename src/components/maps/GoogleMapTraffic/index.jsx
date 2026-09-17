@@ -1060,9 +1060,9 @@ export default function GoogleMapComponent() {
                 style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.15)" }}
               >
                 <div className="flex items-center justify-between mb-1 pb-1 border-b border-gray-200">
-                  <h3 className="text-[11px] font-semibold text-gray-700">
-                    Layers
-                  </h3>
+                   <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                    Base Map
+                  </p>
                   <button
                     onClick={() => setIsLayerPanelOpen(false)}
                     className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full p-0.5"
@@ -1073,9 +1073,7 @@ export default function GoogleMapComponent() {
 
                 {/* Base Map Section - Radio buttons */}
                 <div className="mb-1 pb-1 border-b border-gray-100">
-                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                    Base Map
-                  </p>
+                 
                   <div className="flex flex-col gap-0.5">
                     <label className="flex items-center gap-1.5 text-[11px] text-gray-700 cursor-pointer hover:text-blue-600">
                       <input
