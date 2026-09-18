@@ -62,11 +62,11 @@ export function useMovementLayer({
           } else {
             this.setStyle(getHoverCircleStyle(map.getZoom()));
           }
-          // Point ID: ${ escapeHtml(id) } <br />
+
           if (selectedLayer === "velocity") {
             const tooltipContent = `
                   <div style="padding: 2px 6px; font-size: 12px; font-weight: 600; line-height: 1.3;">
-                    
+                    Point ID: ${escapeHtml(id)} <br />
                     Velocity: ${escapeHtml(velocity)} mm/yr
                   </div>
                 `;

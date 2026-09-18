@@ -9,12 +9,11 @@ import { sendUserActivity } from "../services/api/auth";
 
 import StatsCards from "../components/dashboard/StatsCards";
 import FlyoverCard from "../components/dashboard/FlyoverCards";
-import WeatherPanel from "../components/weather/WeatherPanel";
-import AlertMarquee from "../components/dashboard/AlertMarquee";
+import WeatherPanel from "../components/dashboard/WeatherPanel";
+
 import { getFlyoverColor } from "../components/maps/shared/mapHelpers";
 import ObservationInfo from "../components/dashboard/ObservationInfo";
-import FlyoverDetailsPanel from "../components/maps/shared/FlyoverDetailsPanel";
-
+import FlyoverDetailsPanel from "../components/dashboard/FlyoverDetailsPanel";
 
 export default function DashboardPage() {
   // ===========================================================================
@@ -55,6 +54,8 @@ export default function DashboardPage() {
   const [selectedHighway, setSelectedHighway] = useState(null);
 
   const [selectedPoint, setSelectedPoint] = useState(null);
+
+  const [riskFocusRequest, setRiskFocusRequest] = useState(null)
 
   // ===========================================================================
   // SET FIRST FLYOVER AS DEFAULT
@@ -258,6 +259,14 @@ export default function DashboardPage() {
     }
   }, []);
 
+
+  const handleRiskClick = useCallback((highway) => {
+    if (highway?.id == null) return;
+
+    setActiveId(highway.id);
+    setRiskFocusRequest({ flyoverId: highway.id, requestedAt: Date.now() });
+  }, []);
+
   // ===========================================================================
   // FLYOVER CARD ACTIVATION
   // ===========================================================================
@@ -268,11 +277,11 @@ export default function DashboardPage() {
   // ===========================================================================
 
   const handleCardActivate = useCallback((flyover) => {
-      const activityName = flyover.namedPoints?.[0]?.name;
+    const activityName = flyover.namedPoints?.[0]?.name;
 
-      console.log("Selected Flyover:", activityName);
+    console.log("Selected Flyover:", activityName);
 
-      sendUserActivity(`Selected Flyover: ${activityName}`, "Dashboard");
+    sendUserActivity(`Selected Flyover: ${activityName}`, "Dashboard");
     setActiveId(flyover.id);
 
     const resolvedPoint = flyover.namedPoints?.[0] || null;
@@ -368,9 +377,7 @@ export default function DashboardPage() {
           ALERT MARQUEE
       ---------------------------------------------------------------------- */}
 
-      {/* 
-      <AlertMarquee alerts={alerts} />
-      */}
+
 
       <div
         className="
@@ -443,6 +450,13 @@ export default function DashboardPage() {
                   }
                   weather={weather}
                   weatherLoading={weatherLoading}
+
+                  riskFocusRequest={
+                    riskFocusRequest?.flyoverId === flyover.id
+                      ? riskFocusRequest
+                      : null
+                  }
+
                 />
               </div>
             ))}
@@ -495,6 +509,7 @@ export default function DashboardPage() {
 
         <div className="mt-4 flex flex-col gap-4 lg:col-span-2 lg:mt-0 lg:h-full lg:min-h-0">
           <div className="h-[70vh] min-h-0 lg:h-full lg:flex-1">
+
             <WeatherPanel
               weather={weather}
               loading={weatherLoading}
@@ -504,6 +519,7 @@ export default function DashboardPage() {
               visibleFlyoverIds={visibleFlyoverIds}
               onSelectHighway={handleSelectHighway}
               onSelectPoint={handleSelectPoint}
+              onRiskClick={handleRiskClick}
             />
           </div>
         </div>

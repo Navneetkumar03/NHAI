@@ -1,4 +1,5 @@
 import { logError } from "../mapUtils";
+import { getRiskColor } from "../constants";
 import { useCallback, useEffect } from "react";
 
 export function useSegmentLayer({
@@ -18,7 +19,7 @@ export function useSegmentLayer({
   setSelectedSegmentId,
   showSegmentsUI
 }) {
-const addPolygonHighlight = useCallback((map, polygonData) => {
+  const addPolygonHighlight = useCallback((map, polygonData) => {
     if (
       !polygonData ||
       !polygonData.features ||
@@ -159,22 +160,7 @@ const addPolygonHighlight = useCallback((map, polygonData) => {
         `Adding ${liveSegments.features.length} segment features to map`,
       );
 
-      const getRiskColor = (risk) => {
-        switch (risk) {
-          case 1:
-            return "#3B82F6";
-          case 2:
-            return "#63A0F0";
-          case 3:
-            return "#F97316";
-          case 4:
-            return "#EA580C";
-          case 5:
-            return "#EF4444";
-          default:
-            return "#64748b";
-        }
-      };
+
 
       liveSegmentLayerRef.current = L.geoJSON(liveSegments, {
         style: (feature) => {
@@ -198,11 +184,16 @@ const addPolygonHighlight = useCallback((map, polygonData) => {
             return;
           }
 
+          // <h4 style="margin: 0 0 6px 0; color: #1f2937; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
+          //   ${props.flyover || "Unknown Segment"}
+          // </h4>
+
           layer.bindPopup(`
         <div style="padding: 8px; font-family: Arial, sans-serif; min-width: 180px;">
           <h4 style="margin: 0 0 6px 0; color: #1f2937; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
             ${props.name || "Unknown Segment"}
           </h4>
+          
           <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
             <tr>
               <td style="padding: 2px 0; color: #6b7280;">ID:</td>

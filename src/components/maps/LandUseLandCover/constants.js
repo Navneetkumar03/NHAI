@@ -98,6 +98,15 @@ export const SELECT_BORDER = "#f59f00";
  * SMALL HELPERS
  * ==========================================================================*/
 
+// export const RISK_LEVELS = [
+//   { level: 1, color: "rgb(59,130,246)" },
+//   { level: 2, color: "rgb(99,160,240)" },
+//   { level: 3, color: "rgb(249,115,22)" },
+//   { level: 4, color: "rgb(234,88,12)" },
+//   { level: 5, color: "rgb(239,68,68)" },
+// ];
+
+
 export const RISK_LEVELS = [
   { level: 1, color: "rgb(59,130,246)" },
   { level: 2, color: "rgb(99,160,240)" },
@@ -105,3 +114,16 @@ export const RISK_LEVELS = [
   { level: 4, color: "rgb(234,88,12)" },
   { level: 5, color: "rgb(239,68,68)" },
 ];
+
+/* ============================================================================
+ * RISK COLOR LOOKUP  — derived from RISK_LEVELS above.
+ * ... (as above)
+ * ==========================================================================*/
+
+const RISK_COLOR_BY_LEVEL = Object.fromEntries(
+  RISK_LEVELS.map((r) => [r.level, r.color]),
+);
+
+export function getRiskColor(risk) {
+  return RISK_COLOR_BY_LEVEL[Number(risk)] || "#64748b";
+}

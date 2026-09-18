@@ -1,6 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import "leaflet-side-by-side";
-import { getRiskTableColor } from "../mapUtils";
+import { getRiskColor } from "../constants";
 
 export function SegmentTable({ data, onRowClick, selectedId, loading }) {
   if (loading) {
@@ -61,7 +61,7 @@ export function SegmentTable({ data, onRowClick, selectedId, loading }) {
               <td
                 className="px-2 py-1.5 border-b border-gray-100 font-medium"
                 style={{
-                  backgroundColor: getRiskTableColor(item.risk),
+                  backgroundColor: getRiskColor(item.risk),
                 }}
               >
                 <span className="inline-flex items-center justify-center w-8 h-4 font-bold text-[10px]  font-semibold text-black">

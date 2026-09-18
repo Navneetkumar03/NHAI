@@ -66,6 +66,23 @@ function fitPolynomialTrend(xs, ys, degree) {
     return (x) => coeffs.reduce((sum, c, k) => sum + c * Math.pow(x, k), 0);
 }
 
+/* ============================================================
+   Inlined CustomTooltip for MovementDiffChart
+   ============================================================ */
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                <p className="text-sm font-semibold text-gray-800">{label}</p>
+                <p className="text-sm text-gray-800">
+                    Displacement: <strong>{payload[0].value} mm</strong>
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 export default function MovementDiffChart({
     pointData,
     detailData,
@@ -258,21 +275,6 @@ export default function MovementDiffChart({
 
     const tickInterval = Math.max(0, Math.ceil(chartData.length / 8) - 1);
 
-    // Custom tooltip
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-                    <p className="text-sm font-semibold text-gray-800">{label}</p>
-                    <p className="text-sm text-gray-800">
-                        Displacement: <strong>{payload[0].value} mm</strong>
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
-
     // Bail out only after all hooks have run — protects against the
     // "rendered fewer hooks than expected" error when pointData arrives
     // slightly after the component mounts.
@@ -377,7 +379,7 @@ export default function MovementDiffChart({
                         <span className="whitespace-nowrap">
                             <strong className="text-gray-700">
                                 {hasLatLng
-                                    ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+                                    ? `${latitude}, ${longitude}`
                                     : "—, —"}
                             </strong>
                         </span>
@@ -438,13 +440,13 @@ export default function MovementDiffChart({
                                         {displacementDiff.difference > 0
                                             ? "+"
                                             : ""}
-                                        {displacementDiff.difference.toFixed(2)}{" "}
+                                        {displacementDiff.difference}{" "}
                                         mm
                                     </strong>
                                 </span>
                                 <span className="whitespace-nowrap">
                                     (
-                                    {displacementDiff.percentChange.toFixed(1)}
+                                    {displacementDiff.percentChange}
                                     %)
                                 </span>
                             </>
@@ -563,4 +565,5 @@ export default function MovementDiffChart({
         </div>
     );
 }
+
 

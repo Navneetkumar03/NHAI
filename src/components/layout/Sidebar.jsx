@@ -38,7 +38,6 @@ export default function Sidebar({ activeItem, onNavClick, onClose }) {
     }
   };
   const navItems = [
-    // { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.HOME },
     { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.DASHBOARD },
     { label: "InfraRisk", icon: Mountain, id: ROUTES.Topography },
     // { label: "Traffic", icon: TrafficCone, id: ROUTES.TRAFFIC },

@@ -5,7 +5,7 @@ import { Lock, User, Eye, EyeOff } from "lucide-react";
 
 import NHAILOGO from "../assets/NHAILOGO.png";
 import { loginUser, forceLogoutUser } from "../services/api/auth";
-import TechBackground from "../components/misc/TechBackground";
+import LoginAnimation from "../components/animations/LoginAnimation";
 import ForceLogoutModal from "../components/layout/ForceLogoutModal"; // adjust path to where you save it
 
 export default function Login({ onLoginSuccess }) {
@@ -58,7 +58,7 @@ export default function Login({ onLoginSuccess }) {
       } else {
         setError(
           err.message ||
-            "Couldn't sign in. Check your credentials and try again.",
+          "Couldn't sign in. Check your credentials and try again.",
         );
       }
     } finally {
@@ -85,7 +85,7 @@ export default function Login({ onLoginSuccess }) {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#0b1329] flex items-center justify-center px-6 py-12">
-      <TechBackground />
+      <LoginAnimation />
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="bg-white/95 backdrop-blur-md rounded-xl border border-white/30 shadow-2xl px-8 py-9">

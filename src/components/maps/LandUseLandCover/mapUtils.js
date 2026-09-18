@@ -1,6 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import "leaflet-side-by-side";
-import { BASE_WEIGHT, BASE_ZOOM, DEBUG, DEFAULT_SOIL_COLOR, HOVER_BORDER, HOVER_FILL, HOVER_WEIGHT_BONUS, MAX_WEIGHT, MIN_WEIGHT, NEUTRAL_BORDER, NEUTRAL_FILL, SELECT_BORDER, SELECT_FILL, SOIL_TAXO_COLORS, VELOCITY_BORDER, VELOCITY_RANGES } from "./constants";
+import { BASE_WEIGHT, BASE_ZOOM, DEBUG, DEFAULT_SOIL_COLOR, getRiskColor, HOVER_BORDER, HOVER_FILL, HOVER_WEIGHT_BONUS, MAX_WEIGHT, MIN_WEIGHT, NEUTRAL_BORDER, NEUTRAL_FILL, SELECT_BORDER, SELECT_FILL, SOIL_TAXO_COLORS, VELOCITY_BORDER, VELOCITY_RANGES } from "./constants";
+
 
 export function getSoilColor(props) {
   return SOIL_TAXO_COLORS[props?.S_TAXO] || DEFAULT_SOIL_COLOR;
@@ -146,14 +147,5 @@ export function addAllToMap(map, layers) {
  * PRESENTATIONAL SUB-COMPONENTS
  * ==========================================================================*/
 
-export const getRiskTableColor = (risk) => {
-  const colors = {
-    1: "rgb(96, 165, 250)",
-    2: "rgb(147, 197, 253)",
-    3: "rgb(251, 146, 60)",
-    4: "rgb(249, 115, 22)",
-    5: "rgb(248, 113, 113)",
-  };
 
-  return colors[Number(risk)] || "#d1d5db";
-};
+export const getRiskTableColor = getRiskColor;

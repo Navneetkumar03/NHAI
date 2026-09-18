@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export default function TechBackground() {
+export default function LoginAnimation() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -67,16 +67,16 @@ export default function TechBackground() {
           random > 0.85
             ? "alert"
             : random > 0.7
-            ? "warning"
-            : "normal";
+              ? "warning"
+              : "normal";
 
         // Assign color according to status
         this.color =
           this.status === "alert"
             ? COLORS.nodeAlert
             : this.status === "warning"
-            ? COLORS.nodeWarning
-            : COLORS.nodeNormal;
+              ? COLORS.nodeWarning
+              : COLORS.nodeNormal;
 
         // Random animation phase
         this.pulse = Math.random() * Math.PI;

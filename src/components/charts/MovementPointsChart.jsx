@@ -66,6 +66,23 @@ function fitPolynomialTrend(xs, ys, degree) {
     return (x) => coeffs.reduce((sum, c, k) => sum + c * Math.pow(x, k), 0);
 }
 
+/* ============================================================
+   Inlined CustomTooltip for MovementPointsChart
+   ============================================================ */
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                <p className="text-sm font-semibold text-gray-800">{label}</p>
+                <p className="text-sm text-gray-800">
+                    Displacement: <strong>{payload[0].value} mm</strong>
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 export default function MovementPointsChart({ pointData, detailData, onClose }) {
     const [showData, setShowData] = useState(true);
     const [showLines, setShowLines] = useState(true);
@@ -215,21 +232,6 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
 
     const tickInterval = Math.max(0, Math.ceil(chartData.length / 8) - 1);
 
-    // Custom tooltip
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-                    <p className="text-sm font-semibold text-gray-800">{label}</p>
-                    <p className="text-sm text-gray-800">
-                        Displacement: <strong>{payload[0].value} mm</strong>
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
-
     return (
         <div
             ref={chartRef}
@@ -308,7 +310,7 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-[11px] sm:text-sm text-gray-600 w-full">
                         <span className="whitespace-nowrap">
                             <strong className="text-gray-800 text-[10px] sm:text-sm">
-                                {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                                {latitude}, {longitude}
                             </strong>
                         </span>
                         <span className="whitespace-nowrap">

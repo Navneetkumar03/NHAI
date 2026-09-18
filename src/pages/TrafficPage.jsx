@@ -1,4 +1,4 @@
-import GoogleMapComponent from "../components/maps/GoogleMapTraffic";
+import GoogleMapComponent from "../components/traffic/GoogleMapComponent";
 
 export default function TrafficPage() {
     return (

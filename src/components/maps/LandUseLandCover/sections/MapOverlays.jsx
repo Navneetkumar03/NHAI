@@ -26,6 +26,7 @@ export function MapOverlays({
   flyoverButtonsContainerRef,
   flyoverEntries,
   flyoversLoading,
+  gpsError,
   gpsLoading,
   handleBaseLayerChange,
   handleFlyoverButtonClick,
@@ -108,7 +109,19 @@ export function MapOverlays({
 
           {/* 🆕 GPS Locate-Me button */}
           <button
-            onClick={handleLocateMe}
+            type="button"
+            onClick={(e) => {
+              // Leaflet's zoom control (inserted as this wrapper's first
+              // child by useLayerSyncEffects) calls disableClickPropagation
+              // on itself. In some stacking contexts that can eat events
+              // destined for sibling buttons in the same wrapper. Stopping
+              // propagation here guarantees the click reaches our handler.
+              e.stopPropagation();
+              console.log("[GPS] onClick reached button element");
+              handleLocateMe();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             title="Show my location"
             disabled={gpsLoading}
             className={`
@@ -392,7 +405,11 @@ export function MapOverlays({
       )}
 
       {/* Traffic Analysis Panel — right-side overlay */}
-      {showTrafficPanel && (
+      {/* Traffic Analysis Panel — right-side overlay.
+          Belt-and-braces: the panel is only rendered when the "Traffic"
+          overlay is enabled. This guarantees that no future code path can
+          surface the panel without the user having turned the layer on. */}
+      {showTrafficPanel && activeLayers.includes("traffic") && (
         <div
           className="absolute top-2 right-2 z-[1500]"
           style={{
@@ -418,6 +435,7 @@ export function MapOverlays({
           />
         </div>
       )}
+
 
       {/* Risk Overview Panel — only when traffic panel is closed */}
       {showOverview && !showTrafficPanel && (
@@ -485,6 +503,20 @@ export function MapOverlays({
             </div>
           </div>
         )}
+
+      {/* 🆕 GPS ERROR — dedicated banner so a failed locate is never silent */}
+      {gpsError && (
+        <div
+          className="absolute top-16 left-2 z-[2000] max-w-[260px] bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg flex items-start gap-2 shadow-lg max-[480px]:top-14 max-[480px]:text-[10px] max-[480px]:px-2 max-[480px]:py-1.5"
+          role="alert"
+        >
+          <AlertTriangle
+            size={14}
+            className="flex-shrink-0 mt-0.5 max-[480px]:w-3 max-[480px]:h-3"
+          />
+          <span>{gpsError}</span>
+        </div>
+      )}
 
       {/* ERROR */}
       {(error ||

@@ -143,9 +143,9 @@ export function LandUseLandCover({
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
   const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] = useState(null);
 
-  /* 🆕 GPS state */
-  const [gpsLoading, setGpsLoading] = useState(false);
-  const [gpsError, setGpsError] = useState(null);
+  // /* 🆕 GPS state */
+  // const [gpsLoading, setGpsLoading] = useState(false);
+  // const [gpsError, setGpsError] = useState(null);
 
   /* ---------------- Data hooks ---------------- */
 
@@ -182,6 +182,7 @@ export function LandUseLandCover({
     // { id: "flyover", name: "Flyover", color: "#3B82F6", type: "overlay" },
     { id: "lulc", name: "LULC", color: "#10B981", type: "overlay" },
     { id: "soil", name: "Soil", color: "#8B5E3C", type: "overlay" },
+    { id: "traffic", name: "Traffic", color: "#EF4444", type: "overlay" },
   ];
 
   const showDifferenceUI = selectedLayer === "difference";
@@ -313,6 +314,7 @@ export function LandUseLandCover({
     addFlyoverLayers,
     addLiveSegmentLayer,
     esriSatelliteLayerRef,
+    flyoverEntries,
     flyoverLayersRef,
     flyoverMarkersRef,
     flyovers,
@@ -327,6 +329,7 @@ export function LandUseLandCover({
     rightLayerRef,
     satelliteLayerRef,
     selectedPolygonLayerRef,
+    setActiveFlyoverId,
     setActiveLayers,
     setBaseLayer,
     setDiffDetailData,
@@ -334,12 +337,16 @@ export function LandUseLandCover({
     setSegmentData,
     setSegmentLoading,
     setSelectedDetailForChart,
+    setSelectedFlyoverForTraffic,
     setSelectedLayer,
     setSelectedPointForChart,
     setShowChart,
     setShowDiffChart,
     setShowLULC,
+    setShowOverview,
+    setShowSegmentTable,
     setShowSoil,
+    setShowTrafficPanel,
     sideBySideRef,
     streetLayerRef,
   });
@@ -367,10 +374,8 @@ export function LandUseLandCover({
   /* ==========================================================================
  * GPS / LOCATE-ME
  * ========================================================================*/
-  const { handleLocateMe } = useGeolocation({
+  const { handleLocateMe, gpsLoading, gpsError } = useGeolocation({
     mapRef,
-    setGpsError,
-    setGpsLoading,
     userAccuracyCircleRef,
     userLocationMarkerRef,
   });
@@ -594,7 +599,9 @@ export function LandUseLandCover({
           flyoverButtonsContainerRef={flyoverButtonsContainerRef}
           flyoverEntries={flyoverEntries}
           flyoversLoading={flyoversLoading}
-          gpsLoading={gpsLoading}
+
+          gpsError={gpsError}
+
           handleBaseLayerChange={handleBaseLayerChange}
           handleFlyoverButtonClick={handleFlyoverButtonClick}
           handleLayerToggle={handleLayerToggle}
