@@ -426,31 +426,7 @@ export default function MovementDiffChart({
                             </span>
                         )}
 
-                        {displacementDiff && (
-                            <>
-                                <span className="whitespace-nowrap">
-                                    Change:{" "}
-                                    <strong
-                                        className={
-                                            displacementDiff.difference > 0
-                                                ? "text-red-600"
-                                                : "text-green-600"
-                                        }
-                                    >
-                                        {displacementDiff.difference > 0
-                                            ? "+"
-                                            : ""}
-                                        {displacementDiff.difference}{" "}
-                                        mm
-                                    </strong>
-                                </span>
-                                <span className="whitespace-nowrap">
-                                    (
-                                    {displacementDiff.percentChange}
-                                    %)
-                                </span>
-                            </>
-                        )}
+
                     </div>
                 </div>
 

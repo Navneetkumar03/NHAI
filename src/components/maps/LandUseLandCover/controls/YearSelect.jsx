@@ -49,7 +49,3 @@ export function YearSelect({ label, value, onChange, disabledYears = [] }) {
   );
 }
 
-/* 🆕 CHANGED: sizing reduced to match zoom control + Layers button at the
-   smaller footprint (28px desktop / 24px mobile), per TL's "reduce all
-   three buttons" request. Border/radius already matched the leaflet-bar
-   look from the earlier "align styles" pass. */

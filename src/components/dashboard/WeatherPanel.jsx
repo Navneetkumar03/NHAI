@@ -157,13 +157,7 @@ export default function WeatherPanel({
                         )}
                     </div>
                 </div>
-                {/* <span className="flex items-center gap-1 shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-600 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-          </span>
-          Live
-        </span> */}
+
             </div>
             <div className="relative overflow-hidden rounded-xl border border-gray-200 p-2 mb-6 shrink-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_12px_28px_-8px_rgba(37,99,235,0.35)]">
                 <FlyoverDetailsPanel

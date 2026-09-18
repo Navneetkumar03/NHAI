@@ -34,28 +34,31 @@ export default function FlyoverDetailsPanel({
         const displayName = formatPointName(selectedPoint.name);
         return (
             <div>
-                <div className="flex items-start justify-between px-2 py-1 ">
-                    <div className="flex items-start gap-2 min-w-0">
+                <div className="flex items-start justify-between px-1 py-1">
+                    <div className="flex items-start gap-1 min-w-0">
                         <span
-                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1"
+                            className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
                             style={{ background: selectedHighway?.color || "#8f1b8b" }}
                         />
                         <h3 className="text-xs font-bold text-gray-900 leading-tight break-words min-w-0">
                             {displayName}
                         </h3>
                     </div>
+                </div>
 
-                    {selectedHighway?.riskStatus === "moderate" && (
+                {/* Risk button — now on its own row, below the flyover name */}
+                {selectedHighway?.riskStatus === "moderate" && (
+                    <div className="px-2 pb-1">
                         <button
                             type="button"
                             onClick={() => onRiskClick?.(selectedHighway)}
-                            className="ml-2 flex-shrink-0 rounded-md bg-orange-100 px-2 py-1 text-[10px] font-semibold text-orange-700 hover:bg-orange-200 transition-colors"
+                            className="rounded-md bg-orange-100 px-1 py-1 text-[11px] font-semibold text-orange-700 hover:bg-orange-200 transition-colors"
                         >
-                            Medium Risk
+                            Medium Risk (120 m)
                         </button>
-                    )}
+                    </div>
+                )}
 
-                </div>
                 <div className="px-0.5 py-1">
                     <div className="grid grid-cols-2 gap-1.5">
                         {selectedPoint.chainage && (

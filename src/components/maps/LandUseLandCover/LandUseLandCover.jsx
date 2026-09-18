@@ -24,6 +24,8 @@ import { useLayerSyncEffects } from "./hooks/useLayerSyncEffects";
 import { TopControlBar } from "./sections/TopControlBar";
 import { MapOverlays } from "./sections/MapOverlays";
 
+import RainfallLayer from "./RainfallLayer";
+
 export function LandUseLandCover({
   mapCenter = DEFAULT_CENTER,
   defaultLeftYear = YEARS[0],
@@ -143,9 +145,8 @@ export function LandUseLandCover({
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
   const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] = useState(null);
 
-  // /* 🆕 GPS state */
-  // const [gpsLoading, setGpsLoading] = useState(false);
-  // const [gpsError, setGpsError] = useState(null);
+  // /* 🆕 Rainfall idw */
+  const [showRainfall, setShowRainfall] = useState(false);
 
   /* ---------------- Data hooks ---------------- */
 
@@ -183,6 +184,8 @@ export function LandUseLandCover({
     { id: "lulc", name: "LULC", color: "#10B981", type: "overlay" },
     { id: "soil", name: "Soil", color: "#8B5E3C", type: "overlay" },
     { id: "traffic", name: "Traffic", color: "#EF4444", type: "overlay" },
+
+    // { id: "rainfall", name: "Rainfall", color: "#2563EB", type: "overlay" },  // for rainfall idw
   ];
 
   const showDifferenceUI = selectedLayer === "difference";
@@ -349,6 +352,9 @@ export function LandUseLandCover({
     setShowTrafficPanel,
     sideBySideRef,
     streetLayerRef,
+
+    setShowRainfall,
+    showRainfall,
   });
 
 
@@ -653,6 +659,13 @@ export function LandUseLandCover({
           yearLeft={yearLeft}
           yearRight={yearRight}
         />
+
+        {showRainfall && (
+          <RainfallLayer
+            mapRef={mapRef}
+            onClose={() => setShowRainfall(false)}
+          />
+        )}
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ const riskStyles = {
 
 const riskLabel = {
   low: "Low Risk",
-  moderate: "Moderate Risk",
+  moderate: "Medium Risk",
   high: "High Risk",
 };
 
