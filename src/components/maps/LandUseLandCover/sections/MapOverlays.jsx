@@ -466,42 +466,61 @@ export function MapOverlays({
           overlay is enabled. This guarantees that no future code path can
           surface the panel without the user having turned the layer on. */}
       {/* Traffic Analysis Panel — right-side overlay */}
+      {/* Traffic Analysis Panel — right-side overlay */}
       {showTrafficPanel && activeLayers.includes("traffic") && (
         <div
           className="
-      absolute top-2 right-2 z-[1500]
+      absolute top-2 right-0 -mr-14 z-[1500]
 
       /* MOBILE ONLY */
       max-[480px]:top-2
-      max-[480px]:left-[55px]
+      max-[480px]:left-[52px]
       max-[480px]:right-1
+      max-[480px]:-mr-0
       max-[480px]:w-auto
       max-[480px]:max-w-none
       max-[480px]:h-[calc(100%-1rem)]
       max-[480px]:max-h-[calc(100%-1rem)]
+      max-[480px]:overflow-hidden
+      max-[480px]:min-w-0
     "
           style={{
-            /* DESKTOP — unchanged */
+            /* DESKTOP — KEEP EXACTLY AS BEFORE */
             width: isMobile ? "auto" : "400px",
             height: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
             maxHeight: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
             display: "flex",
-            overflow: "hidden",
+            overflow: isMobile ? "hidden" : "visible",
             overscrollBehavior: "contain",
             pointerEvents: "auto",
+            minWidth: 0,
           }}
         >
-          <TrafficAnalysisPanel
-            selectedFlyoverForTraffic={
-              selectedFlyoverForTraffic?.backendName || null
-            }
-            displayName={selectedFlyoverForTraffic?.displayName || null}
-            onClose={() => {
-              setShowTrafficPanel(false);
-              setSelectedFlyoverForTraffic(null);
+          <div
+            className="
+        max-[480px]:w-full
+        max-[480px]:min-w-0
+        max-[480px]:max-w-full
+        max-[480px]:overflow-hidden
+      "
+            style={{
+              width: isMobile ? "100%" : "100%",
+              minWidth: 0,
+              maxWidth: "100%",
             }}
-            isMobile={isMobile}
-          />
+          >
+            <TrafficAnalysisPanel
+              selectedFlyoverForTraffic={
+                selectedFlyoverForTraffic?.backendName || null
+              }
+              displayName={selectedFlyoverForTraffic?.displayName || null}
+              onClose={() => {
+                setShowTrafficPanel(false);
+                setSelectedFlyoverForTraffic(null);
+              }}
+              isMobile={isMobile}
+            />
+          </div>
         </div>
       )}
       {/* Risk Overview Panel — only when traffic panel is closed */}
