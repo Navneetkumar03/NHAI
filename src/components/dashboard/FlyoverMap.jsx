@@ -435,43 +435,6 @@ function BaseMapPicker({ baseMap, onChange }) {
     );
 }
 
-// function FlyoverGeoJsonLayer({ data, color, isActive, onFeatureClick }) {
-//     if (!data || !data.features || data.features.length === 0) return null;
-
-//     const style = () => ({
-//         color,
-//         weight: isActive ? 3 : 2,
-//         opacity: 0.9,
-//         fillColor: color,
-//         fillOpacity: isActive ? 0.45 : 0.3,
-//     });
-
-//     const onEachFeature = (feature, layer) => {
-//         layer.on({
-//             click: (e) => {
-//                 L.DomEvent.stopPropagation(e);
-//                 const { lat, lng } = e.latlng;
-//                 // Polygon/segment click, not a specific marker — no point object.
-//                 if (onFeatureClick) onFeatureClick(lat, lng);
-//             },
-//             mouseover: (e) => {
-//                 e.target.setStyle({ fillOpacity: 0.55, weight: 3 });
-//             },
-//             mouseout: (e) => {
-//                 e.target.setStyle(style());
-//             },
-//         });
-//     };
-
-//     return (
-//         <GeoJSON
-//             key={JSON.stringify(data.features.map((f) => f.properties?.OBJECTID))}
-//             data={data}
-//             style={style}
-//             onEachFeature={onEachFeature}
-//         />
-//     );
-// }
 
 
 function FlyoverGeoJsonLayer({ data, onFeatureClick, riskFocusRequest }) {
@@ -579,14 +542,7 @@ function FlyoverGeoJsonLayer({ data, onFeatureClick, riskFocusRequest }) {
                 const layer = e.target;
                 const risk = feature?.properties?.risk;
 
-                // if (
-                //   highlightedLayersRef.current.has(
-                //     segmentLayersRef.current.find((entry) => entry.layer === layer),
-                //   )
-                // ) {
-                //   layer.setStyle({ color: "#ffff00", weight: 10, opacity: 1 });
-                //   return;
-                // }
+
                 if (
                     highlightedLayersRef.current.has(
                         segmentLayersRef.current.find((entry) => entry.layer === layer),

@@ -150,6 +150,12 @@ export function LandUseLandCover({
   // /* 🆕 Rainfall idw */
   const [showRainfall, setShowRainfall] = useState(false);
 
+  // Keep the map hidden until the default flyover view has been applied.
+  // This prevents the zoomed-out regional view from flashing before the
+  // first flyover is selected.
+  const [defaultFlyoverViewReady, setDefaultFlyoverViewReady] = useState(false);
+  const hasAppliedDefaultFlyoverRef = useRef(false);
+
   /* ---------------- Data hooks ---------------- */
 
   const { flyovers, loading: flyoversLoading } = useFlyoverData();
@@ -475,9 +481,75 @@ export function LandUseLandCover({
      Leaflet's own CSS ships a fixed size for these anchors that can't be
      changed via className since they're rendered by Leaflet itself. */
 
-  /* 🆕 Auto-activate the first flyover button once the entries exist, so the
-     map zooms to it by default without any user interaction. A small delay
-     lets the map finish its initial layout before we call fitBounds. */
+  /* ==========================================================================
+   * DEFAULT FLYOVER VIEW
+   * ========================================================================*/
+  // IMPORTANT: Do not let the regional DEFAULT_CENTER view become visible
+  // when InfraRisk opens. Wait until Leaflet is ready AND the flyover
+  // overlays/bounds are ready, then use the SAME flyover click handler that
+  // is used when the user manually clicks a flyover button. That guarantees
+  // the initial view uses the exact same zoom/centering behaviour as the
+  // second screenshot.
+  useEffect(() => {
+    if (!isActive) {
+      hasAppliedDefaultFlyoverRef.current = false;
+      setDefaultFlyoverViewReady(false);
+      return;
+    }
+
+    if (hasAppliedDefaultFlyoverRef.current) return;
+
+    let cancelled = false;
+    let retryTimer = null;
+
+    const applyDefaultFlyoverView = () => {
+      if (cancelled || hasAppliedDefaultFlyoverRef.current) return;
+
+      const map = mapRef.current;
+      const defaultEntry = flyoverEntries[0];
+
+      // The map is created inside useLandUseMap(), while flyoverEntries and
+      // flyoverBoundsRef are populated by the flyover layer hook. These can
+      // become ready on different renders, so wait until BOTH are available.
+      const boundsEntry = defaultEntry
+        ? flyoverBoundsRef.current.find((entry) => entry.id === defaultEntry.id)
+        : null;
+
+      if (!isMapReadyRef.current || !map || !defaultEntry || !boundsEntry) {
+        retryTimer = window.setTimeout(applyDefaultFlyoverView, 50);
+        return;
+      }
+
+      // Leaflet needs the real container size before calculating the close
+      // flyover zoom. The map is hidden with visibility:hidden, not display:none,
+      // so its dimensions are still available.
+      map.invalidateSize({ animate: false });
+
+      // Use the exact same handler used by the flyover buttons. This is the
+      // important part: do NOT use the broad DEFAULT_CENTER or a generic
+      // fitBounds/maxZoom here, because that produces the zoomed-out view.
+      handleFlyoverButtonClick(defaultEntry);
+
+      setActiveFlyoverId(defaultEntry.id);
+      hasAppliedDefaultFlyoverRef.current = true;
+
+      // Let Leaflet finish the synchronous setView/fitBounds operation before
+      // revealing the map. This prevents even one frame of the regional view
+      // from being visible.
+      requestAnimationFrame(() => {
+        if (!cancelled) {
+          setDefaultFlyoverViewReady(true);
+        }
+      });
+    };
+
+    applyDefaultFlyoverView();
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
+    };
+  }, [isActive, flyoverEntries, handleFlyoverButtonClick]);
 
   /* ==========================================================================
    * SOIL LAYER
@@ -573,82 +645,120 @@ export function LandUseLandCover({
           minHeight: isMobile ? "400px" : "auto",
         }}
       >
-        <div ref={mapContainerRef} className="absolute inset-0" />
+        {/*
+          Keep the Leaflet map mounted so it can prepare the default flyover
+          view, but show a loader instead of a blank/zoomed-out map until that
+          close-up view is ready.
+        */}
+        {!defaultFlyoverViewReady && (
+          <div className="absolute inset-0 z-[5000] flex items-center justify-center px-4 bg-white">
+            <div className="text-center">
+              <div
+                className="
+          mx-auto
+          h-10
+          w-10
+          animate-spin
+          rounded-full
+          border-b-2
+          border-blue-500
+          sm:h-12
+          sm:w-12
+        "
+              />
 
-        <MapOverlays
-          activeFlyoverId={activeFlyoverId}
-          activeLayers={activeLayers}
-          availableLayers={availableLayers}
-          baseLayer={baseLayer}
-          diffDetailData={diffDetailData}
-          diffEndDate={diffEndDate}
-          diffPointData={diffPointData}
-          diffStartDate={diffStartDate}
-          dividerLineRef={dividerLineRef}
-          error={error}
-          flyoverButtonsContainerRef={flyoverButtonsContainerRef}
-          flyoverEntries={flyoverEntries}
-          flyoversLoading={flyoversLoading}
-          gpsError={gpsError}
-          gpsLoading={gpsLoading}
-          handleBaseLayerChange={handleBaseLayerChange}
-          handleFlyoverButtonClick={handleFlyoverButtonClick}
-          handleLayerToggle={handleLayerToggle}
-          handleLocateMe={handleLocateMe}
-          handleSegmentRowClick={handleSegmentRowClick}
-          isFullscreen={isFullscreen}
-          isLayerPanelOpen={isLayerPanelOpen}
-          isMobile={isMobile}
-          layerControlWrapperRef={layerControlWrapperRef}
-          loading={loading}
-          movementError={movementError}
-          movementLoading={movementLoading}
-          segmentData={segmentData}
-          segmentLoading={segmentLoading}
-          segmentsError={segmentsError}
-          selectedDetailForChart={selectedDetailForChart}
-          selectedFlyoverForTraffic={selectedFlyoverForTraffic}
-          selectedPointForChart={selectedPointForChart}
-          selectedSegmentId={selectedSegmentId}
-          setDiffDetailData={setDiffDetailData}
-          setDiffPointData={setDiffPointData}
-          setIsLayerPanelOpen={setIsLayerPanelOpen}
-          setSelectedDetailForChart={setSelectedDetailForChart}
-          setSelectedFlyoverForTraffic={setSelectedFlyoverForTraffic}
-          setSelectedPointForChart={setSelectedPointForChart}
-          setShowChart={setShowChart}
-          setShowDiffChart={setShowDiffChart}
-          setShowOverview={setShowOverview}
-          setShowSegmentTable={setShowSegmentTable}
-          setShowTrafficPanel={setShowTrafficPanel}
-          showChart={showChart}
-          showDiffChart={showDiffChart}
-          showDifferenceUI={showDifferenceUI}
-          showLULC={showLULC}
-          showOverview={showOverview}
-          showSegmentTable={showSegmentTable}
-          showSegmentsUI={showSegmentsUI}
-          showSoil={showSoil}
-          showTrafficPanel={showTrafficPanel}
-          showVelocityUI={showVelocityUI}
-          soilError={soilError}
-          soilLoading={soilLoading}
-          tagRef={tagRef}
-          taxoValues={taxoValues}
-          toggleFullscreen={toggleFullscreen}
-          velocityDiffError={velocityDiffError}
-          velocityDiffLoading={velocityDiffLoading}
-          velocityDiffRange={velocityDiffRange}
-          yearLeft={yearLeft}
-          yearRight={yearRight}
-        />
-
-        {showRainfall && (
-          <RainfallLayer
-            mapRef={mapRef}
-            onClose={() => setShowRainfall(false)}
-          />
+              <p className="mt-4 text-sm text-gray-600 sm:text-base">
+                Loading InfraRisk Map...
+              </p>
+            </div>
+          </div>
         )}
+
+        <div
+          className="absolute inset-0 transition-none"
+          style={{
+            opacity: defaultFlyoverViewReady ? 1 : 0,
+            visibility: defaultFlyoverViewReady ? "visible" : "hidden",
+          }}
+        >
+          <div ref={mapContainerRef} className="absolute inset-0" />
+
+          <MapOverlays
+            activeFlyoverId={activeFlyoverId}
+            activeLayers={activeLayers}
+            availableLayers={availableLayers}
+            baseLayer={baseLayer}
+            diffDetailData={diffDetailData}
+            diffEndDate={diffEndDate}
+            diffPointData={diffPointData}
+            diffStartDate={diffStartDate}
+            dividerLineRef={dividerLineRef}
+            error={error}
+            flyoverButtonsContainerRef={flyoverButtonsContainerRef}
+            flyoverEntries={flyoverEntries}
+            flyoversLoading={flyoversLoading}
+            gpsError={gpsError}
+            gpsLoading={gpsLoading}
+            handleBaseLayerChange={handleBaseLayerChange}
+            handleFlyoverButtonClick={handleFlyoverButtonClick}
+            handleLayerToggle={handleLayerToggle}
+            handleLocateMe={handleLocateMe}
+            handleSegmentRowClick={handleSegmentRowClick}
+            isFullscreen={isFullscreen}
+            isLayerPanelOpen={isLayerPanelOpen}
+            isMobile={isMobile}
+            layerControlWrapperRef={layerControlWrapperRef}
+            loading={loading}
+            movementError={movementError}
+            movementLoading={movementLoading}
+            segmentData={segmentData}
+            segmentLoading={segmentLoading}
+            segmentsError={segmentsError}
+            selectedDetailForChart={selectedDetailForChart}
+            selectedFlyoverForTraffic={selectedFlyoverForTraffic}
+            selectedPointForChart={selectedPointForChart}
+            selectedSegmentId={selectedSegmentId}
+            setDiffDetailData={setDiffDetailData}
+            setDiffPointData={setDiffPointData}
+            setIsLayerPanelOpen={setIsLayerPanelOpen}
+            setSelectedDetailForChart={setSelectedDetailForChart}
+            setSelectedFlyoverForTraffic={setSelectedFlyoverForTraffic}
+            setSelectedPointForChart={setSelectedPointForChart}
+            setShowChart={setShowChart}
+            setShowDiffChart={setShowDiffChart}
+            setShowOverview={setShowOverview}
+            setShowSegmentTable={setShowSegmentTable}
+            setShowTrafficPanel={setShowTrafficPanel}
+            showChart={showChart}
+            showDiffChart={showDiffChart}
+            showDifferenceUI={showDifferenceUI}
+            showLULC={showLULC}
+            showOverview={showOverview}
+            showSegmentTable={showSegmentTable}
+            showSegmentsUI={showSegmentsUI}
+            showSoil={showSoil}
+            showTrafficPanel={showTrafficPanel}
+            showVelocityUI={showVelocityUI}
+            soilError={soilError}
+            soilLoading={soilLoading}
+            tagRef={tagRef}
+            taxoValues={taxoValues}
+            toggleFullscreen={toggleFullscreen}
+            velocityDiffError={velocityDiffError}
+            velocityDiffLoading={velocityDiffLoading}
+            velocityDiffRange={velocityDiffRange}
+            yearLeft={yearLeft}
+            yearRight={yearRight}
+            showRainfall={showRainfall}
+          />
+
+          {showRainfall && (
+            <RainfallLayer
+              mapRef={mapRef}
+              onClose={() => setShowRainfall(false)}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

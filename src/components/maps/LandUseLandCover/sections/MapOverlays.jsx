@@ -104,6 +104,7 @@ export function MapOverlays({
   velocityDiffRange,
   yearLeft,
   yearRight,
+  showRainfall,
 }) {
   /* ---------------------------------------------------------------------
    * Exclusive overlays (LULC / Soil / Traffic)
@@ -265,9 +266,11 @@ export function MapOverlays({
                               ? showLULC
                               : layer.id === "soil"
                                 ? showSoil
-                                : layer.id === "linear"
-                                  ? activeLayers.includes("linear")
-                                  : activeLayers.includes(layer.id)
+                                : layer.id === "rainfall"
+                                  ? showRainfall
+                                  : layer.id === "linear"
+                                    ? activeLayers.includes("linear")
+                                    : activeLayers.includes(layer.id)
                           }
                           onChange={() => handleOverlayChange(layer.id)}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
@@ -466,7 +469,7 @@ export function MapOverlays({
           overlay is enabled. This guarantees that no future code path can
           surface the panel without the user having turned the layer on. */}
       {/* Traffic Analysis Panel — right-side overlay */}
-      {/* Traffic Analysis Panel — right-side overlay */}
+
       {showTrafficPanel && activeLayers.includes("traffic") && (
         <div
           className="
@@ -485,10 +488,10 @@ export function MapOverlays({
       max-[480px]:min-w-0
     "
           style={{
-            /* DESKTOP — KEEP EXACTLY AS BEFORE */
+            /* DESKTOP — unchanged */
             width: isMobile ? "auto" : "400px",
-            height: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
-            maxHeight: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
+            height: "calc(100% - 1rem)",
+            maxHeight: "calc(100% - 1rem)",
             display: "flex",
             overflow: isMobile ? "hidden" : "visible",
             overscrollBehavior: "contain",
@@ -504,7 +507,7 @@ export function MapOverlays({
         max-[480px]:overflow-hidden
       "
             style={{
-              width: isMobile ? "100%" : "100%",
+              width: "100%",
               minWidth: 0,
               maxWidth: "100%",
             }}
@@ -517,12 +520,20 @@ export function MapOverlays({
               onClose={() => {
                 setShowTrafficPanel(false);
                 setSelectedFlyoverForTraffic(null);
+
+                // IMPORTANT:
+                // Closing the panel also turns OFF the Traffic overlay
+                // so the checkbox becomes unchecked.
+                if (activeLayers.includes("traffic")) {
+                  handleLayerToggle("traffic");
+                }
               }}
               isMobile={isMobile}
             />
           </div>
         </div>
       )}
+
       {/* Risk Overview Panel — only when traffic panel is closed */}
       {showOverview && !showTrafficPanel && (
         <RiskOverviewPanel onClose={() => setShowOverview(false)} />

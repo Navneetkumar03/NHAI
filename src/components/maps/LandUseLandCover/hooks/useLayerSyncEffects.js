@@ -43,9 +43,9 @@ export function useLayerSyncEffects({
   updateMovementVisibility,
   yearLeft,
   yearRight,
-  zoomControlContainerRef
+  zoomControlContainerRef,
 }) {
-useEffect(() => {
+  useEffect(() => {
     if (
       availableDates &&
       availableDates.length > 0 &&
@@ -57,7 +57,7 @@ useEffect(() => {
     }
   }, [availableDates]);
 
-useEffect(() => {
+  useEffect(() => {
     if (movementPoints && movementPoints.length > 0) {
       log(`Movement Points loaded: ${movementPoints.length} points`);
       log("Sample point:", movementPoints[0]);
@@ -72,7 +72,7 @@ useEffect(() => {
     }
   }, [movementPoints, movementError, availableDates]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current || !isActive) {
       return;
     }
@@ -92,12 +92,12 @@ useEffect(() => {
     return () => clearTimeout(timeoutId);
   }, [movementPoints, isActive, addMovementPointsToMap]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current) return;
     updateMovementVisibility();
   }, [selectedLayer, updateMovementVisibility]);
 
-useEffect(() => {
+  useEffect(() => {
     if (loading || error) {
       return;
     }
@@ -114,13 +114,13 @@ useEffect(() => {
     }
   }, [loading, error]);
 
-useEffect(() => {
+  useEffect(() => {
     if (mapRef.current) {
       updateLayerVisibility();
     }
   }, [activeLayers, updateLayerVisibility]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!leftLayerRef.current || !rightLayerRef.current) {
       return;
     }
@@ -133,7 +133,7 @@ useEffect(() => {
     );
   }, [yearLeft, yearRight]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current) {
       return;
     }
@@ -195,9 +195,9 @@ useEffect(() => {
     }
   }, [showLULC, ensureLULCLayersExist]);
 
-const hasAutoClickedFirstFlyoverRef = useRef(false);
+  const hasAutoClickedFirstFlyoverRef = useRef(false);
 
-useEffect(() => {
+  useEffect(() => {
     if (hasAutoClickedFirstFlyoverRef.current) return;
     if (!flyoverEntries.length) return;
     if (!activeLayers.includes("linear")) return;
@@ -208,7 +208,7 @@ useEffect(() => {
     hasAutoClickedFirstFlyoverRef.current = true;
 
     // 🆕 Delay so the map settles before zooming
-    const delayMs = 600;
+    const delayMs = 50;
 
     const timeoutId = setTimeout(() => {
       if (!mapRef.current) return;
@@ -218,7 +218,7 @@ useEffect(() => {
     return () => clearTimeout(timeoutId);
   }, [flyoverEntries, activeLayers, handleFlyoverButtonClick]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current || !isActive) {
       return;
     }
@@ -238,14 +238,14 @@ useEffect(() => {
     return () => clearTimeout(timeoutId);
   }, [flyovers, isActive, addFlyoverLayers]);
 
-useEffect(() => {
+  useEffect(() => {
     if (isActive) {
       return;
     }
     teardownLULCLayers();
   }, [isActive, teardownLULCLayers]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!isActive || !mapRef.current || !mapContainerRef.current) {
       return;
     }
@@ -267,7 +267,7 @@ useEffect(() => {
     return () => cancelAnimationFrame(raf);
   }, [isActive]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current || !isMapReadyRef.current) return;
     if (!showSegmentsUI || !liveSegments) return;
 
@@ -282,7 +282,7 @@ useEffect(() => {
     return () => clearTimeout(timeoutId);
   }, [showSegmentsUI, liveSegments, addLiveSegmentLayer]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!mapRef.current || !isMapReadyRef.current) return;
 
     if (!activeLayers.includes("linear") && !showSegmentsUI) {

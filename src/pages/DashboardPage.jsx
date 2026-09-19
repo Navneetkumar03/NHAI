@@ -13,7 +13,6 @@ import WeatherPanel from "../components/dashboard/WeatherPanel";
 
 import { getFlyoverColor } from "../components/maps/shared/mapHelpers";
 import ObservationInfo from "../components/dashboard/ObservationInfo";
-import FlyoverDetailsPanel from "../components/dashboard/FlyoverDetailsPanel";
 
 export default function DashboardPage() {
   // ===========================================================================
@@ -60,16 +59,7 @@ export default function DashboardPage() {
   // ===========================================================================
   // SET FIRST FLYOVER AS DEFAULT
   // ===========================================================================
-  //
-  // IMPORTANT:
-  // Previously only activeId was set here.
-  // Therefore the first flyover became active,
-  // but FlyoverDetailsPanel had no selectedPoint
-  // and remained hidden.
-  //
-  // Now the first flyover AND its first named point
-  // are selected automatically.
-  // ===========================================================================
+
 
   useEffect(() => {
     if (flyovers.length === 0 || activeId !== null) {
