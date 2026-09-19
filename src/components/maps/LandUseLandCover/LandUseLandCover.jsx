@@ -185,7 +185,7 @@ export function LandUseLandCover({
     { id: "soil", name: "Soil", color: "#8B5E3C", type: "overlay" },
     { id: "traffic", name: "Traffic", color: "#EF4444", type: "overlay" },
 
-    // { id: "rainfall", name: "Rainfall", color: "#2563EB", type: "overlay" },  // for rainfall idw
+    { id: "rainfall", name: "Rainfall", color: "#2563EB", type: "overlay" },  // for rainfall idw
   ];
 
   const showDifferenceUI = selectedLayer === "difference";
