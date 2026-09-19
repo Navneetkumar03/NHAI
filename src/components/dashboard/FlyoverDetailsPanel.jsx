@@ -34,30 +34,38 @@ export default function FlyoverDetailsPanel({
         const displayName = formatPointName(selectedPoint.name);
         return (
             <div>
-                <div className="flex items-start justify-between px-1 py-1">
-                    <div className="flex items-start gap-1 min-w-0">
-                        <span
-                            className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
-                            style={{ background: selectedHighway?.color || "#8f1b8b" }}
-                        />
-                        <h3 className="text-xs font-bold text-gray-900 leading-tight break-words min-w-0">
-                            {displayName}
-                        </h3>
+
+                {/* Wrap both in the same parent so they share the same width */}
+                <div className="flex flex-col w-full min-w-0 px-1">
+
+                    {/* Medium Risk button — only when moderate */}
+                    {selectedHighway?.riskStatus === "moderate" && (
+                        <div className="pb-1 w-full">
+                            <button
+                                type="button"
+                                onClick={() => onRiskClick?.(selectedHighway)}
+                                className="w-full rounded-md bg-gradient-to-r from-amber-400 to-warning px-1 py-1 text-[12px] font-semibold text-gray-700 transition-colors text-center whitespace-nowrap hover:brightness-95"
+                            >
+                                Medium Risk (120 m)
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Flyover name row */}
+                    <div className="flex items-start justify-between w-full">
+                        <div className="flex items-start gap-1 min-w-0">
+                            <span
+                                className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+                                style={{ background: selectedHighway?.color || "#8f1b8b" }}
+                            />
+                            <h3 className="text-xs font-bold text-gray-900 leading-tight break-words min-w-0">
+                                {displayName}
+                            </h3>
+                        </div>
                     </div>
+
                 </div>
 
-                {/* Risk button — now on its own row, below the flyover name */}
-                {selectedHighway?.riskStatus === "moderate" && (
-                    <div className="px-2 pb-1">
-                        <button
-                            type="button"
-                            onClick={() => onRiskClick?.(selectedHighway)}
-                            className="rounded-md bg-orange-100 px-1 py-1 text-[11px] font-semibold text-orange-700 hover:bg-orange-200 transition-colors"
-                        >
-                            Medium Risk (120 m)
-                        </button>
-                    </div>
-                )}
 
                 <div className="px-0.5 py-1">
                     <div className="grid grid-cols-2 gap-1.5">
