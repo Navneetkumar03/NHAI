@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
     MapContainer,
@@ -137,6 +137,10 @@ function MapClickHandler({ onMapClick }) {
 // width, and — because this component is rendered in JSX *before*
 // BaseMapPicker — its effect attaches first, so the row order ends up
 // zoom-in, zoom-out, fullscreen, layers.
+//
+// Its size (30px, 26px on small screens) comes from the
+// ".fullscreen-control-row" rule in FlyoverMap's <style> block so it
+// always matches the +/- buttons.
 // ---------------------------------------------------------------------
 function FullscreenControl({ containerRef, isFullscreen }) {
     const map = useMap();
@@ -217,23 +221,21 @@ function FullscreenControl({ containerRef, isFullscreen }) {
         <div
             className="fullscreen-control-row"
             style={{
-                width: "22px",
-                height: "22px",
-                minWidth: "22px",
-                minHeight: "22px",
                 padding: 0,
                 margin: 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxSizing: "border-box",
                 background: "#ffffff",
-                borderTop: "1px solid #ccc",
+                // divider between fullscreen and layers (the "-" button
+                // draws its own divider above this row via index.css)
+                boxShadow: "inset 0 -1px 0 #e5e7eb",
             }}
         >
             <FullscreenButton
                 isFullscreen={isFullscreen}
                 onToggle={handleToggle}
+                className="flex h-full w-full items-center justify-center text-gray-700 hover:bg-gray-50"
             />
         </div>,
         zoomContainer
@@ -260,13 +262,36 @@ function BaseMapPicker({ baseMap, onChange }) {
     const map = useMap();
     const [open, setOpen] = useState(false);
     const buttonRef = useRef(null);
+    const panelRef = useRef(null);
     const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
 
+    // Opens to the RIGHT of the Layers button, top-aligned with it, but is
+    // always clamped INSIDE the map card: the panel's real size is measured
+    // (panelRef) and its left/top are limited so it never crosses the card's
+    // right or bottom edge (or its top/left edge).
     const updatePosition = useCallback(() => {
         if (!buttonRef.current) return;
-        const rect = buttonRef.current.getBoundingClientRect();
-        setPanelPos({ top: rect.bottom + 6, left: rect.left });
-    }, []);
+        const btn = buttonRef.current.getBoundingClientRect();
+        const card = map.getContainer().getBoundingClientRect();
+        const w = panelRef.current?.offsetWidth ?? 170;
+        const h = panelRef.current?.offsetHeight ?? 150;
+        const GAP = 8;
+
+        let left = btn.right + GAP;
+        left = Math.min(left, card.right - w - GAP);
+        left = Math.max(left, card.left + GAP);
+
+        let top = btn.top;
+        top = Math.min(top, card.bottom - h - GAP);
+        top = Math.max(top, card.top + GAP);
+
+        setPanelPos({ top, left });
+    }, [map]);
+
+    // Measure + position before paint, so the panel never flashes outside the card.
+    useLayoutEffect(() => {
+        if (open) updatePosition();
+    }, [open, updatePosition]);
 
     useEffect(() => {
         if (!open) return;
@@ -281,9 +306,9 @@ function BaseMapPicker({ baseMap, onChange }) {
 
     // Instead of registering a SEPARATE Leaflet control (which always gets its
     // own margin-top gap from the zoom control, plus its own width if it
-    // doesn't exactly match 26x26), we append our button as an extra row
-    // INSIDE the zoom control's own container. That makes it the same box as
-    // +/-, so it lines up with zero gap and identical width on any screen.
+    // doesn't exactly match the +/- buttons), we append our button as an extra
+    // row INSIDE the zoom control's own container. That makes it the same box
+    // as +/-, so it lines up with zero gap and identical width on any screen.
     useEffect(() => {
         let root;
         let btnEl;
@@ -304,19 +329,20 @@ function BaseMapPicker({ baseMap, onChange }) {
             // Leaflet styles its zoom buttons via ".leaflet-bar a" — since this is a
             // <div>, not an <a>, none of those rules apply automatically. Set the
             // same look explicitly instead of relying on the class name.
+            // Width/height come from the ".leaflet-layer-picker-control" rule in
+            // FlyoverMap's <style> block (30px, 26px on small screens) so they
+            // always match the +/- buttons. This is the last row in the stack,
+            // so it has no divider below it.
             btnEl = L.DomUtil.create(
                 "div",
-                "leaflet-control-zoom-in leaflet-layer-picker-control",
+                "leaflet-control-zoom-in leaflet-layer-picker-control group",
             );
             btnEl.style.cursor = "pointer";
             btnEl.style.display = "flex";
             btnEl.style.alignItems = "center";
             btnEl.style.justifyContent = "center";
             btnEl.style.boxSizing = "border-box";
-            btnEl.style.width = "22px";
-            btnEl.style.height = "22px";
             btnEl.style.background = "#ffffff";
-            btnEl.style.borderTop = "1px solid #ccc"; // separates it from the button above
             btnEl.title = "Layer control";
 
             L.DomEvent.disableClickPropagation(btnEl);
@@ -325,7 +351,7 @@ function BaseMapPicker({ baseMap, onChange }) {
                 setOpen((o) => !o);
             });
             L.DomEvent.on(btnEl, "mouseover", () => {
-                btnEl.style.background = "#f4f4f4";
+                btnEl.style.background = "#f9fafb";
             });
             L.DomEvent.on(btnEl, "mouseout", () => {
                 btnEl.style.background = "#ffffff";
@@ -335,7 +361,12 @@ function BaseMapPicker({ baseMap, onChange }) {
             buttonRef.current = btnEl;
 
             root = createRoot(btnEl);
-            root.render(<Layers size={11} className="text-blue-600" />);
+            root.render(
+                <Layers
+                    size={16}
+                    className="text-gray-700 transition-colors duration-150 group-hover:text-blue-600"
+                />,
+            );
         };
 
         tryAttach();
@@ -355,25 +386,26 @@ function BaseMapPicker({ baseMap, onChange }) {
                     onClick={() => setOpen(false)}
                 />
                 <div
-                    className="fixed z-[99999] w-35 max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-1 text-sm"
+                    ref={panelRef}
+                    className="fixed z-[99999] min-w-[150px] max-w-[70vw] rounded-lg bg-white shadow-xl ring-1 ring-black/10 p-3 text-sm"
                     style={{ top: panelPos.top, left: panelPos.left }}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                 >
-                    <div className="flex items-center justify-between mb-0.5">
-                        <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400 mb-0">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0">
                             Base map
                         </p>
                         <button
                             onClick={() => setOpen(false)}
-                            className="text-gray-400 hover:text-gray-600"
+                            className="text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full p-0.5 transition-colors"
                         >
                             <X size={14} />
                         </button>
                     </div>
 
-                    <div className="space-y-0">
+                    <div className="flex flex-col gap-2">
                         {[
                             { key: "streets", label: "Street" },
                             { key: "satellite", label: "Google Satellite" },
@@ -381,22 +413,24 @@ function BaseMapPicker({ baseMap, onChange }) {
                         ].map((opt) => (
                             <label
                                 key={opt.key}
-                                className="flex items-center gap-2 cursor-pointer text-[11px]"
+                                className="flex items-center gap-2 cursor-pointer text-xs text-gray-700 hover:text-blue-600 transition-colors"
                             >
                                 <input
                                     type="radio"
                                     name="basemap"
                                     checked={baseMap === opt.key}
                                     onChange={() => onChange(opt.key)}
-                                    className="accent-blue-600"
+                                    className="accent-blue-600 cursor-pointer"
                                 />
-                                <span className="text-gray-700">{opt.label}</span>
+                                <span className="whitespace-nowrap">{opt.label}</span>
                             </label>
                         ))}
                     </div>
                 </div>
             </>,
-            document.body,
+            // In native fullscreen only the fullscreen element (and its
+            // children) are rendered, so portal into it while fullscreen.
+            document.fullscreenElement || document.body,
         )
     );
 }
@@ -673,22 +707,36 @@ export default function FlyoverMap({
           left: 8px !important;
         }
 
-        .flyover-map-shell .leaflet-control-zoom {
+        /* In this card the zoom control IS the whole button column
+           (+, -, fullscreen, layers), so it draws the outer frame itself:
+           white background, thin border, rounded corners and shadow.
+           (index.css strips Leaflet's own frame because on the main map
+           the column frame comes from MapOverlays.jsx instead.) */
+        .flyover-map-shell .leaflet-control-zoom.leaflet-bar {
           margin: 0 !important;
+          background: #ffffff !important;
+          border: 1px solid #d1d5db !important;
+          border-radius: 6px !important;
+          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25) !important;
+          overflow: hidden;
         }
 
-        /* Match the zoom +/- boxes to the smaller scale of the custom
-           fullscreen/layers rows appended below them, so the whole
-           control stack is one uniform, smaller size end to end —
-           covers both touch and non-touch device class variants. */
-        .flyover-map-shell .leaflet-control-zoom-in,
-        .flyover-map-shell .leaflet-control-zoom-out,
-        .flyover-map-shell .leaflet-touch .leaflet-control-zoom-in,
-        .flyover-map-shell .leaflet-touch .leaflet-control-zoom-out {
-          width: 22px !important;
-          height: 22px !important;
-          line-height: 22px !important;
-          font-size: 14px !important;
+        /* The custom fullscreen + layers rows match the +/- buttons:
+           30px, or 26px on small screens. +/- get the same size from
+           index.css, so all four buttons are one uniform size. */
+        .flyover-map-shell .fullscreen-control-row,
+        .flyover-map-shell .leaflet-layer-picker-control {
+          width: 30px;
+          height: 30px;
+          box-sizing: border-box;
+        }
+
+        @media (max-width: 480px) {
+          .flyover-map-shell .fullscreen-control-row,
+          .flyover-map-shell .leaflet-layer-picker-control {
+            width: 26px;
+            height: 26px;
+          }
         }
       `}</style>
 

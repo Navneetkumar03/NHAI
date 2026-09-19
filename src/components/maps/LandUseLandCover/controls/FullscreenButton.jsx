@@ -1,49 +1,31 @@
 import "leaflet/dist/leaflet.css";
-import {
-  Maximize,
-  Minimize,
-} from "lucide-react";
+import { Maximize, Minimize } from "lucide-react";
 
-export function FullscreenButton({ isFullscreen, onToggle }) {
+// Sizing, dividers and hover come from the `className` passed by the parent
+// (CTRL_BTN in MapOverlays.jsx, or the row wrapper in FlyoverMap.jsx), so the
+// button always matches the other buttons in its column.
+export function FullscreenButton({ isFullscreen, onToggle, className = "" }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      title="Toggle fullscreen"
+      title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       aria-label="Toggle fullscreen"
-      className={`
-        flex
-        items-center
-        justify-center
-        w-[22px]
-        h-[22px]
-        min-w-[22px]
-        min-h-[22px]
-        p-0
-        m-0
-        bg-white
-        rounded-none
-        border-0
-        transition-colors
-        duration-150
-        hover:bg-gray-50
-        focus:outline-none
-        focus:ring-0
-        ${isFullscreen
-          ? "text-blue-600 bg-blue-50"
-          : "text-gray-700"
-        }
-      `}
+      className={`${className} ${
+        isFullscreen ? "bg-blue-50! text-blue-600!" : ""
+      }`}
     >
       {isFullscreen ? (
         <Minimize
-          className="w-[12px] h-[12px]"
+          size={16}
           strokeWidth={2}
+          className="max-[480px]:w-3.5 max-[480px]:h-3.5"
         />
       ) : (
         <Maximize
-          className="w-[12px] h-[12px]"
+          size={16}
           strokeWidth={2}
+          className="max-[480px]:w-3.5 max-[480px]:h-3.5"
         />
       )}
     </button>

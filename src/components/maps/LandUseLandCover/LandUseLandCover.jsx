@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import "leaflet-side-by-side";
 import { useFlyoverData } from "../../../hooks/useFlyoverData";
@@ -37,6 +37,7 @@ export function LandUseLandCover({
 
   const mapContainerRef = useRef(null);
   const fullscreenContainerRef = useRef(null);
+  const mapWrapperRef = useRef(null); // outer map box, used for mobile auto-scroll
 
   const zoomControlContainerRef = useRef(null);
   const layerControlWrapperRef = useRef(null);
@@ -143,7 +144,8 @@ export function LandUseLandCover({
   /* ---------------- Google Traffic ---------------- */
 
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
-  const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] = useState(null);
+  const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] =
+    useState(null);
 
   // /* 🆕 Rainfall idw */
   const [showRainfall, setShowRainfall] = useState(false);
@@ -214,12 +216,15 @@ export function LandUseLandCover({
     showSegmentsUI,
   });
 
-
   /* ==========================================================================
    * MOVEMENT POINTS (velocity mode)
    * ========================================================================*/
 
-  const { updateCircleWeights, addMovementPointsToMap, updateMovementVisibility } = useMovementLayer({
+  const {
+    updateCircleWeights,
+    addMovementPointsToMap,
+    updateMovementVisibility,
+  } = useMovementLayer({
     diffEndDate,
     diffMarkersRef,
     diffStartDate,
@@ -235,7 +240,6 @@ export function LandUseLandCover({
     setShowChart,
     setShowDiffChart,
   });
-
 
   /* ==========================================================================
    * DIFFERENCE-MODE CIRCLES  🆕
@@ -265,7 +269,6 @@ export function LandUseLandCover({
     velocityDiff,
   });
 
-
   /* ==========================================================================
    * SIDE-BY-SIDE TILE COMPARISON
    * ========================================================================*/
@@ -284,7 +287,6 @@ export function LandUseLandCover({
     yearLeft,
     yearRight,
   });
-
 
   /* ==========================================================================
    * FLYOVER LAYERS
@@ -307,12 +309,16 @@ export function LandUseLandCover({
     setShowTrafficPanel,
   });
 
-
   /* ==========================================================================
    * UI HANDLERS
    * ========================================================================*/
 
-  const { handleLayerChange, handleLayerToggle, handleBaseLayerChange, toggleFullscreen } = useLayerControls({
+  const {
+    handleLayerChange,
+    handleLayerToggle,
+    handleBaseLayerChange,
+    toggleFullscreen,
+  } = useLayerControls({
     activeLayers,
     addFlyoverLayers,
     addLiveSegmentLayer,
@@ -357,7 +363,6 @@ export function LandUseLandCover({
     showRainfall,
   });
 
-
   const { handleFlyoverButtonClick } = useFlyoverInteractions({
     activeFlyoverId,
     flyoverBoundsRef,
@@ -365,28 +370,16 @@ export function LandUseLandCover({
     setActiveFlyoverId,
   });
 
-
   /* 🆕 Zoom + highlight a single flyover */
 
-
-
-
-
-
-
-
-
-
   /* ==========================================================================
- * GPS / LOCATE-ME
- * ========================================================================*/
+   * GPS / LOCATE-ME
+   * ========================================================================*/
   const { handleLocateMe, gpsLoading, gpsError } = useGeolocation({
     mapRef,
     userAccuracyCircleRef,
     userLocationMarkerRef,
   });
-
-
 
   /* ==========================================================================
    * EFFECTS
@@ -436,7 +429,6 @@ export function LandUseLandCover({
     zoomControlContainerRef,
   });
 
-
   useSoilData({
     setSoilData,
     setSoilError,
@@ -445,13 +437,6 @@ export function LandUseLandCover({
     soilDataRef,
   });
 
-
-
-
-
-
-
-
   useResponsiveUI({
     mapContainerRef,
     mapRef,
@@ -459,8 +444,30 @@ export function LandUseLandCover({
     setIsMobile,
   });
 
+  /* 🆕 MOBILE: when this page/tab is opened on a phone, automatically scroll
+     down to the END of the map, so the bottom edge of the map lines up with
+     the bottom of the screen.
+     - Runs each time the page becomes active (mount, or isActive false -> true),
+       NOT on every resize/rotation, so it never fights the user's own scrolling.
+     - The short delay lets the header, tab bar and map finish laying out first;
+       otherwise the scroll target can be measured before it settles.
+     - scrollIntoView scrolls whichever ancestor actually scrolls (window or a
+       dashboard scroll container), so it works in either layout.
+     - block: "end" aligns the map's bottom edge with the bottom of the
+       visible area. */
+  useEffect(() => {
+    if (!isActive) return;
+    if (window.innerWidth > 1024) return; // same mobile cutoff as `isMobile`
 
+    const t = setTimeout(() => {
+      mapWrapperRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 400);
 
+    return () => clearTimeout(t);
+  }, [isActive]);
 
   /* 🆕 CHANGED: added `.leaflet-bar a` override so the native Leaflet
      zoom control (+/-) matches the reduced size of the FullscreenButton
@@ -468,21 +475,9 @@ export function LandUseLandCover({
      Leaflet's own CSS ships a fixed size for these anchors that can't be
      changed via className since they're rendered by Leaflet itself. */
 
-
-
-
-
-
-
-
-
-
   /* 🆕 Auto-activate the first flyover button once the entries exist, so the
      map zooms to it by default without any user interaction. A small delay
      lets the map finish its initial layout before we call fitBounds. */
-
-
-
 
   /* ==========================================================================
    * SOIL LAYER
@@ -497,7 +492,6 @@ export function LandUseLandCover({
     soilData,
     soilLayerRef,
   });
-
 
   /* ==========================================================================
    * INITIALIZE MAP
@@ -536,17 +530,6 @@ export function LandUseLandCover({
     zoomControlContainerRef,
   });
 
-
-
-
-
-
-
-
-
-
-
-
   /* ==========================================================================
    * RENDER
    * ========================================================================*/
@@ -583,6 +566,7 @@ export function LandUseLandCover({
 
       {/* MAP CONTAINER */}
       <div
+        ref={mapWrapperRef}
         className="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-gray-200"
         style={{
           height: isMobile ? "450px" : "100%",
@@ -605,9 +589,8 @@ export function LandUseLandCover({
           flyoverButtonsContainerRef={flyoverButtonsContainerRef}
           flyoverEntries={flyoverEntries}
           flyoversLoading={flyoversLoading}
-
           gpsError={gpsError}
-
+          gpsLoading={gpsLoading}
           handleBaseLayerChange={handleBaseLayerChange}
           handleFlyoverButtonClick={handleFlyoverButtonClick}
           handleLayerToggle={handleLayerToggle}

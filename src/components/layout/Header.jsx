@@ -129,10 +129,19 @@ const Header = ({ only, onLogout, user } = {}) => {
 
   return (
     <div className="w-full bg-[#1366D9] select-none font-sans">
-      <div className="relative w-full min-w-[1020px] h-[100px] pb-1.5 bg-[#1366D9] flex items-center shadow-lg max-[900px]:min-w-0 max-[900px]:flex-col max-[900px]:h-auto">
+      {/*
+        Mobile spacing model:
+        - Row becomes a centered flex-column (`items-center` already centers cross-axis,
+          which is horizontal once we're in flex-col).
+        - `max-[900px]:gap-2` + `max-[900px]:py-2` give a thin, even blue margin
+          top/bottom/between cards, instead of the old thicker py-3/gap-3.
+        - Card widths (w-[85%] / w-[92%]) are unchanged from before — only the
+          row's own padding/gap got slimmed down.
+      */}
+      <div className="relative w-full min-w-[1020px] h-[100px] pb-1.5 bg-[#1366D9] flex items-center shadow-lg max-[900px]:min-w-0 max-[900px]:flex-col max-[900px]:h-auto max-[900px]:py-2 max-[900px]:gap-2">
         {showLogo && (
-          <div className="relative z-10 h-full -mr-8 pr-12 flex items-center mt-3 ml-1 gap-3 shrink-0 bg-[#EEF4FA] max-[900px]:w-full max-[900px]:mr-0 max-[900px]:justify-center max-[900px]:h-auto max-[900px]:py-3">
-            <div className="flex items-center gap-2 max-[900px]:gap-2">
+          <div className="relative z-10 h-full -mr-8 pr-12 flex items-center mt-3 ml-1 gap-3 shrink-0 bg-[#EEF4FA] max-[900px]:w-[90%] max-[900px]:mr-0 max-[900px]:ml-0 max-[900px]:mt-0 max-[900px]:px-4 max-[900px]:justify-between max-[900px]:h-auto max-[900px]:py-3 max-[900px]:rounded-xl max-[900px]:shadow-sm">
+            <div className="flex items-center gap-2 max-[900px]:gap-2 shrink-0">
               <img
                 src={NHAILOGO}
                 alt="NHAI Logo"
@@ -149,13 +158,52 @@ const Header = ({ only, onLogout, user } = {}) => {
                 </p>
               </div>
             </div>
+
+            {/* Project name + tagline, shown beside the logo ONLY on mobile.
+                Desktop keeps showing them in the center panel below, so this
+                block stays hidden until the 900px breakpoint.
+                Inline textAlign is used because some global `h2 { text-align: center }`
+                base style in the app can otherwise win over the Tailwind class. */}
+            <div className="hidden max-[900px]:block max-[900px]:flex-1 max-[900px]:min-w-0 ml-2">
+              <h2
+                className="text-[#0F172A] font-extrabold text-[11px] leading-snug max-[480px]:text-[10px]"
+                style={{ textAlign: "left" }}
+              >
+                AI Risk Intelligence & Remote Monitoring System
+              </h2>
+
+              {/* Mobile-only tagline under the title (desktop shows it in the center panel) */}
+              <div
+                className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[9px] font-bold max-[480px]:text-[8px] max-[480px]:gap-x-1.5"
+                style={{ textAlign: "left" }}
+              >
+                <span className="text-[#1D61E8] whitespace-nowrap">
+                  <span className="text-gray-400 mr-0.5">•</span>Smart
+                  Monitoring
+                </span>
+                <span className="text-[#16A34A] whitespace-nowrap">
+                  <span className="text-gray-400 mr-0.5">•</span>Predictive
+                  Insights
+                </span>
+                <span className="text-[#EA580C] whitespace-nowrap">
+                  <span className="text-gray-400 mr-0.5">•</span>Safer Highways
+                </span>
+              </div>
+            </div>
+
             <div className="h-10 bg-gradient-to-b from-transparent via-gray-300/80 to-transparent  mr-2 max-[900px]:hidden" />
           </div>
         )}
 
         {showRest && (
           <>
-            <div className="relative z-20 flex-1 h-full mt-3 shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white flex flex-col justify-center pl-2 pr-5  rounded-bl-[125px] rounded-br-[150px] rounded-tr-[450px] shadow-[-8px_0_18px_-2px_rgba(0,0,0,0.07)] [clip-path:polygon(0_0,calc(100%_-_250px)_0,100%_160%,0_100%)] max-[900px]:w-full max-[900px]:ml-0 max-[900px]:h-auto max-[900px]:py-4 max-[900px]:px-5 max-[900px]:[clip-path:none] max-[900px]:rounded-none max-[900px]:items-center">
+            {/*
+              CHANGED: this is the center "AI Risk Intelligence..." title panel.
+              Per TL's request, it is now fully disabled on mobile with
+              `max-[900px]:hidden`. All its other max-[900px]:* reshape classes
+              are dead weight once hidden, so they've been removed for clarity.
+            */}
+            <div className="relative z-20 flex-1 h-full mt-3 shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white flex flex-col justify-center pl-2 pr-5 rounded-bl-[125px] rounded-br-[150px] rounded-tr-[450px] shadow-[-8px_0_18px_-2px_rgba(0,0,0,0.07)] [clip-path:polygon(0_0,calc(100%_-_250px)_0,100%_160%,0_100%)] max-[900px]:hidden">
               <h2 className="text-[#0F172A] w-full font-extrabold text-xl  tracking-tight leading-none max-[900px]:text-center max-[900px]:leading-snug max-[480px]:text-base">
                 AI Risk Intelligence & Remote Monitoring System
               </h2>
@@ -175,26 +223,26 @@ const Header = ({ only, onLogout, user } = {}) => {
               </div>
             </div>
 
-            <div className="relative z-30 h-[50%] rounded-[16px] shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white bg-[#EEF4FA]  mx-3 my-3 px-5 py-5 -ml-20  flex items-center gap-6 shrink-0 max-[1024px]:px-8 max-[1024px]:gap-4 max-[900px]:w-full max-[900px]:ml-0 max-[900px]:mt-0 max-[900px]:h-auto max-[900px]:rounded-none max-[900px]:justify-center max-[900px]:flex-wrap max-[900px]:px-4 max-[900px]:py-3 max-[480px]:gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="w-3.5 h-3.5 bg-[#22C55E] rounded-full inline-block animate-pulse"></span>
-                <div className="text-left">
-                  <div className="text-[10px] text-gray-700 font-bold tracking-tight leading-none">
+            <div className="relative z-30 h-[50%] rounded-[16px] shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white bg-[#EEF4FA]  mx-3 my-3 px-5 py-5 -ml-20  flex items-center gap-6 shrink-0 max-[1024px]:px-8 max-[1024px]:gap-4 max-[900px]:w-[96%] max-[900px]:ml-0 max-[900px]:mx-0 max-[900px]:mt-0 max-[900px]:my-0 max-[900px]:h-auto max-[900px]:rounded-xl max-[900px]:justify-between max-[900px]:flex-nowrap max-[900px]:px-4 max-[900px]:py-3 max-[900px]:gap-2 max-[480px]:gap-1.5 max-[480px]:px-2">
+              <div className="flex items-center gap-2.5 max-[900px]:gap-1.5 shrink-0">
+                <span className="w-3.5 h-3.5 bg-[#22C55E] rounded-full inline-block animate-pulse shrink-0 max-[480px]:w-2.5 max-[480px]:h-2.5"></span>
+                <div className="text-left whitespace-nowrap">
+                  <div className="text-[10px] text-gray-700 font-bold tracking-tight leading-none max-[480px]:text-[9px]">
                     System Status
                   </div>
-                  <div className="text-xs font-bold text-[#16A34A] mt-0.5">
+                  <div className="text-xs font-bold text-[#16A34A] mt-0.5 max-[480px]:text-[10px]">
                     Operational
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 p-1.5 rounded-lg">
-                <Calendar className="w-5 h-5 text-[#0F172A] stroke-[2.2]" />
-                <div className="text-left">
-                  <div className="text-xs font-bold text-[#0F172A] leading-tight">
+              <div className="flex items-center gap-2.5 max-[900px]:gap-1.5 p-1.5 max-[900px]:p-0 rounded-lg shrink-0">
+                <Calendar className="w-5 h-5 text-[#0F172A] stroke-[2.2] shrink-0 max-[480px]:w-4 max-[480px]:h-4" />
+                <div className="text-left whitespace-nowrap">
+                  <div className="text-xs font-bold text-[#0F172A] leading-tight max-[480px]:text-[10px]">
                     {formatDateDisplay(selectedDate)}
                   </div>
-                  <div className="text-[10px] text-gray-500 font-semibold leading-tight">
+                  <div className="text-[10px] text-gray-500 font-semibold leading-tight max-[480px]:text-[9px]">
                     {currentTime}
                   </div>
                 </div>
@@ -203,13 +251,13 @@ const Header = ({ only, onLogout, user } = {}) => {
               <div
                 ref={userButtonRef}
                 onClick={toggleUserMenu}
-                className="flex items-center gap-2.5 cursor-pointer group hover:bg-black/5 p-1 rounded-lg transition-colors"
+                className="flex items-center gap-2.5 max-[900px]:gap-1.5 cursor-pointer group hover:bg-black/5 p-1 max-[900px]:p-0 rounded-lg transition-colors shrink-0"
               >
-                <div className="w-9 h-9 bg-[#0B172A] text-white rounded-full flex items-center justify-center font-bold text-xs shadow-md group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 bg-[#0B172A] text-white rounded-full flex items-center justify-center font-bold text-xs shadow-md group-hover:scale-105 transition-transform shrink-0 max-[480px]:w-7 max-[480px]:h-7 max-[480px]:text-[10px]">
                   {initials}
                 </div>
-                <div className="text-left">
-                  <div className="text-xs font-bold text-[#0F172A] leading-tight">
+                <div className="text-left whitespace-nowrap">
+                  <div className="text-xs font-bold text-[#0F172A] leading-tight max-[480px]:text-[10px]">
                     {displayName}
                   </div>
 

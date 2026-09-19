@@ -14,31 +14,6 @@
   --shadow-card: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* Mobile responsive utilities */
-/* ============================================================
-   MOBILE MAP CONTROLS
-   ============================================================ */
-@media (max-width: 639px) {
-
-  /* Move Leaflet + / - controls below the top buttons */
-  .leaflet-top.leaflet-left {
-    top: 65px !important;
-  }
-
-  /* Smaller zoom buttons */
-  .leaflet-control-zoom a {
-    width: 22px !important;
-    height: 22px !important;
-    line-height: 22px !important;
-    font-size: 14px !important;
-  }
-
-  .leaflet-control-zoom {
-    margin-left: 8px !important;
-    margin-top: 8px !important;
-  }
-}
-
 @layer utilities {
 
   /* Extra small screens (phones) */
@@ -125,31 +100,74 @@ body {
   background-size: 18px 18px !important;
 }
 
-/* Position the expanded layers panel */
-/* Position the expanded layers panel */
-
-/* Control the size of zoom buttons.
-   NOTE: this rule (via the .leaflet-touch chain) is more specific than any
-   single-class override, so it is the one that actually determines the
-   on-screen size of the zoom/fullscreen/layers stack — edit it here, not
-   in the component, to change how big those buttons are. Kept in sync
-   with the 22px boxes FlyoverMap.jsx uses for its custom fullscreen and
-   layers rows so the whole stack reads as one uniform size. */
-.leaflet-touch .leaflet-control-zoom-in,
-.leaflet-touch .leaflet-control-zoom-out,
-.leaflet-control-zoom-in,
-.leaflet-control-zoom-out {
-  width: 22px !important;
-  height: 22px !important;
-  font-size: 14px !important;
-  line-height: 22px !important;
-  /* Should match height */
-}
-
-/* Control the zoom container border radius */
+/* ============================================================
+   MAP CONTROL COLUMN
+   Zoom +/- sits inside the joined white column rendered by
+   MapOverlays.jsx (Zoom -> Fullscreen -> Layers -> Locate Me).
+   The column supplies the outer border, shadow and rounded
+   corners, so Leaflet's own frame, margin and shadow are removed
+   here. Button sizes must stay in sync with CTRL_BTN in
+   MapOverlays.jsx: 30px, and 26px at <=480px.
+   The .leaflet-touch chain is more specific than a single-class
+   override, so change zoom button sizes here, not in the component.
+   ============================================================ */
 .leaflet-touch .leaflet-control-zoom,
 .leaflet-control-zoom {
-  border-radius: 8px !important;
+  display: flex !important;
+  flex-direction: column;
+  align-self: stretch;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.leaflet-touch .leaflet-control-zoom a,
+.leaflet-control-zoom a {
+  box-sizing: border-box;
+  /* fill the full width of the column so the divider spans edge to edge */
+  width: auto !important;
+  min-width: 30px;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 18px !important;
+  font-weight: 600;
+  color: #374151;
+  background-color: #ffffff;
+  border: none !important;
+  border-radius: 0 !important;
+  /* divider drawn as an inset shadow: always full width, no border joins */
+  box-shadow: inset 0 -1px 0 #e5e7eb !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.leaflet-control-zoom a.leaflet-disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: default;
+}
+
+/* Round only the top corners of the "+" button to match the column's rounded-md */
+.leaflet-touch .leaflet-control-zoom a.leaflet-control-zoom-in,
+.leaflet-control-zoom a.leaflet-control-zoom-in {
+  border-top-left-radius: 5px !important;
+  border-top-right-radius: 5px !important;
+}
+
+@media (max-width: 480px) {
+
+  .leaflet-touch .leaflet-control-zoom a,
+  .leaflet-control-zoom a {
+    min-width: 26px;
+    height: 26px !important;
+    line-height: 26px !important;
+    font-size: 16px !important;
+  }
 }
 
 /* Google Maps fullscreen button */
@@ -187,11 +205,6 @@ body {
 @media (max-width: 768px) {
   .leaflet-control {
     margin: 0 !important;
-  }
-
-  .leaflet-control-zoom {
-    margin-left: 8px !important;
-    margin-top: 8px !important;
   }
 
   .leaflet-control-attribution {
