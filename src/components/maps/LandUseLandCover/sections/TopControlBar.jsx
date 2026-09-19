@@ -21,7 +21,7 @@ export function TopControlBar({
   showOverview,
   showSegmentTable,
   yearLeft,
-  yearRight
+  yearRight,
 }) {
   return (
     <div

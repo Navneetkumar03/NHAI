@@ -1,4 +1,12 @@
-import { AlertTriangle, Layers, Loader2, Navigation, Table, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import {
+  AlertTriangle,
+  Layers,
+  Loader2,
+  Navigation,
+  Table,
+  X,
+} from "lucide-react";
 import { FullscreenButton } from "../controls/FullscreenButton";
 import { LULCLegend } from "../legends/LULCLegend";
 import { LULC_FADE_MS } from "../constants";
@@ -11,6 +19,24 @@ import { SoilLegend } from "../legends/SoilLegend";
 import TrafficAnalysisPanel from "../../../traffic/TrafficAnalysisPanel";
 import { VelocityDiffLegend } from "../legends/VelocityDiffLegend";
 import { VelocityLegend } from "../legends/VelocityLegend";
+
+// Shared style for every button in the joined control column
+// (Fullscreen, Layers, Locate Me). Zoom +/- is styled via global CSS.
+const CTRL_BTN = `
+  flex items-center justify-center
+  w-[30px] h-[30px]
+  max-[480px]:w-[26px] max-[480px]:h-[26px]
+  bg-white text-gray-700
+  hover:bg-gray-50
+  border-0 border-b border-gray-200
+  rounded-none
+  focus:outline-none focus:ring-0
+  transition-colors duration-150
+`;
+
+// Overlays that are mutually exclusive: turning one on turns the others off.
+// "linear" (Assets) is NOT in this list, so it can stay on alongside any of them.
+const EXCLUSIVE_OVERLAYS = ["lulc", "soil", "traffic"];
 
 export function MapOverlays({
   activeFlyoverId,
@@ -78,7 +104,69 @@ export function MapOverlays({
   velocityDiffRange,
   yearLeft,
   yearRight,
+  showRainfall,
 }) {
+  /* ---------------------------------------------------------------------
+   * Exclusive overlays (LULC / Soil / Traffic)
+   *
+   * Selecting one of these turns the other two off. Assets is independent.
+   *
+   * handleLayerToggle only TOGGLES, and each toggle updates state, so the
+   * changes are applied one at a time: every toggle triggers a re-render,
+   * and the effect below then applies the next queued change using the
+   * latest props. This avoids two back-to-back toggles overwriting each
+   * other with stale state.
+   * -------------------------------------------------------------------*/
+  const latestRef = useRef({});
+  latestRef.current = { showLULC, showSoil, activeLayers, handleLayerToggle };
+  const pendingRef = useRef([]); // queue of { id, wantOn }
+
+  const isLayerOn = (id) => {
+    const s = latestRef.current;
+    if (id === "lulc") return s.showLULC;
+    if (id === "soil") return s.showSoil;
+    return s.activeLayers.includes(id); // traffic, linear, ...
+  };
+
+  // Apply the next queued change that isn't already satisfied.
+  const processQueue = () => {
+    while (pendingRef.current.length > 0) {
+      const { id, wantOn } = pendingRef.current.shift();
+      if (isLayerOn(id) !== wantOn) {
+        latestRef.current.handleLayerToggle(id);
+        break; // wait for the re-render before applying the next one
+      }
+    }
+  };
+
+  // Runs after every render, so queued changes continue with fresh props.
+  useEffect(() => {
+    processQueue();
+  });
+
+  const handleOverlayChange = (id) => {
+    // Assets (and anything not exclusive) toggles on its own.
+    if (!EXCLUSIVE_OVERLAYS.includes(id)) {
+      handleLayerToggle(id);
+      return;
+    }
+
+    // Turning an exclusive overlay OFF is a plain toggle.
+    if (isLayerOn(id)) {
+      handleLayerToggle(id);
+      return;
+    }
+
+    // Turning one ON: switch off the other exclusive overlays first, then it on.
+    pendingRef.current = [
+      ...EXCLUSIVE_OVERLAYS.filter((o) => o !== id && isLayerOn(o)).map(
+        (o) => ({ id: o, wantOn: false }),
+      ),
+      { id, wantOn: true },
+    ];
+    processQueue();
+  };
+
   return (
     <>
       {/* LEGENDS */}
@@ -94,96 +182,34 @@ export function MapOverlays({
         </>
       )}
 
-      {/* LAYER BUTTON + PANEL (Zoom control is inserted as firstChild via
-          the layerControlWrapperRef effect, so the stacking order ends
-          up: Zoom In/Out → Fullscreen → GPS → Layers, per TL request.) */}
+      {/* MAP CONTROL COLUMN
+          Zoom In/Out is inserted as firstChild via the
+          layerControlWrapperRef effect, so the stacking order is:
+          Zoom In/Out → Fullscreen → Layers → Locate Me (GPS). */}
       {!loading && !error && (
         <div
           ref={layerControlWrapperRef}
-          className="absolute top-2 left-2 z-[1500] flex flex-col items-start gap-1 max-[480px]:gap-0.5"
+          className="absolute top-2 left-2 z-[1500] flex flex-col items-stretch gap-0 bg-white rounded-md border border-gray-300"
+          style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.25)" }}
         >
           <FullscreenButton
             isFullscreen={isFullscreen}
             onToggle={toggleFullscreen}
+            className={CTRL_BTN}
           />
-
-          {/* 🆕 GPS Locate-Me button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              // Leaflet's zoom control (inserted as this wrapper's first
-              // child by useLayerSyncEffects) calls disableClickPropagation
-              // on itself. In some stacking contexts that can eat events
-              // destined for sibling buttons in the same wrapper. Stopping
-              // propagation here guarantees the click reaches our handler.
-              e.stopPropagation();
-              console.log("[GPS] onClick reached button element");
-              handleLocateMe();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            title="Show my location"
-            disabled={gpsLoading}
-            className={`
-              flex items-center justify-center
-              w-[22px] h-[22px]
-              max-[480px]:w-[18px] max-[480px]:h-[18px]
-              bg-white
-              rounded-[4px]
-              border-2
-              transition-all duration-200
-              hover:bg-gray-50
-              border-gray-400 text-gray-700 hover:border-gray-500
-              focus:outline-none focus:ring-0
-              leaflet-bar
-              ${gpsLoading ? "opacity-70 cursor-wait" : ""}
-            `}
-            style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.1)" }}
-            aria-label="Show my location"
-          >
-            {gpsLoading ? (
-              <Loader2
-                size={13}
-                className="animate-spin max-[480px]:w-2.5 max-[480px]:h-2.5"
-              />
-            ) : (
-              <Navigation
-                size={13}
-                className="max-[480px]:w-2.5 max-[480px]:h-2.5"
-              />
-            )}
-          </button>
 
           {/* Layer button + panel */}
           <div className="relative">
             <button
               onClick={() => setIsLayerPanelOpen(!isLayerPanelOpen)}
               title="Layer Control"
-              className={`
-                flex items-center justify-center
-                w-[22px] h-[22px]
-                max-[480px]:w-[18px] max-[480px]:h-[18px]
-                bg-white
-                rounded-[4px]
-                border-2
-                transition-all duration-200
-                hover:bg-gray-50
-                ${isLayerPanelOpen
-                  ? "border-blue-500 bg-blue-50 text-blue-600"
-                  : "border-gray-400 text-gray-700 hover:border-gray-500"
-                }
-                focus:outline-none
-                focus:ring-0
-                leaflet-bar
-              `}
-              style={{
-                boxShadow: "0 1px 5px rgba(0,0,0,0.1)",
-              }}
               aria-label="Toggle layer control"
+              className={`${CTRL_BTN} w-full ${isLayerPanelOpen ? "bg-blue-50!" : ""
+                } hover:text-blue-600`}
             >
               <Layers
-                size={13}
-                className="max-[480px]:w-2.5 max-[480px]:h-2.5"
+                size={16}
+                className="max-[480px]:w-3.5 max-[480px]:h-3.5"
               />
             </button>
 
@@ -239,16 +265,16 @@ export function MapOverlays({
                               ? showLULC
                               : layer.id === "soil"
                                 ? showSoil
-                                : layer.id === "linear"
-                                  ? activeLayers.includes("linear")
-                                  : activeLayers.includes(layer.id)
+                                : layer.id === "rainfall"
+                                  ? showRainfall
+                                  : layer.id === "linear"
+                                    ? activeLayers.includes("linear")
+                                    : activeLayers.includes(layer.id)
                           }
-                          onChange={() => handleLayerToggle(layer.id)}
+                          onChange={() => handleOverlayChange(layer.id)}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
                         />
-                        <span className="whitespace-nowrap">
-                          {layer.name}
-                        </span>
+                        <span className="whitespace-nowrap">{layer.name}</span>
                       </label>
                     ))}
                   </div>
@@ -286,9 +312,7 @@ export function MapOverlays({
                         type="radio"
                         name="baseLayer"
                         checked={baseLayer === "esri_satellite"}
-                        onChange={() =>
-                          handleBaseLayerChange("esri_satellite")
-                        }
+                        onChange={() => handleBaseLayerChange("esri_satellite")}
                         className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
                       />
                       <span className="whitespace-nowrap">Satellite</span>
@@ -298,6 +322,39 @@ export function MapOverlays({
               </div>
             )}
           </div>
+
+          {/* GPS Locate-Me — last button in the column */}
+          <button
+            type="button"
+            onClick={(e) => {
+              // Leaflet's zoom control (inserted as this wrapper's first
+              // child by useLayerSyncEffects) calls disableClickPropagation
+              // on itself. In some stacking contexts that can eat events
+              // destined for sibling buttons in the same wrapper. Stopping
+              // propagation here guarantees the click reaches our handler.
+              e.stopPropagation();
+              handleLocateMe();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            title="Show my location"
+            aria-label="Show my location"
+            disabled={gpsLoading}
+            className={`${CTRL_BTN} border-b-0 rounded-b-md ${gpsLoading ? "opacity-70 cursor-wait" : ""
+              }`}
+          >
+            {gpsLoading ? (
+              <Loader2
+                size={16}
+                className="animate-spin max-[480px]:w-3.5 max-[480px]:h-3.5"
+              />
+            ) : (
+              <Navigation
+                size={16}
+                className="max-[480px]:w-3.5 max-[480px]:h-3.5"
+              />
+            )}
+          </button>
         </div>
       )}
 
@@ -309,7 +366,7 @@ export function MapOverlays({
         flyoverEntries.length > 0 && (
           <div
             ref={flyoverButtonsContainerRef}
-            className="absolute top-2 left-10 right-14 z-[1500] flex flex-row items-center gap-1.5 overflow-x-auto max-[480px]:grid max-[480px]:grid-cols-2 max-[480px]:gap-1 max-[480px]:overflow-visible"
+            className="absolute top-2 left-12 right-14 z-[1500] flex flex-row items-center gap-1.5 overflow-x-auto max-[480px]:grid max-[480px]:grid-cols-2 max-[480px]:gap-1 max-[480px]:overflow-visible"
             style={{ pointerEvents: "auto" }}
           >
             {flyoverEntries.map((f) => {
@@ -404,35 +461,67 @@ export function MapOverlays({
         <RiskOverviewPanel onClose={() => setShowOverview(false)} />
       )}
 
-      {/* Traffic Analysis Panel — right-side overlay */}
       {/* Traffic Analysis Panel — right-side overlay.
           Belt-and-braces: the panel is only rendered when the "Traffic"
           overlay is enabled. This guarantees that no future code path can
           surface the panel without the user having turned the layer on. */}
+      {/* Traffic Analysis Panel — right-side overlay */}
+
+
       {showTrafficPanel && activeLayers.includes("traffic") && (
         <div
-          className="absolute top-2 right-2 z-[1500]"
+          className="
+      absolute top-2 right-0 -mr-14 z-[1500]
+
+      /* MOBILE ONLY */
+      max-[480px]:top-2
+      max-[480px]:left-[52px]
+      max-[480px]:right-1
+      max-[480px]:-mr-0
+      max-[480px]:w-auto
+      max-[480px]:max-w-none
+      max-[480px]:h-[calc(100%-1rem)]
+      max-[480px]:max-h-[calc(100%-1rem)]
+      max-[480px]:overflow-hidden
+      max-[480px]:min-w-0
+    "
           style={{
-            width: isMobile ? "min(92vw, 380px)" : "400px",
-            height: isMobile ? "auto" : "calc(100% - 1rem)",
-            maxHeight: isMobile ? "500px" : "calc(100% - 1rem)",
+            /* DESKTOP — KEEP EXACTLY AS BEFORE */
+            width: isMobile ? "auto" : "400px",
+            height: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
+            maxHeight: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
             display: "flex",
-            overflow: "visible",
+            overflow: isMobile ? "hidden" : "visible",
             overscrollBehavior: "contain",
             pointerEvents: "auto",
+            minWidth: 0,
           }}
         >
-          <TrafficAnalysisPanel
-            selectedFlyoverForTraffic={
-              selectedFlyoverForTraffic?.backendName || null
-            }
-            displayName={selectedFlyoverForTraffic?.displayName || null}
-            onClose={() => {
-              setShowTrafficPanel(false);
-              setSelectedFlyoverForTraffic(null);
+          <div
+            className="
+        max-[480px]:w-full
+        max-[480px]:min-w-0
+        max-[480px]:max-w-full
+        max-[480px]:overflow-hidden
+      "
+            style={{
+              width: isMobile ? "100%" : "100%",
+              minWidth: 0,
+              maxWidth: "100%",
             }}
-            isMobile={isMobile}
-          />
+          >
+            <TrafficAnalysisPanel
+              selectedFlyoverForTraffic={
+                selectedFlyoverForTraffic?.backendName || null
+              }
+              displayName={selectedFlyoverForTraffic?.displayName || null}
+              onClose={() => {
+                setShowTrafficPanel(false);
+                setSelectedFlyoverForTraffic(null);
+              }}
+              isMobile={isMobile}
+            />
+          </div>
         </div>
       )}
 
@@ -504,10 +593,11 @@ export function MapOverlays({
           </div>
         )}
 
-      {/* 🆕 GPS ERROR — dedicated banner so a failed locate is never silent */}
+      {/* GPS ERROR — dedicated banner so a failed locate is never silent.
+          Positioned below the taller control column. */}
       {gpsError && (
         <div
-          className="absolute top-16 left-2 z-[2000] max-w-[260px] bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg flex items-start gap-2 shadow-lg max-[480px]:top-14 max-[480px]:text-[10px] max-[480px]:px-2 max-[480px]:py-1.5"
+          className="absolute top-[170px] left-2 z-[2000] max-w-[260px] bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg flex items-start gap-2 shadow-lg max-[480px]:top-[150px] max-[480px]:text-[10px] max-[480px]:px-2 max-[480px]:py-1.5"
           role="alert"
         >
           <AlertTriangle

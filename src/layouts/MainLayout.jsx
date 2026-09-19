@@ -37,7 +37,7 @@ export default function MainLayout({ children, activeNav, onNavChange, onLogout,
 
       <button
         onClick={toggleSidebar}
-        className="lg:hidden fixed top-4 left-1 z-[9999] p-1.5 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors border border-gray-200"
+        className="lg:hidden fixed top-0.5 left-0.5 z-[9999] p-1.5 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors border border-gray-200"
         style={{ marginTop: "-2px" }}
       >
         {sidebarOpen ? (

@@ -70,7 +70,7 @@ export function LayerSelector({ selectedLayer, onLayerChange }) {
       </span>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 border min-w-[90px] h-[28px] max-[480px]:min-w-[70px] max-[480px]:h-[24px] max-[480px]:text-[10px] max-[480px]:px-1.5 ${getLayerColor(
+        className={`flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 border min-w-[90px] h-[28px] max-[480px]:min-w-[64px] max-[480px]:h-[24px] max-[480px]:text-[10px] max-[480px]:px-1.5 ${getLayerColor(
           selectedLayer,
         )}`}
       >
@@ -82,7 +82,7 @@ export function LayerSelector({ selectedLayer, onLayerChange }) {
         />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-[45px] mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-[1600] min-w-[120px]">
+        <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-[9999] min-w-[120px] max-[640px]:max-w-[calc(100vw-2rem)]">
           {options.map((opt) => (
             <button
               key={opt}
@@ -94,7 +94,7 @@ export function LayerSelector({ selectedLayer, onLayerChange }) {
                   "InfraRisk",
                 );
               }}
-              className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs ${selectedLayer === opt
+              className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 transition-colors text-xs whitespace-nowrap ${selectedLayer === opt
                 ? "bg-blue-50 text-blue-700 font-medium"
                 : "text-gray-700"
                 }`}
