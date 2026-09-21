@@ -4,7 +4,7 @@ import { LULC_CLASSES } from "../constants";
 
 export function LULCLegend() {
   return (
-    <div className="absolute bottom-3 right-3 z-[1500] bg-white/95 backdrop-blur-sm rounded-md shadow-md border border-gray-200 px-3 py-2 max-w-[180px] max-[480px]:px-2 max-[480px]:py-1.5 max-[480px]:max-w-[130px] max-[480px]:bottom-2 max-[480px]:right-2">
+    <div className="absolute bottom-[70px] left-3 max-[480px]:bottom-[50px] z-[1500] bg-white/95 backdrop-blur-sm rounded-md shadow-md border border-gray-200 px-3 py-2 max-w-[180px] max-[480px]:px-2 max-[480px]:py-1.5 max-[480px]:max-w-[130px] max-[480px]:bottom-2 max-[480px]:right-2">
       <div className="text-[11px] font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5 max-[480px]:text-[10px] max-[480px]:mb-1">
         Land Cover
       </div>
