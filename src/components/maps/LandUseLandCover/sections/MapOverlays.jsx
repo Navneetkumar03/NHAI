@@ -204,8 +204,9 @@ export function MapOverlays({
               onClick={() => setIsLayerPanelOpen(!isLayerPanelOpen)}
               title="Layer Control"
               aria-label="Toggle layer control"
-              className={`${CTRL_BTN} w-full ${isLayerPanelOpen ? "bg-blue-50!" : ""
-                } hover:text-blue-600`}
+              className={`${CTRL_BTN} w-full ${
+                isLayerPanelOpen ? "bg-blue-50!" : ""
+              } hover:text-blue-600`}
             >
               <Layers
                 size={16}
@@ -340,8 +341,9 @@ export function MapOverlays({
             title="Show my location"
             aria-label="Show my location"
             disabled={gpsLoading}
-            className={`${CTRL_BTN} border-b-0 rounded-b-md ${gpsLoading ? "opacity-70 cursor-wait" : ""
-              }`}
+            className={`${CTRL_BTN} border-b-0 rounded-b-md ${
+              gpsLoading ? "opacity-70 cursor-wait" : ""
+            }`}
           >
             {gpsLoading ? (
               <Loader2
@@ -395,9 +397,10 @@ export function MapOverlays({
                     focus:outline-none
                     focus:ring-0
                     leaflet-bar
-                    ${isActive
-                      ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                      : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
+                    ${
+                      isActive
+                        ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+                        : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
                     }
                   `}
                   style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.1)" }}
@@ -467,7 +470,6 @@ export function MapOverlays({
           surface the panel without the user having turned the layer on. */}
       {/* Traffic Analysis Panel — right-side overlay */}
 
-
       {showTrafficPanel && activeLayers.includes("traffic") && (
         <div
           className="
@@ -486,10 +488,10 @@ export function MapOverlays({
       max-[480px]:min-w-0
     "
           style={{
-            /* DESKTOP — KEEP EXACTLY AS BEFORE */
+            /* DESKTOP — unchanged */
             width: isMobile ? "auto" : "400px",
-            height: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
-            maxHeight: isMobile ? "calc(100% - 1rem)" : "calc(100% - 1rem)",
+            height: "calc(100% - 1rem)",
+            maxHeight: "calc(100% - 1rem)",
             display: "flex",
             overflow: isMobile ? "hidden" : "visible",
             overscrollBehavior: "contain",
@@ -505,7 +507,7 @@ export function MapOverlays({
         max-[480px]:overflow-hidden
       "
             style={{
-              width: isMobile ? "100%" : "100%",
+              width: "100%",
               minWidth: 0,
               maxWidth: "100%",
             }}
@@ -518,13 +520,19 @@ export function MapOverlays({
               onClose={() => {
                 setShowTrafficPanel(false);
                 setSelectedFlyoverForTraffic(null);
+
+                // IMPORTANT:
+                // Closing the panel also turns OFF the Traffic overlay
+                // so the checkbox becomes unchecked.
+                if (activeLayers.includes("traffic")) {
+                  handleLayerToggle("traffic");
+                }
               }}
               isMobile={isMobile}
             />
           </div>
         </div>
       )}
-
 
       {/* Risk Overview Panel — only when traffic panel is closed */}
       {showOverview && !showTrafficPanel && (
@@ -573,25 +581,25 @@ export function MapOverlays({
         (showSoil && soilLoading) ||
         (showSegmentsUI && segmentLoading) ||
         (showDifferenceUI && velocityDiffLoading)) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
-            <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
-              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
-              <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
-                {loading
-                  ? "Initializing map..."
-                  : showSoil && soilLoading
-                    ? "Loading soil data..."
-                    : movementLoading
-                      ? "Loading movement points..."
-                      : showDifferenceUI && velocityDiffLoading
-                        ? "Loading velocity difference..."
-                        : showSegmentsUI && segmentLoading
-                          ? "Loading segment data..."
-                          : "Loading flyover data..."}
-              </p>
-            </div>
+        <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
+          <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
+            <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
+              {loading
+                ? "Initializing map..."
+                : showSoil && soilLoading
+                  ? "Loading soil data..."
+                  : movementLoading
+                    ? "Loading movement points..."
+                    : showDifferenceUI && velocityDiffLoading
+                      ? "Loading velocity difference..."
+                      : showSegmentsUI && segmentLoading
+                        ? "Loading segment data..."
+                        : "Loading flyover data..."}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       {/* GPS ERROR — dedicated banner so a failed locate is never silent.
           Positioned below the taller control column. */}
@@ -614,20 +622,20 @@ export function MapOverlays({
         soilError ||
         segmentsError.live ||
         (showDifferenceUI && velocityDiffError)) && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
-            <AlertTriangle
-              size={16}
-              className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
-            />
-            <span>
-              {error ||
-                movementError ||
-                soilError ||
-                segmentsError.live ||
-                (showDifferenceUI && velocityDiffError)}
-            </span>
-          </div>
-        )}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
+          <AlertTriangle
+            size={16}
+            className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
+          />
+          <span>
+            {error ||
+              movementError ||
+              soilError ||
+              segmentsError.live ||
+              (showDifferenceUI && velocityDiffError)}
+          </span>
+        </div>
+      )}
 
       {/* MOVEMENT CHART */}
       {showChart && selectedPointForChart && selectedDetailForChart && (

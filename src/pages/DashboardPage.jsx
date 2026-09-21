@@ -315,9 +315,9 @@ export default function DashboardPage() {
             "
           />
 
-          {/* <p className="mt-4 text-sm text-gray-600 sm:text-base">
+          <p className="mt-4 text-sm text-gray-600 sm:text-base">
             Loading flyover data...
-          </p> */}
+          </p>
         </div>
       </div>
     );

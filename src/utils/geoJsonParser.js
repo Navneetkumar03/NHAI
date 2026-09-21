@@ -7,6 +7,7 @@ const NAMES_GEOJSON_PATH = `${BASE}data/FlyOver_Name.geojson`;
 const UTM43N = "+proj=utm +zone=43 +datum=WGS84 +units=m +no_defs";
 const WGS84 = "EPSG:4326";
 
+
 const highwayMap = {
   F1: "NH 152",
   F2: "NH 152",
@@ -277,21 +278,51 @@ export const loadFlyoverData = async () => {
 };
 
 
+
 export const getStatsFromFlyovers = (flyovers) => {
-  const total = 4;
-  const low = 3;
-  const moderate = 1;
-  const high = 0;
-  return { total, low, moderate, high };
+  console.log("FLYOVERS DATA:", flyovers);
+  const total = 4
 
+  const low = flyovers.filter((flyover) => flyover.riskStatus === "low").length;
 
-  // export const getStatsFromFlyovers = (flyovers) => {
-  //   const total = flyovers.length;
-  //   const low = flyovers.filter((f) => f.riskStatus === "low").length;
-  //   const moderate = flyovers.filter((f) => f.riskStatus === "moderate").length;
-  //   const high = flyovers.filter((f) => f.riskStatus === "high").length;
-  //   return { total, low, moderate, high };
+  const moderate = flyovers.filter(
+    (flyover) => flyover.riskStatus === "moderate",
+  ).length;
+
+  const high = flyovers.filter(
+    (flyover) => flyover.riskStatus === "high",
+  ).length;
+  console.log("RISK STATUS:", {
+    total,
+    low,
+    moderate,
+    high,
+  });
+  return {
+    total,
+    low,
+    moderate,
+    high,
+  };
 };
+
+
+// export const getStatsFromFlyovers = (flyovers) => {
+//   const total = 4;
+//   const low = 3;
+//   const moderate = 1;
+//   const high = 0;
+//   return { total, low, moderate, high };
+// };
+
+
+// export const getStatsFromFlyovers = (flyovers) => {
+//   const total = flyovers.length;
+//   const low = flyovers.filter((f) => f.riskStatus === "low").length;
+//   const moderate = flyovers.filter((f) => f.riskStatus === "moderate").length;
+//   const high = flyovers.filter((f) => f.riskStatus === "high").length;
+//   return { total, low, moderate, high };
+// };
 
 
 
