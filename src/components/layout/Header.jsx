@@ -40,6 +40,7 @@ const Header = ({ only, onLogout, user } = {}) => {
   const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false); // NEW
 
+  const rootRef = useRef(null);
   const dateInputRef = useRef(null);
   const userButtonRef = useRef(null);
   const menuRef = useRef(null);
@@ -120,6 +121,57 @@ const Header = ({ only, onLogout, user } = {}) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // MOBILE ALIGNMENT: the header is rendered in two parts — the logo card
+  // (`only="logo"`, outside the scroll area) and the status card
+  // (`only="content"`, inside a scrolling panel). When that panel shows a
+  // vertical scrollbar, it takes a few pixels from the status card's width,
+  // so the two cards stop lining up on the right. The "content" instance
+  // measures that scrollbar and publishes its width as a CSS variable; the
+  // "logo" instance reserves the same space (see its wrapper below).
+  useEffect(() => {
+    if (only !== "content") return;
+
+    const findScroller = () => {
+      let el = rootRef.current?.parentElement;
+      while (el && el !== document.body) {
+        const oy = window.getComputedStyle(el).overflowY;
+        if (oy === "auto" || oy === "scroll") return el;
+        el = el.parentElement;
+      }
+      return null;
+    };
+
+    const measure = () => {
+      const scroller = findScroller();
+      let sb = 0;
+      if (scroller) {
+        const cs = window.getComputedStyle(scroller);
+        const borders =
+          (parseFloat(cs.borderLeftWidth) || 0) +
+          (parseFloat(cs.borderRightWidth) || 0);
+        sb = Math.max(0, scroller.offsetWidth - scroller.clientWidth - borders);
+      }
+      document.documentElement.style.setProperty(
+        "--header-scrollbar-w",
+        `${sb}px`,
+      );
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    // The scrollbar can appear/disappear when the panel's content grows or shrinks.
+    const scroller = findScroller();
+    const observer = new ResizeObserver(measure);
+    if (scroller) {
+      observer.observe(scroller);
+      if (scroller.firstElementChild) observer.observe(scroller.firstElementChild);
+    }
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, [only]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(getCurrentTimeString());
@@ -128,26 +180,34 @@ const Header = ({ only, onLogout, user } = {}) => {
   }, []);
 
   return (
-    <div className="w-full bg-[#1366D9] select-none font-sans">
+    <div
+      ref={rootRef}
+      className={`w-full bg-[#1366D9] select-none font-sans ${
+        only === "logo" ? "max-[900px]:pr-[var(--header-scrollbar-w,0px)]" : ""
+      }`}
+    >
       {/*
         Mobile spacing model:
         - Row becomes a centered flex-column (`items-center` already centers cross-axis,
           which is horizontal once we're in flex-col).
         - `max-[900px]:gap-2` + `max-[900px]:py-2` give a thin, even blue margin
           top/bottom/between cards, instead of the old thicker py-3/gap-3.
-        - Card widths (w-[85%] / w-[92%]) are unchanged from before — only the
-          row's own padding/gap got slimmed down.
+        - Both mobile cards use the SAME explicit width (100% minus 1rem) and
+          zero margins, forced with `!`, so no desktop margin/width class can
+          make one card wider than the other. `items-center` on the row then
+          centers them, so left AND right edges line up exactly.
       */}
       <div className="relative w-full min-w-[1020px] h-[100px] pb-1.5 bg-[#1366D9] flex items-center shadow-lg max-[900px]:min-w-0 max-[900px]:flex-col max-[900px]:h-auto max-[900px]:py-2 max-[900px]:gap-2">
         {showLogo && (
-          <div className="relative z-10 h-full -mr-8 pr-12 flex items-center mt-3 ml-1 gap-3 shrink-0 bg-[#EEF4FA] max-[900px]:w-[90%] max-[900px]:mr-0 max-[900px]:ml-0 max-[900px]:mt-0 max-[900px]:px-4 max-[900px]:justify-between max-[900px]:h-auto max-[900px]:py-3 max-[900px]:rounded-xl max-[900px]:shadow-sm">
+          <div className="relative z-10 h-full -mr-8 pr-12 flex items-center mt-3 ml-1 gap-3 shrink-0 bg-[#EEF4FA] max-[900px]:w-[calc(100%-1rem)]! max-[900px]:min-w-0! max-[900px]:ml-0! max-[900px]:mr-0! max-[900px]:mt-0 max-[900px]:px-4 max-[900px]:justify-between max-[900px]:h-auto max-[900px]:py-3 max-[900px]:rounded-xl max-[900px]:shadow-sm">
             <div className="flex items-center gap-2 max-[900px]:gap-2 shrink-0">
               <img
                 src={NHAILOGO}
                 alt="NHAI Logo"
                 className="h-15 w-16 object-contain shrink-0 max-[900px]:h-10 max-[900px]:w-10 max-[480px]:h-9 max-[480px]:w-9"
               />
-              <div className="leading-tight">
+              {/* NHAI name + full form: desktop only (hidden on mobile) */}
+              <div className="leading-tight max-[900px]:hidden">
                 <p className="text-[22px] font-extrabold text-blue-600 tracking-tight leading-none max-[900px]:text-base max-[480px]:text-sm">
                   NHAI
                 </p>
@@ -223,7 +283,7 @@ const Header = ({ only, onLogout, user } = {}) => {
               </div>
             </div>
 
-            <div className="relative z-30 h-[50%] rounded-[16px] shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white bg-[#EEF4FA]  mx-3 my-3 px-5 py-5 -ml-20  flex items-center gap-6 shrink-0 max-[1024px]:px-8 max-[1024px]:gap-4 max-[900px]:w-[96%] max-[900px]:ml-0 max-[900px]:mx-0 max-[900px]:mt-0 max-[900px]:my-0 max-[900px]:h-auto max-[900px]:rounded-xl max-[900px]:justify-between max-[900px]:flex-nowrap max-[900px]:px-4 max-[900px]:py-3 max-[900px]:gap-2 max-[480px]:gap-1.5 max-[480px]:px-2">
+            <div className="relative z-30 h-[50%] rounded-[16px] shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white bg-[#EEF4FA]  mx-3 my-3 px-5 py-5 -ml-20  flex items-center gap-6 shrink-0 max-[1024px]:px-8 max-[1024px]:gap-4 max-[900px]:w-[calc(100%-1rem)]! max-[900px]:min-w-0! max-[900px]:ml-0! max-[900px]:mr-0! max-[900px]:mt-0 max-[900px]:my-0 max-[900px]:h-auto max-[900px]:rounded-xl max-[900px]:justify-between max-[900px]:flex-nowrap max-[900px]:px-4 max-[900px]:py-3 max-[900px]:gap-2 max-[480px]:gap-1.5 max-[480px]:px-2">
               <div className="flex items-center gap-2.5 max-[900px]:gap-1.5 shrink-0">
                 <span className="w-3.5 h-3.5 bg-[#22C55E] rounded-full inline-block animate-pulse shrink-0 max-[480px]:w-2.5 max-[480px]:h-2.5"></span>
                 <div className="text-left whitespace-nowrap">
