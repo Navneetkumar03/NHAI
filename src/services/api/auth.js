@@ -114,7 +114,7 @@ export const sendUserActivity = async (activity, tab, layer) => {
       tab,
       Layer: layer,
     };
-    console.log("*******", activityData);
+
     const response = await fetch(`${BASE_URL}/activity_log`, {
       method: "POST",
       headers: {

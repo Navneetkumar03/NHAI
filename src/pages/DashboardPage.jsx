@@ -1,6 +1,6 @@
 // pages/DashboardPage.jsx
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import { useFlyoverData } from "../hooks/useFlyoverData";
 import { getStatsFromFlyovers } from "../utils/geoJsonParser";
@@ -20,6 +20,18 @@ export default function DashboardPage() {
   // ===========================================================================
 
   const { flyovers, loading, error } = useFlyoverData();
+
+  // ===========================================================================
+  // REFS
+  // ===========================================================================
+
+  // Ref to the flyover cards grid — used to scroll the map into view on
+  // mobile when a risk-focus action is triggered from the details panel.
+  const flyoverGridRef = useRef(null);
+
+  // Ref to each individual flyover card wrapper, keyed by flyover id, so we
+  // can scroll to the *exact* card that was focused.
+  const flyoverCardRefs = useRef({});
 
   // ===========================================================================
   // DASHBOARD STATS
@@ -54,12 +66,11 @@ export default function DashboardPage() {
 
   const [selectedPoint, setSelectedPoint] = useState(null);
 
-  const [riskFocusRequest, setRiskFocusRequest] = useState(null)
+  const [riskFocusRequest, setRiskFocusRequest] = useState(null);
 
   // ===========================================================================
   // SET FIRST FLYOVER AS DEFAULT
   // ===========================================================================
-
 
   useEffect(() => {
     if (flyovers.length === 0 || activeId !== null) {
@@ -249,12 +260,42 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // ===========================================================================
+  // RISK FOCUS (Medium Risk button)
+  // ===========================================================================
+  //
+  // Triggered from FlyoverDetailsPanel when the user taps
+  // "Medium Risk (120 m)". We:
+  //   1. Make that flyover active
+  //   2. Fire a riskFocusRequest so FlyoverMap fits the segment bounds
+  //   3. On mobile, scroll the matching flyover card into view — otherwise
+  //      the map fits the segment but the user can't see it (the details
+  //      panel sits below the maps on small screens).
+  // ===========================================================================
 
   const handleRiskClick = useCallback((highway) => {
     if (highway?.id == null) return;
 
     setActiveId(highway.id);
     setRiskFocusRequest({ flyoverId: highway.id, requestedAt: Date.now() });
+
+    // Mobile-only: scroll the focused flyover card into view.
+    // lg: breakpoint is 1024px, matching the dashboard's lg:grid layout.
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      const cardEl = flyoverCardRefs.current[highway.id];
+      const target = cardEl || flyoverGridRef.current;
+
+      if (target) {
+        // Small delay lets React commit the activeId/riskFocusRequest state
+        // so the card is already highlighted when the scroll lands.
+        requestAnimationFrame(() => {
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        });
+      }
+    }
   }, []);
 
   // ===========================================================================
@@ -269,7 +310,6 @@ export default function DashboardPage() {
   const handleCardActivate = useCallback((flyover) => {
     const activityName = flyover.namedPoints?.[0]?.name;
 
-    console.log("Selected Flyover:", activityName);
 
     sendUserActivity(`Selected Flyover: ${activityName}`, "Dashboard");
     setActiveId(flyover.id);
@@ -367,8 +407,6 @@ export default function DashboardPage() {
           ALERT MARQUEE
       ---------------------------------------------------------------------- */}
 
-
-
       <div
         className="
           flex
@@ -409,6 +447,7 @@ export default function DashboardPage() {
           ------------------------------------------------------------------ */}
 
           <div
+            ref={flyoverGridRef}
             className="
               grid
               grid-cols-1
@@ -422,11 +461,19 @@ export default function DashboardPage() {
             {flyovers.map((flyover, index) => (
               <div
                 key={flyover.id}
+                ref={(el) => {
+                  if (el) {
+                    flyoverCardRefs.current[flyover.id] = el;
+                  } else {
+                    delete flyoverCardRefs.current[flyover.id];
+                  }
+                }}
                 className="
                     h-72
                     sm:h-96
                     md:h-104
                     lg:h-full
+                    scroll-mt-4
                   "
               >
                 <FlyoverCard
@@ -476,8 +523,6 @@ export default function DashboardPage() {
               sm:py-2.5
             "
           >
-
-
             <p
               className="
                 text-[10px]
@@ -499,7 +544,6 @@ export default function DashboardPage() {
 
         <div className="mt-4 flex flex-col gap-4 lg:col-span-2 lg:mt-0 lg:h-full lg:min-h-0">
           <div className="h-[70vh] min-h-0 lg:h-full lg:flex-1">
-
             <WeatherPanel
               weather={weather}
               loading={weatherLoading}
@@ -517,3 +561,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

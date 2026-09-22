@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import "leaflet-side-by-side";
 import { useFlyoverData } from "../../../hooks/useFlyoverData";
@@ -9,10 +9,9 @@ import { DEFAULT_CENTER, YEARS } from "./constants";
 import { useSegmentLayer } from "./hooks/useSegmentLayer";
 import { useMovementLayer } from "./hooks/useMovementLayer";
 import { useDifferenceLayer } from "./hooks/useDifferenceLayer";
-import { useLULCLayer } from "./hooks/useLULCLayer";
 import { useFlyoverLayer } from "./hooks/useFlyoverLayer";
-import { useSoilLayer } from "./hooks/useSoilLayer";
 import { useLandUseMap } from "./hooks/useLandUseMap";
+import { useOverlayLayers } from "./hooks/useOverlayLayers";
 
 import { useLayerControls } from "./hooks/useLayerControls";
 import { useFlyoverInteractions } from "./hooks/useFlyoverInteractions";
@@ -23,6 +22,7 @@ import { useLayerSyncEffects } from "./hooks/useLayerSyncEffects";
 
 import { TopControlBar } from "./sections/TopControlBar";
 import { MapOverlays } from "./sections/MapOverlays";
+import { LAYER_MENU, getOverlay } from "./overlayRegistry";
 
 import RainfallLayer from "./RainfallLayer";
 
@@ -61,7 +61,7 @@ export function LandUseLandCover({
   const flyoverMarkersRef = useRef([]);
   const movementMarkersRef = useRef([]);
 
-  // 🆕 Difference-mode circles share the same L.circle / zoom-weight approach
+  // Difference-mode circles share the same L.circle / zoom-weight approach
   // as velocity mode, so they're tracked here for both zoom updates and
   // cleanup.
   const diffMarkersRef = useRef([]);
@@ -69,9 +69,7 @@ export function LandUseLandCover({
   const selectedMovementMarkerRef = useRef(null);
 
   const liveSegmentLayerRef = useRef(null);
-  const polygonSegmentLayerRef = useRef(null);
   const selectedPolygonLayerRef = useRef(null);
-  const segmentHighlightLayerRef = useRef(null);
 
   const tagRef = useRef(null);
   const dividerLineRef = useRef(null);
@@ -88,10 +86,9 @@ export function LandUseLandCover({
   const flyoverButtonsContainerRef = useRef(null);
   const flyoverBoundsRef = useRef([]); // [{ id, name, bounds, layers, markers }]
 
-  /* 🆕 GPS refs */
+  /* GPS refs */
   const userLocationMarkerRef = useRef(null);
   const userAccuracyCircleRef = useRef(null);
-  const hasAutoCenteredOnUserRef = useRef(false);
 
   /* ---------------- State ---------------- */
   const [activeFlyoverId, setActiveFlyoverId] = useState(null);
@@ -122,9 +119,6 @@ export function LandUseLandCover({
   const [activeLayers, setActiveLayers] = useState(["linear", "movement"]);
   const [baseLayer, setBaseLayer] = useState("streets");
 
-  const [showLULC, setShowLULC] = useState(false);
-  const [showSoil, setShowSoil] = useState(false);
-
   const [soilData, setSoilData] = useState(null);
   const [soilLoading, setSoilLoading] = useState(true);
   const [soilError, setSoilError] = useState(null);
@@ -135,8 +129,6 @@ export function LandUseLandCover({
   const [segmentLoading, setSegmentLoading] = useState(false);
   const [polygonLoading, setPolygonLoading] = useState(false);
   const [showSegmentTable, setShowSegmentTable] = useState(false);
-  const [showSegmentLegend, setShowSegmentLegend] = useState(false);
-  const [showLinearLayer, setShowLinearLayer] = useState(false);
 
   const [showOverview, setShowOverview] = useState(true);
   const [flyoverEntries, setFlyoverEntries] = useState([]);
@@ -147,7 +139,7 @@ export function LandUseLandCover({
   const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] =
     useState(null);
 
-  // /* 🆕 Rainfall idw */
+  /* Rainfall idw */
   const [showRainfall, setShowRainfall] = useState(false);
 
   // Keep the map hidden until the default flyover view has been applied.
@@ -176,29 +168,41 @@ export function LandUseLandCover({
 
   const {
     liveSegments,
-    polygonSegments,
-    segmentStats,
-    loading: segmentsLoading,
     error: segmentsError,
     loadLiveSegments,
     loadPolygonSegment,
     loadSegmentStats,
-    getVelocityColor: getSegVelocityColor,
   } = useFlyoverSegments();
 
-  const availableLayers = [
-    { id: "linear", name: "Assets", color: "#8B5CF6", type: "overlay" },
-    // { id: "flyover", name: "Flyover", color: "#3B82F6", type: "overlay" },
-    { id: "lulc", name: "LULC", color: "#10B981", type: "overlay" },
-    { id: "soil", name: "Soil", color: "#8B5E3C", type: "overlay" },
-    { id: "traffic", name: "Traffic", color: "#EF4444", type: "overlay" },
-
-    // { id: "rainfall", name: "Rainfall", color: "#2563EB", type: "overlay" },  // for rainfall idw
-  ];
+  const availableLayers = LAYER_MENU;
 
   const showDifferenceUI = selectedLayer === "difference";
   const showVelocityUI = selectedLayer === "velocity";
   const showSegmentsUI = activeLayers.includes("linear");
+
+  /* ==========================================================================
+   * OVERLAY LAYERS (registry-driven)
+   * ========================================================================*/
+
+  const {
+    enabled,
+    toggle: toggleOverlay,
+    set: setOverlay,
+  } = useOverlayLayers({
+    mapRef,
+    isMapReadyRef,
+    refreshKey: soilData,
+    ctx: {
+      dividerLineRef, hasFitBoundsRef, hasFitSoilBoundsRef, leftLayerRef,
+      lulcCreatedRef, mapContainerRef, rafIdRef, rightLayerRef,
+      setIsDividerReady, sideBySideRef, soilDataRef, soilLayerRef, tagRef,
+      yearLeft, yearRight,
+    },
+  });
+
+  const showLULC = enabled.lulc;
+  const showSoil = enabled.soil;
+  const showDEM = enabled.dem;
 
   /* ==========================================================================
    * SEGMENT FUNCTIONS
@@ -248,10 +252,7 @@ export function LandUseLandCover({
   });
 
   /* ==========================================================================
-   * DIFFERENCE-MODE CIRCLES  🆕
-   * Uses L.circle (same as velocity) so circles scale with zoom via
-   * updateCircleWeights(). Colors come from feature.properties.color.
-   * Hover shows a tooltip. Click opens the diff chart.
+   * DIFFERENCE-MODE CIRCLES
    * ========================================================================*/
 
   useDifferenceLayer({
@@ -273,25 +274,6 @@ export function LandUseLandCover({
     setShowDiffChart,
     updateCircleWeights,
     velocityDiff,
-  });
-
-  /* ==========================================================================
-   * SIDE-BY-SIDE TILE COMPARISON
-   * ========================================================================*/
-
-  const { ensureLULCLayersExist, teardownLULCLayers } = useLULCLayer({
-    dividerLineRef,
-    hasFitBoundsRef,
-    leftLayerRef,
-    lulcCreatedRef,
-    mapRef,
-    rafIdRef,
-    rightLayerRef,
-    setIsDividerReady,
-    sideBySideRef,
-    tagRef,
-    yearLeft,
-    yearRight,
   });
 
   /* ==========================================================================
@@ -357,10 +339,8 @@ export function LandUseLandCover({
     setSelectedPointForChart,
     setShowChart,
     setShowDiffChart,
-    setShowLULC,
     setShowOverview,
     setShowSegmentTable,
-    setShowSoil,
     setShowTrafficPanel,
     sideBySideRef,
     streetLayerRef,
@@ -369,6 +349,50 @@ export function LandUseLandCover({
     showRainfall,
   });
 
+  const handleLayerToggleAdapter = useCallback(
+    (id) => {
+      const overlay = getOverlay(id);
+
+      // Non-registered controls (for example the experimental rainfall
+      // layer) still own their state in the legacy handler.
+      if (!overlay) {
+        handleLayerToggle(id);
+        return;
+      }
+
+      // Custom overlays may open a panel or load data, but they must still
+      // update registry state. Otherwise `exclusive: true` is never applied.
+      if (overlay.custom) {
+        handleLayerToggle(id);
+      }
+
+      toggleOverlay(id);
+    },
+    [toggleOverlay, handleLayerToggle],
+  );
+
+  // A different exclusive overlay can disable Traffic without invoking its
+  // click handler. Close its panel and clear its legacy active flag as well.
+  useEffect(() => {
+    if (enabled.traffic) return;
+
+    setActiveLayers((layers) => layers.filter((id) => id !== "traffic"));
+    setShowTrafficPanel(false);
+    setSelectedFlyoverForTraffic(null);
+  }, [enabled.traffic]);
+
+  /* ==========================================================================
+   * LULC TEARDOWN WHEN TAB INACTIVE
+   * Replaces the old useLULCLayer().teardownLULCLayers() call. Turning the
+   * LULC overlay off through the registry triggers overlays/lulc.js remove(),
+   * which is where the teardown now lives.
+   * ========================================================================*/
+
+  useEffect(() => {
+    if (isActive) return;
+    setOverlay("lulc", false);
+  }, [isActive, setOverlay]);
+
   const { handleFlyoverButtonClick } = useFlyoverInteractions({
     activeFlyoverId,
     flyoverBoundsRef,
@@ -376,16 +400,15 @@ export function LandUseLandCover({
     setActiveFlyoverId,
   });
 
-  /* 🆕 Zoom + highlight a single flyover */
-
   /* ==========================================================================
    * GPS / LOCATE-ME
    * ========================================================================*/
-  const { handleLocateMe, gpsLoading, gpsError } = useGeolocation({
-    mapRef,
-    userAccuracyCircleRef,
-    userLocationMarkerRef,
-  });
+  const { handleLocateMe, clearLocation, gpsLoading, gpsError, gpsActive } =
+    useGeolocation({
+      mapRef,
+      userAccuracyCircleRef,
+      userLocationMarkerRef,
+    });
 
   /* ==========================================================================
    * EFFECTS
@@ -400,7 +423,6 @@ export function LandUseLandCover({
     diffEndDate,
     diffStartDate,
     dividerLineRef,
-    ensureLULCLayersExist,
     error,
     flyoverEntries,
     flyovers,
@@ -427,7 +449,6 @@ export function LandUseLandCover({
     showSegmentsUI,
     sideBySideRef,
     tagRef,
-    teardownLULCLayers,
     updateLayerVisibility,
     updateMovementVisibility,
     yearLeft,
@@ -450,20 +471,12 @@ export function LandUseLandCover({
     setIsMobile,
   });
 
-  /* 🆕 MOBILE: when this page/tab is opened on a phone, automatically scroll
+  /* MOBILE: when this page/tab is opened on a phone, automatically scroll
      down to the END of the map, so the bottom edge of the map lines up with
-     the bottom of the screen.
-     - Runs each time the page becomes active (mount, or isActive false -> true),
-       NOT on every resize/rotation, so it never fights the user's own scrolling.
-     - The short delay lets the header, tab bar and map finish laying out first;
-       otherwise the scroll target can be measured before it settles.
-     - scrollIntoView scrolls whichever ancestor actually scrolls (window or a
-       dashboard scroll container), so it works in either layout.
-     - block: "end" aligns the map's bottom edge with the bottom of the
-       visible area. */
+     the bottom of the screen. */
   useEffect(() => {
     if (!isActive) return;
-    if (window.innerWidth > 1024) return; // same mobile cutoff as `isMobile`
+    if (window.innerWidth > 1024) return;
 
     const t = setTimeout(() => {
       mapWrapperRef.current?.scrollIntoView({
@@ -475,21 +488,9 @@ export function LandUseLandCover({
     return () => clearTimeout(t);
   }, [isActive]);
 
-  /* 🆕 CHANGED: added `.leaflet-bar a` override so the native Leaflet
-     zoom control (+/-) matches the reduced size of the FullscreenButton
-     and Layers button (28px desktop / 24px mobile) in the same stack.
-     Leaflet's own CSS ships a fixed size for these anchors that can't be
-     changed via className since they're rendered by Leaflet itself. */
-
   /* ==========================================================================
    * DEFAULT FLYOVER VIEW
    * ========================================================================*/
-  // IMPORTANT: Do not let the regional DEFAULT_CENTER view become visible
-  // when InfraRisk opens. Wait until Leaflet is ready AND the flyover
-  // overlays/bounds are ready, then use the SAME flyover click handler that
-  // is used when the user manually clicks a flyover button. That guarantees
-  // the initial view uses the exact same zoom/centering behaviour as the
-  // second screenshot.
   useEffect(() => {
     if (!isActive) {
       hasAppliedDefaultFlyoverRef.current = false;
@@ -508,9 +509,6 @@ export function LandUseLandCover({
       const map = mapRef.current;
       const defaultEntry = flyoverEntries[0];
 
-      // The map is created inside useLandUseMap(), while flyoverEntries and
-      // flyoverBoundsRef are populated by the flyover layer hook. These can
-      // become ready on different renders, so wait until BOTH are available.
       const boundsEntry = defaultEntry
         ? flyoverBoundsRef.current.find((entry) => entry.id === defaultEntry.id)
         : null;
@@ -520,22 +518,11 @@ export function LandUseLandCover({
         return;
       }
 
-      // Leaflet needs the real container size before calculating the close
-      // flyover zoom. The map is hidden with visibility:hidden, not display:none,
-      // so its dimensions are still available.
       map.invalidateSize({ animate: false });
-
-      // Use the exact same handler used by the flyover buttons. This is the
-      // important part: do NOT use the broad DEFAULT_CENTER or a generic
-      // fitBounds/maxZoom here, because that produces the zoomed-out view.
       handleFlyoverButtonClick(defaultEntry);
-
       setActiveFlyoverId(defaultEntry.id);
       hasAppliedDefaultFlyoverRef.current = true;
 
-      // Let Leaflet finish the synchronous setView/fitBounds operation before
-      // revealing the map. This prevents even one frame of the regional view
-      // from being visible.
       requestAnimationFrame(() => {
         if (!cancelled) {
           setDefaultFlyoverViewReady(true);
@@ -550,20 +537,6 @@ export function LandUseLandCover({
       if (retryTimer) window.clearTimeout(retryTimer);
     };
   }, [isActive, flyoverEntries, handleFlyoverButtonClick]);
-
-  /* ==========================================================================
-   * SOIL LAYER
-   * ========================================================================*/
-
-  useSoilLayer({
-    hasFitSoilBoundsRef,
-    isMapReadyRef,
-    mapContainerRef,
-    mapRef,
-    showSoil,
-    soilData,
-    soilLayerRef,
-  });
 
   /* ==========================================================================
    * INITIALIZE MAP
@@ -645,11 +618,6 @@ export function LandUseLandCover({
           minHeight: isMobile ? "400px" : "auto",
         }}
       >
-        {/*
-          Keep the Leaflet map mounted so it can prepare the default flyover
-          view, but show a loader instead of a blank/zoomed-out map until that
-          close-up view is ready.
-        */}
         {!defaultFlyoverViewReady && (
           <div className="absolute inset-0 z-[5000] flex items-center justify-center px-4 bg-white">
             <div className="text-center">
@@ -693,16 +661,19 @@ export function LandUseLandCover({
             diffPointData={diffPointData}
             diffStartDate={diffStartDate}
             dividerLineRef={dividerLineRef}
+            enabled={enabled}
             error={error}
             flyoverButtonsContainerRef={flyoverButtonsContainerRef}
             flyoverEntries={flyoverEntries}
             flyoversLoading={flyoversLoading}
             gpsError={gpsError}
             gpsLoading={gpsLoading}
+            // gpsActive={gpsActive}                    
+            // onClearLocation={clearLocation}          // 🆕
+            handleLocateMe={handleLocateMe}
             handleBaseLayerChange={handleBaseLayerChange}
             handleFlyoverButtonClick={handleFlyoverButtonClick}
-            handleLayerToggle={handleLayerToggle}
-            handleLocateMe={handleLocateMe}
+            handleLayerToggle={handleLayerToggleAdapter}
             handleSegmentRowClick={handleSegmentRowClick}
             isFullscreen={isFullscreen}
             isLayerPanelOpen={isLayerPanelOpen}
@@ -749,7 +720,7 @@ export function LandUseLandCover({
             velocityDiffRange={velocityDiffRange}
             yearLeft={yearLeft}
             yearRight={yearRight}
-            showRainfall={showRainfall}
+            showDEM={showDEM}
           />
 
           {showRainfall && (

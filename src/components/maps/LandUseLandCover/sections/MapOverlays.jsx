@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import {
   AlertTriangle,
   Layers,
@@ -34,10 +33,6 @@ const CTRL_BTN = `
   transition-colors duration-150
 `;
 
-// Overlays that are mutually exclusive: turning one on turns the others off.
-// "linear" (Assets) is NOT in this list, so it can stay on alongside any of them.
-const EXCLUSIVE_OVERLAYS = ["lulc", "soil", "traffic"];
-
 export function MapOverlays({
   activeFlyoverId,
   activeLayers,
@@ -48,12 +43,15 @@ export function MapOverlays({
   diffPointData,
   diffStartDate,
   dividerLineRef,
+  enabled,               // ← NEW: registry-managed overlay state { dem: bool, ... }
   error,
   flyoverButtonsContainerRef,
   flyoverEntries,
   flyoversLoading,
   gpsError,
   gpsLoading,
+  gpsActive,             // 🆕
+  onClearLocation,       // 🆕
   handleBaseLayerChange,
   handleFlyoverButtonClick,
   handleLayerToggle,
@@ -104,79 +102,22 @@ export function MapOverlays({
   velocityDiffRange,
   yearLeft,
   yearRight,
-  showRainfall,
 }) {
-  /* ---------------------------------------------------------------------
-   * Exclusive overlays (LULC / Soil / Traffic)
-   *
-   * Selecting one of these turns the other two off. Assets is independent.
-   *
-   * handleLayerToggle only TOGGLES, and each toggle updates state, so the
-   * changes are applied one at a time: every toggle triggers a re-render,
-   * and the effect below then applies the next queued change using the
-   * latest props. This avoids two back-to-back toggles overwriting each
-   * other with stale state.
-   * -------------------------------------------------------------------*/
-  const latestRef = useRef({});
-  latestRef.current = { showLULC, showSoil, activeLayers, handleLayerToggle };
-  const pendingRef = useRef([]); // queue of { id, wantOn }
-
-  const isLayerOn = (id) => {
-    const s = latestRef.current;
-    if (id === "lulc") return s.showLULC;
-    if (id === "soil") return s.showSoil;
-    return s.activeLayers.includes(id); // traffic, linear, ...
-  };
-
-  // Apply the next queued change that isn't already satisfied.
-  const processQueue = () => {
-    while (pendingRef.current.length > 0) {
-      const { id, wantOn } = pendingRef.current.shift();
-      if (isLayerOn(id) !== wantOn) {
-        latestRef.current.handleLayerToggle(id);
-        break; // wait for the re-render before applying the next one
-      }
-    }
-  };
-
-  // Runs after every render, so queued changes continue with fresh props.
-  useEffect(() => {
-    processQueue();
-  });
-
-  const handleOverlayChange = (id) => {
-    // Assets (and anything not exclusive) toggles on its own.
-    if (!EXCLUSIVE_OVERLAYS.includes(id)) {
-      handleLayerToggle(id);
-      return;
-    }
-
-    // Turning an exclusive overlay OFF is a plain toggle.
-    if (isLayerOn(id)) {
-      handleLayerToggle(id);
-      return;
-    }
-
-    // Turning one ON: switch off the other exclusive overlays first, then it on.
-    pendingRef.current = [
-      ...EXCLUSIVE_OVERLAYS.filter((o) => o !== id && isLayerOn(o)).map(
-        (o) => ({ id: o, wantOn: false }),
-      ),
-      { id, wantOn: true },
-    ];
-    processQueue();
-  };
-
   return (
     <>
       {/* LEGENDS */}
       {!loading && !error && !soilError && (
         <>
+          {/* LULC legend shows whenever LULC is on and Soil isn't.
+              DEM has no legend of its own, so it must NOT hide these. */}
           {!showSoil && showLULC && <LULCLegend />}
+
           {!showSoil && showVelocityUI && <VelocityLegend />}
+
           {!showSoil && showDifferenceUI && velocityDiffRange && (
             <VelocityDiffLegend range={velocityDiffRange} />
           )}
+
           {showSoil && !soilLoading && <SoilLegend taxoValues={taxoValues} />}
           {showSegmentTable && <RiskLegend />}
         </>
@@ -204,9 +145,8 @@ export function MapOverlays({
               onClick={() => setIsLayerPanelOpen(!isLayerPanelOpen)}
               title="Layer Control"
               aria-label="Toggle layer control"
-              className={`${CTRL_BTN} w-full ${
-                isLayerPanelOpen ? "bg-blue-50!" : ""
-              } hover:text-blue-600`}
+              className={`${CTRL_BTN} w-full ${isLayerPanelOpen ? "bg-blue-50!" : ""
+                } hover:text-blue-600`}
             >
               <Layers
                 size={16}
@@ -262,17 +202,13 @@ export function MapOverlays({
                         <input
                           type="checkbox"
                           checked={
-                            layer.id === "lulc"
-                              ? showLULC
-                              : layer.id === "soil"
-                                ? showSoil
-                                : layer.id === "rainfall"
-                                  ? showRainfall
-                                  : layer.id === "linear"
-                                    ? activeLayers.includes("linear")
-                                    : activeLayers.includes(layer.id)
+                            layer.id === "linear"
+                              ? activeLayers.includes("linear")
+                              : layer.id === "traffic"
+                                ? activeLayers.includes("traffic")
+                                : !!enabled?.[layer.id]
                           }
-                          onChange={() => handleOverlayChange(layer.id)}
+                          onChange={() => handleLayerToggle(layer.id)}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
                         />
                         <span className="whitespace-nowrap">{layer.name}</span>
@@ -325,38 +261,41 @@ export function MapOverlays({
           </div>
 
           {/* GPS Locate-Me — last button in the column */}
+
           <button
             type="button"
             onClick={(e) => {
-              // Leaflet's zoom control (inserted as this wrapper's first
-              // child by useLayerSyncEffects) calls disableClickPropagation
-              // on itself. In some stacking contexts that can eat events
-              // destined for sibling buttons in the same wrapper. Stopping
-              // propagation here guarantees the click reaches our handler.
               e.stopPropagation();
-              handleLocateMe();
+              if (gpsActive) {
+                onClearLocation?.();
+              } else {
+                handleLocateMe();
+              }
             }}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
-            title="Show my location"
-            aria-label="Show my location"
+            title={gpsActive ? "Hide my location" : "Show my location"}
+            aria-label={gpsActive ? "Hide my location" : "Show my location"}
+            aria-pressed={gpsActive}
             disabled={gpsLoading}
-            className={`${CTRL_BTN} border-b-0 rounded-b-md ${
-              gpsLoading ? "opacity-70 cursor-wait" : ""
-            }`}
+            className={`${CTRL_BTN} border-b-0 rounded-b-md ${gpsLoading ? "opacity-70 cursor-wait" : ""
+              } ${gpsActive
+                ? "bg-blue-50! text-blue-600! hover:bg-blue-100!"
+                : ""
+              }`}
           >
             {gpsLoading ? (
-              <Loader2
-                size={16}
-                className="animate-spin max-[480px]:w-3.5 max-[480px]:h-3.5"
-              />
+              <Loader2 size={16} className="animate-spin max-[480px]:w-3.5 max-[480px]:h-3.5" />
             ) : (
               <Navigation
                 size={16}
                 className="max-[480px]:w-3.5 max-[480px]:h-3.5"
+                fill={gpsActive ? "currentColor" : "none"}
               />
             )}
           </button>
+
+
         </div>
       )}
 
@@ -397,10 +336,9 @@ export function MapOverlays({
                     focus:outline-none
                     focus:ring-0
                     leaflet-bar
-                    ${
-                      isActive
-                        ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                        : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
+                    ${isActive
+                      ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+                      : "border-gray-400 bg-white text-gray-700 hover:border-gray-500 hover:bg-gray-50"
                     }
                   `}
                   style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.1)" }}
@@ -468,8 +406,6 @@ export function MapOverlays({
           Belt-and-braces: the panel is only rendered when the "Traffic"
           overlay is enabled. This guarantees that no future code path can
           surface the panel without the user having turned the layer on. */}
-      {/* Traffic Analysis Panel — right-side overlay */}
-
       {showTrafficPanel && activeLayers.includes("traffic") && (
         <div
           className="
@@ -581,25 +517,25 @@ export function MapOverlays({
         (showSoil && soilLoading) ||
         (showSegmentsUI && segmentLoading) ||
         (showDifferenceUI && velocityDiffLoading)) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
-          <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
-            <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
-            <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
-              {loading
-                ? "Initializing map..."
-                : showSoil && soilLoading
-                  ? "Loading soil data..."
-                  : movementLoading
-                    ? "Loading movement points..."
-                    : showDifferenceUI && velocityDiffLoading
-                      ? "Loading velocity difference..."
-                      : showSegmentsUI && segmentLoading
-                        ? "Loading segment data..."
-                        : "Loading flyover data..."}
-            </p>
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-[500]">
+            <div className="flex flex-col items-center gap-2 bg-white px-5 py-4 rounded-xl shadow-lg border border-gray-200 max-[480px]:px-3 max-[480px]:py-3">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin max-[480px]:w-6 max-[480px]:h-6" />
+              <p className="text-xs text-gray-500 max-[480px]:text-[10px] text-center">
+                {loading
+                  ? "Initializing map..."
+                  : showSoil && soilLoading
+                    ? "Loading soil data..."
+                    : movementLoading
+                      ? "Loading movement points..."
+                      : showDifferenceUI && velocityDiffLoading
+                        ? "Loading velocity difference..."
+                        : showSegmentsUI && segmentLoading
+                          ? "Loading segment data..."
+                          : "Loading flyover data..."}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* GPS ERROR — dedicated banner so a failed locate is never silent.
           Positioned below the taller control column. */}
@@ -622,20 +558,20 @@ export function MapOverlays({
         soilError ||
         segmentsError.live ||
         (showDifferenceUI && velocityDiffError)) && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
-          <AlertTriangle
-            size={16}
-            className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
-          />
-          <span>
-            {error ||
-              movementError ||
-              soilError ||
-              segmentsError.live ||
-              (showDifferenceUI && velocityDiffError)}
-          </span>
-        </div>
-      )}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2 shadow-lg max-w-md max-[480px]:text-xs max-[480px]:px-3 max-[480px]:py-2 max-[480px]:max-w-[90%]">
+            <AlertTriangle
+              size={16}
+              className="flex-shrink-0 max-[480px]:w-3.5 max-[480px]:h-3.5"
+            />
+            <span>
+              {error ||
+                movementError ||
+                soilError ||
+                segmentsError.live ||
+                (showDifferenceUI && velocityDiffError)}
+            </span>
+          </div>
+        )}
 
       {/* MOVEMENT CHART */}
       {showChart && selectedPointForChart && selectedDetailForChart && (

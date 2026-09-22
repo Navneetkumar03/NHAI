@@ -39,7 +39,7 @@ export default function FlyoverCard({
 }) {
   const handleMapClick = useCallback(
     (lat, lng, point) => {
-      //console.log(`Map clicked on ${highway}:`, lat, lng);
+      console.log(`Map clicked on ${highway}:`, lat, lng);
       if (onMapClick) {
         onMapClick(lat, lng, id, point);
       }

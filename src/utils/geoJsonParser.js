@@ -135,10 +135,7 @@ export const loadFlyoverData = async () => {
     // 2. Convert road coordinates
     const convertedFeatures = (geojson?.features || []).map(convertFeature);
 
-    // console.log(
-    //   "API FEATURE ORDER:",
-    //   convertedFeatures.map((f) => f.properties?.flyover)
-    // );
+
 
     // 3. Load named points from static GeoJSON
     const allNamedPoints = await loadAllNamedPoints();
@@ -163,9 +160,6 @@ export const loadFlyoverData = async () => {
       grouped[type].push(feature);
     });
 
-    // console.log("GROUPED TYPES:", Object.keys(grouped));
-
-    // console.log("GROUPED KEYS IN ORDER:", Object.keys(grouped));
 
     // 5. Build flyover shells
     const flyoverShells = Object.keys(grouped)
@@ -280,7 +274,7 @@ export const loadFlyoverData = async () => {
 
 
 export const getStatsFromFlyovers = (flyovers) => {
-  console.log("FLYOVERS DATA:", flyovers);
+
   const total = 4
 
   const low = flyovers.filter((flyover) => flyover.riskStatus === "low").length;
@@ -292,12 +286,7 @@ export const getStatsFromFlyovers = (flyovers) => {
   const high = flyovers.filter(
     (flyover) => flyover.riskStatus === "high",
   ).length;
-  console.log("RISK STATUS:", {
-    total,
-    low,
-    moderate,
-    high,
-  });
+
   return {
     total,
     low,

@@ -509,20 +509,7 @@ export default function GoogleMapComponent() {
         }
     };
 
-    // const addFlyoverLayer = (map, data) => {
-    //   try {
-    //     // No map.data.addGeoJson(data)
 
-    //     // Add only flyover markers/labels
-    //     setTimeout(() => {
-    //       addFlyoverLabels(map, data, currentZoom);
-    //     }, 200);
-    //   } catch (error) {
-    //     console.error("Error adding flyover labels:", error);
-    //   }
-    // };
-
-    // Build popup content
 
     const buildPopupContent = (point, pointName, color, riskStatus) => {
         const riskColor = RISK_COLORS[riskStatus]?.fill || "#6b7280";

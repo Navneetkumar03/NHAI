@@ -11,7 +11,6 @@ export function useLayerSyncEffects({
   diffEndDate,
   diffStartDate,
   dividerLineRef,
-  ensureLULCLayersExist,
   error,
   flyoverEntries,
   flyovers,
@@ -38,7 +37,6 @@ export function useLayerSyncEffects({
   showSegmentsUI,
   sideBySideRef,
   tagRef,
-  teardownLULCLayers,
   updateLayerVisibility,
   updateMovementVisibility,
   yearLeft,
@@ -138,38 +136,6 @@ export function useLayerSyncEffects({
       return;
     }
 
-    if (showLULC && !lulcCreatedRef.current) {
-      ensureLULCLayersExist();
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (!isMountedRef.current) {
-            return;
-          }
-
-          leftLayerRef.current?.setOpacity(1);
-          rightLayerRef.current?.setOpacity(1);
-
-          const controlEl = sideBySideRef.current?._container;
-
-          if (controlEl) {
-            controlEl.style.opacity = "1";
-            controlEl.style.pointerEvents = "auto";
-          }
-
-          if (tagRef.current) {
-            tagRef.current.style.opacity = "1";
-          }
-
-          if (dividerLineRef.current) {
-            dividerLineRef.current.style.opacity = "1";
-          }
-        });
-      });
-
-      return;
-    }
-
     if (!lulcCreatedRef.current) {
       return;
     }
@@ -193,7 +159,7 @@ export function useLayerSyncEffects({
     if (dividerLineRef.current) {
       dividerLineRef.current.style.opacity = String(opacity);
     }
-  }, [showLULC, ensureLULCLayersExist]);
+  }, [showLULC]);
 
   const hasAutoClickedFirstFlyoverRef = useRef(false);
 
@@ -237,13 +203,6 @@ export function useLayerSyncEffects({
 
     return () => clearTimeout(timeoutId);
   }, [flyovers, isActive, addFlyoverLayers]);
-
-  useEffect(() => {
-    if (isActive) {
-      return;
-    }
-    teardownLULCLayers();
-  }, [isActive, teardownLULCLayers]);
 
   useEffect(() => {
     if (!isActive || !mapRef.current || !mapContainerRef.current) {

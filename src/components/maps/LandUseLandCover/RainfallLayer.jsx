@@ -68,9 +68,7 @@ export default function RainfallLayer({ mapRef, onClose }) {
 
                 // 3. Decimate
                 const decimated = stations.filter((_, i) => i % STATION_STEP === 0);
-                console.log(
-                    `[RainfallLayer ${year}] ${stations.length} → ${decimated.length} stations`
-                );
+
 
                 // 4. Bounds covering ALL stations (whole-India extent, not the map view)
                 let minLat = Infinity,
@@ -90,11 +88,7 @@ export default function RainfallLayer({ mapRef, onClose }) {
                 const canvasW = Math.max(100, Math.floor(size.x / DOWNSCALE));
                 const canvasH = Math.max(100, Math.floor(size.y / DOWNSCALE));
 
-                console.log(
-                    `[RainfallLayer ${year}] canvas ${canvasW}×${canvasH}, bounds lat[${minLat.toFixed(
-                        2
-                    )},${maxLat.toFixed(2)}] lng[${minLng.toFixed(2)},${maxLng.toFixed(2)}]`
-                );
+
 
                 const canvas = await renderIDWToCanvas(
                     decimated,

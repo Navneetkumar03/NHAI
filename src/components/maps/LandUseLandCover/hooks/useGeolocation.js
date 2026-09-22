@@ -1,4 +1,4 @@
-// src/components/LandUseLandCover/hooks/useGeolocation.js
+// src/components/maps/LandUseLandCover/hooks/useGeolocation.js
 import { sendUserActivity } from "../../../../services/api/auth";
 import { useCallback, useState } from "react";
 
@@ -7,25 +7,50 @@ export function useGeolocation({
   userAccuracyCircleRef,
   userLocationMarkerRef,
 }) {
-  // ✅ MOVED: gpsLoading / gpsError now live inside the hook so they travel
-  // together with handleLocateMe. LandUseLandCover no longer needs to
-  // declare or wire them — it just consumes whatever the hook returns.
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState(null);
+  // 🆕 Tracks whether a location fix is currently shown on the map.
+  const [gpsActive, setGpsActive] = useState(false);
 
+  /* ------------------------------------------------------------------ *
+   * Internal: tear down marker + halo (does NOT touch gpsActive)
+   * ------------------------------------------------------------------ */
+  const removeLocationLayers = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (userLocationMarkerRef.current) {
+      map.removeLayer(userLocationMarkerRef.current);
+      userLocationMarkerRef.current = null;
+    }
+    if (userAccuracyCircleRef.current) {
+      map.removeLayer(userAccuracyCircleRef.current);
+      userAccuracyCircleRef.current = null;
+    }
+  }, [mapRef, userLocationMarkerRef, userAccuracyCircleRef]);
+
+  /* ------------------------------------------------------------------ *
+   * Public: user clicked the button while GPS was already active
+   * ------------------------------------------------------------------ */
+  const clearLocation = useCallback(() => {
+    removeLocationLayers();
+    setGpsActive(false);
+    setGpsError(null);
+    setGpsLoading(false);
+    sendUserActivity("Clicked GPS-Clear-Button", "InfraRisk");
+  }, [removeLocationLayers]);
+
+  /* ------------------------------------------------------------------ *
+   * Public: user clicked the button to locate
+   * ------------------------------------------------------------------ */
   const handleLocateMe = useCallback(() => {
-    // ── Debug breadcrumbs ─────────────────────────────────────────────────
-    // These fire on every click so a silent failure is impossible to miss
-    // in the browser console.
     console.log("=== [GPS] BUTTON CLICKED ===");
     console.log("[GPS] mapRef.current:", mapRef.current);
     console.log("[GPS] isSecureContext:", window.isSecureContext);
     console.log("[GPS] geolocation supported:", "geolocation" in navigator);
 
     if (!mapRef.current) {
-      console.warn(
-        "[GPS] mapRef.current is null — map not ready, bailing out.",
-      );
+      console.warn("[GPS] mapRef.current is null — map not ready, bailing out.");
       setGpsError("Map is not ready yet. Please wait a moment and try again.");
       setTimeout(() => setGpsError(null), 4000);
       return;
@@ -38,14 +63,11 @@ export function useGeolocation({
       return;
     }
 
-    // Secure-context guard — geolocation silently misbehaves over plain HTTP
     if (!window.isSecureContext) {
       console.warn(
         "[GPS] Not a secure context — geolocation will be blocked by the browser.",
       );
-      setGpsError(
-        "Location requires HTTPS",
-      );
+      setGpsError("Location requires HTTPS");
       setTimeout(() => setGpsError(null), 5000);
       return;
     }
@@ -64,34 +86,20 @@ export function useGeolocation({
           return;
         }
 
-        console.log("[GPS] SUCCESS:", {
-          latitude,
-          longitude,
-          accuracy,
-        });
+        console.log("[GPS] SUCCESS:", { latitude, longitude, accuracy });
 
-        const latlng = [latitude, longitude]; // [lat, lng] — correct for Leaflet
+        const latlng = [latitude, longitude];
 
-        // Wipe any previous marker / halo
-        if (userLocationMarkerRef.current) {
-          map.removeLayer(userLocationMarkerRef.current);
-          userLocationMarkerRef.current = null;
-        }
-        if (userAccuracyCircleRef.current) {
-          map.removeLayer(userAccuracyCircleRef.current);
-          userAccuracyCircleRef.current = null;
-        }
+        // Wipe any previous marker / halo before drawing new ones
+        removeLocationLayers();
 
-        // Ensure a dedicated pane exists so GPS always draws on top
         if (!map.getPane("gpsPane")) {
           map.createPane("gpsPane");
-          map.getPane("gpsPane").style.zIndex = 650; // above markers (600)
+          map.getPane("gpsPane").style.zIndex = 650;
           map.getPane("gpsPane").style.pointerEvents = "none";
         }
 
-        // --- Accuracy halo --------------------------------------------------
-        // L.circle radius is METERS. Clamp so a bad IP fix doesn't paint a
-        // country-sized disc.
+        // --- Accuracy halo -------------------------------------------------
         const haloRadius = Math.min(Math.max(accuracy || 30, 10), 2000);
 
         userAccuracyCircleRef.current = L.circle(latlng, {
@@ -105,9 +113,7 @@ export function useGeolocation({
           interactive: false,
         }).addTo(map);
 
-        // --- Marker ---------------------------------------------------------
-        // Inline styles on every element so this works even if the <style>
-        // block below is missing/overridden.
+        // --- Marker --------------------------------------------------------
         const userIcon = L.divIcon({
           className: "gps-user-marker-wrapper",
           html: `
@@ -148,9 +154,7 @@ export function useGeolocation({
 
         userLocationMarkerRef.current = marker;
 
-        // --- Camera ---------------------------------------------------------
-        // If accuracy is bad, zoom out enough to fit the halo instead of
-        // slamming to zoom 16 on a meaningless point.
+        // --- Camera --------------------------------------------------------
         const targetZoom =
           accuracy && accuracy > 500
             ? Math.min(map.getZoom(), 13)
@@ -158,12 +162,14 @@ export function useGeolocation({
 
         map.flyTo(latlng, targetZoom, { animate: true, duration: 1.2 });
 
-        // Open popup a moment after the fly settles
         setTimeout(() => {
           if (userLocationMarkerRef.current) {
             userLocationMarkerRef.current.openPopup();
           }
         }, 1300);
+
+        // 🆕 Mark as active so the button highlights
+        setGpsActive(true);
 
         sendUserActivity("Clicked GPS-Locate-Button", "InfraRisk");
       },
@@ -191,31 +197,54 @@ export function useGeolocation({
         setTimeout(() => setGpsError(null), 6000);
       },
       {
-        enableHighAccuracy: true, // actually use the GPS chip
+        enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 0, // always get a fresh fix on a button press
+        maximumAge: 0,
       },
     );
-  }, [mapRef, userAccuracyCircleRef, userLocationMarkerRef]);
+  }, [mapRef, userAccuracyCircleRef, userLocationMarkerRef, removeLocationLayers]);
 
-  return { handleLocateMe, gpsLoading, gpsError };
+  // 🆕 Return gpsActive + clearLocation so the button can toggle
+  return { handleLocateMe, clearLocation, gpsLoading, gpsError, gpsActive };
 }
 
 
+
+// // src/components/LandUseLandCover/hooks/useGeolocation.js
 // import { sendUserActivity } from "../../../../services/api/auth";
-// import { useCallback } from "react";
+// import { useCallback, useState } from "react";
 
 // export function useGeolocation({
 //   mapRef,
-//   setGpsError,
-//   setGpsLoading,
 //   userAccuracyCircleRef,
-//   userLocationMarkerRef
+//   userLocationMarkerRef,
 // }) {
+//   // ✅ MOVED: gpsLoading / gpsError now live inside the hook so they travel
+//   // together with handleLocateMe. LandUseLandCover no longer needs to
+//   // declare or wire them — it just consumes whatever the hook returns.
+//   const [gpsLoading, setGpsLoading] = useState(false);
+//   const [gpsError, setGpsError] = useState(null);
+
 //   const handleLocateMe = useCallback(() => {
-//     if (!mapRef.current) return;
+//     // ── Debug breadcrumbs ─────────────────────────────────────────────────
+//     // These fire on every click so a silent failure is impossible to miss
+//     // in the browser console.
+//     console.log("=== [GPS] BUTTON CLICKED ===");
+//     console.log("[GPS] mapRef.current:", mapRef.current);
+//     console.log("[GPS] isSecureContext:", window.isSecureContext);
+//     console.log("[GPS] geolocation supported:", "geolocation" in navigator);
+
+//     if (!mapRef.current) {
+//       console.warn(
+//         "[GPS] mapRef.current is null — map not ready, bailing out.",
+//       );
+//       setGpsError("Map is not ready yet. Please wait a moment and try again.");
+//       setTimeout(() => setGpsError(null), 4000);
+//       return;
+//     }
 
 //     if (!("geolocation" in navigator)) {
+//       console.warn("[GPS] navigator.geolocation is unavailable.");
 //       setGpsError("Geolocation is not supported by this browser.");
 //       setTimeout(() => setGpsError(null), 4000);
 //       return;
@@ -223,8 +252,11 @@ export function useGeolocation({
 
 //     // Secure-context guard — geolocation silently misbehaves over plain HTTP
 //     if (!window.isSecureContext) {
+//       console.warn(
+//         "[GPS] Not a secure context — geolocation will be blocked by the browser.",
+//       );
 //       setGpsError(
-//         "Location requires HTTPS. Please open this site over https:// or localhost."
+//         "Location requires HTTPS",
 //       );
 //       setTimeout(() => setGpsError(null), 5000);
 //       return;
@@ -239,7 +271,16 @@ export function useGeolocation({
 
 //         const { latitude, longitude, accuracy } = position.coords;
 //         const map = mapRef.current;
-//         if (!map) return;
+//         if (!map) {
+//           console.warn("[GPS] Map disappeared before position arrived.");
+//           return;
+//         }
+
+//         console.log("[GPS] SUCCESS:", {
+//           latitude,
+//           longitude,
+//           accuracy,
+//         });
 
 //         const latlng = [latitude, longitude]; // [lat, lng] — correct for Leaflet
 
@@ -317,8 +358,6 @@ export function useGeolocation({
 //           keyboard: false,
 //         }).addTo(map);
 
-
-
 //         userLocationMarkerRef.current = marker;
 
 //         // --- Camera ---------------------------------------------------------
@@ -343,10 +382,13 @@ export function useGeolocation({
 //       (err) => {
 //         setGpsLoading(false);
 
+//         console.warn("[GPS] ERROR:", err.code, err.message);
+
 //         let msg = "Unable to get your location.";
 //         switch (err.code) {
 //           case err.PERMISSION_DENIED:
-//             msg = "Location permission denied.";
+//             msg =
+//               "Location permission denied. Enable it in your browser settings and try again.";
 //             break;
 //           case err.POSITION_UNAVAILABLE:
 //             msg = "Location information is unavailable.";
@@ -358,15 +400,17 @@ export function useGeolocation({
 //             msg = err.message || msg;
 //         }
 //         setGpsError(msg);
-//         setTimeout(() => setGpsError(null), 4000);
+//         setTimeout(() => setGpsError(null), 6000);
 //       },
 //       {
-//         enableHighAccuracy: true,   // actually use the GPS chip
+//         enableHighAccuracy: true, // actually use the GPS chip
 //         timeout: 15000,
-//         maximumAge: 0,              // always get a fresh fix on a button press
-//       }
+//         maximumAge: 0, // always get a fresh fix on a button press
+//       },
 //     );
-//   }, []);
+//   }, [mapRef, userAccuracyCircleRef, userLocationMarkerRef]);
 
-//   return { handleLocateMe };
+//   return { handleLocateMe, gpsLoading, gpsError };
 // }
+
+

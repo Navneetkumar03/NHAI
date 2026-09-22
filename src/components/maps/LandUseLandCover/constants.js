@@ -5,14 +5,6 @@ export const BASE = import.meta.env.BASE_URL;
 
 
 
-
-
-
-
-
-
-
-
 /* ============================================================================
  * CONSTANTS
  * ==========================================================================*/
@@ -24,11 +16,16 @@ export const YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 export const TILE_LAYER_URL =
   "https://mlinfomap.com/nhflyoverapi/tiles/{year}/{z}/{x}/{y}.png";
 
+
+// 🆕 DEM layer
+export const DEM_LAYER_URL =
+  "https://mlinfomap.com/nhflyoverapi/tiles/dem/{z}/{x}/{y}.png";
+
 export const DEFAULT_CENTER = [30.3, 76.7];
 
 export const DEFAULT_ZOOM = 10;
 
-export const MIN_ZOOM = 9;
+export const MIN_ZOOM = 5;
 
 export const MAX_ZOOM = 20;
 

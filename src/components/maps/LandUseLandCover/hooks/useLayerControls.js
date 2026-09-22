@@ -38,9 +38,9 @@ export function useLayerControls({
   setShowOverview,
   setShowSegmentTable,
   setShowSoil,
-  setShowRainfall,     // ← add
-  showRainfall,        // ← add
+  setShowRainfall,
   setShowTrafficPanel,
+  showRainfall,
   sideBySideRef,
   streetLayerRef,
 }) {
@@ -121,13 +121,13 @@ export function useLayerControls({
             selectedPolygonLayerRef.current = null;
           }
 
-          // 🆕 Remove flyover pins when Assets is turned off
+          // Remove flyover pins when Assets is turned off
           removeAllFromMap(mapRef.current, flyoverLayersRef.current);
           removeAllFromMap(mapRef.current, flyoverMarkersRef.current);
         } else {
           setActiveLayers((prev) => [...prev, "linear"]);
 
-          // 🆕 Add flyover pins when Assets is turned on — same look the
+          // Add flyover pins when Assets is turned on — same look the
           // old Flyover layer used to give.
           if (mapRef.current && flyovers && flyovers.length > 0) {
             addFlyoverLayers(mapRef.current);
@@ -202,18 +202,12 @@ export function useLayerControls({
         );
 
         if (turningOn) {
-          // 🆕 Auto-select the first flyover so the panel has something to
+          // Auto-select the first flyover so the panel has something to
           // show. Uses the same shape useFlyoverLayer writes into
           // selectedFlyoverForTraffic, so TrafficAnalysisPanel is none the
           // wiser about who opened it.
-          //
-          // flyoverEntries is derived from flyoverBoundsRef inside
-          // useFlyoverLayer and mirrored into state — it already exists by
-          // the time a user can click this checkbox.
           const first = flyoverEntries?.[0];
           if (first) {
-            // Compute a backend name the same way useFlyoverLayer does:
-            // "FLYOVER " + id
             const backendName = `FLYOVER ${first.id}`;
             const displayName = first.name;
 
@@ -231,15 +225,12 @@ export function useLayerControls({
               setActiveFlyoverId(first.id);
             }, 0);
           } else {
-            // No flyovers loaded yet — leave the toggle on, user will pick
-            // one when they click a marker.
             console.warn(
               "[LULC] Traffic enabled but no flyoverEntries available yet.",
             );
           }
         } else {
-          // Turning traffic OFF — close the panel if it's open, since it's
-          // showing data the user no longer wants.
+          // Turning traffic OFF — close the panel if it's open.
           setShowTrafficPanel(false);
           setSelectedFlyoverForTraffic(null);
         }
@@ -341,9 +332,10 @@ export function useLayerControls({
     }
   }, []);
 
-  return { handleLayerChange, handleLayerToggle, handleBaseLayerChange, toggleFullscreen };
+  return {
+    handleLayerChange,
+    handleLayerToggle,
+    handleBaseLayerChange,
+    toggleFullscreen,
+  };
 }
-
-
-
-

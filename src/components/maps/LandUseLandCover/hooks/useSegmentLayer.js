@@ -144,7 +144,6 @@ export function useSegmentLayer({
         !liveSegments.features ||
         liveSegments.features.length === 0
       ) {
-        console.log("No live segments data to display");
         return;
       }
 
@@ -156,9 +155,6 @@ export function useSegmentLayer({
         liveSegmentLayerRef.current = null;
       }
 
-      console.log(
-        `Adding ${liveSegments.features.length} segment features to map`,
-      );
 
 
 
