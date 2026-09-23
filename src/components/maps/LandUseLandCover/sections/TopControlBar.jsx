@@ -3,6 +3,7 @@ import { DateRangeSelector } from "../controls/DateRangeSelector";
 import { LayerSelector } from "../controls/LayerSelector";
 import { Table } from "lucide-react";
 import { YearSelect } from "../controls/YearSelect";
+import { RAINFALL_YEARS } from "../constants";
 import { sendUserActivity } from "../../../../services/api/auth";
 
 export function TopControlBar({
@@ -10,9 +11,11 @@ export function TopControlBar({
   diffEndDate,
   diffStartDate,
   handleLayerChange,
+  rainfallYear,
   selectedLayer,
   setDiffEndDate,
   setDiffStartDate,
+  setRainfallYear,
   setShowOverview,
   setShowSegmentTable,
   setYearLeft,
@@ -20,6 +23,7 @@ export function TopControlBar({
   showDifferenceUI,
   showLULC,
   showOverview,
+  showRainfall,
   showSegmentTable,
   yearLeft,
   yearRight,
@@ -161,6 +165,20 @@ export function TopControlBar({
             value={yearRight}
             onChange={setYearRight}
             disabledYears={[yearLeft]}
+          />
+        </div>
+      )}
+
+      {showRainfall && (
+        <div className="flex items-center gap-4 max-[640px]:w-full max-[640px]:flex-wrap max-[640px]:gap-2">
+          <span className="text-sm font-medium text-gray-700 tracking-wide max-[480px]:text-xs max-[480px]:w-full">
+            Rainfall
+          </span>
+          <YearSelect
+            label="Year"
+            value={rainfallYear}
+            onChange={setRainfallYear}
+            years={RAINFALL_YEARS}
           />
         </div>
       )}

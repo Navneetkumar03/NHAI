@@ -1,10 +1,8 @@
 // src/components/maps/LandUseLandCover/overlays/dem.js
-import { DEM_LAYER_URL, MAX_ZOOM, MIN_ZOOM } from "../constants";
+import { DEM_LAYER_URL, MAX_ZOOM, MIN_ZOOM, DEFAULT_CENTER } from "../constants";
 
-// DEM-specific default view. Intentionally NOT the global DEFAULT_CENTER /
-// DEFAULT_ZOOM from constants.js — DEM has its own home position.
-const DEM_CENTER = [30.3, 76.7];
-const DEM_ZOOM = 6;
+
+const DEM__DEFAULT_ZOOM = 6;
 
 export const demOverlay = {
     id: "dem",
@@ -39,7 +37,7 @@ export const demOverlay = {
 
     onToggle({ map }, want) {
         if (!want) return;
-        map.flyTo(DEM_CENTER, DEM_ZOOM, {
+        map.flyTo(DEFAULT_CENTER, DEM__DEFAULT_ZOOM, {
             animate: true,
             duration: 1.2,
         });

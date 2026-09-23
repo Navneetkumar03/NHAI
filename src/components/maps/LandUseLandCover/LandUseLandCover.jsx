@@ -4,7 +4,12 @@ import "leaflet-side-by-side";
 import { useFlyoverData } from "../../../hooks/useFlyoverData";
 import { useMovementPoints } from "../../../hooks/useMovementPoints";
 import { useFlyoverSegments } from "../../../hooks/useFlyoverSegments";
-import { DEFAULT_CENTER, YEARS } from "./constants";
+import {
+  DEFAULT_CENTER,
+  RAINFALL_YEARS,
+  SOIL_TAXO_COLORS,
+  YEARS,
+} from "./constants";
 
 import { useSegmentLayer } from "./hooks/useSegmentLayer";
 import { useMovementLayer } from "./hooks/useMovementLayer";
@@ -16,15 +21,12 @@ import { useOverlayLayers } from "./hooks/useOverlayLayers";
 import { useLayerControls } from "./hooks/useLayerControls";
 import { useFlyoverInteractions } from "./hooks/useFlyoverInteractions";
 import { useGeolocation } from "./hooks/useGeolocation";
-import { useSoilData } from "./hooks/useSoilData";
 import { useResponsiveUI } from "./hooks/useResponsiveUI";
 import { useLayerSyncEffects } from "./hooks/useLayerSyncEffects";
 
 import { TopControlBar } from "./sections/TopControlBar";
 import { MapOverlays } from "./sections/MapOverlays";
 import { LAYER_MENU, getOverlay } from "./overlayRegistry";
-
-import RainfallLayer from "./RainfallLayer";
 
 export function LandUseLandCover({
   mapCenter = DEFAULT_CENTER,
@@ -52,10 +54,6 @@ export function LandUseLandCover({
   const streetLayerRef = useRef(null);
   const satelliteLayerRef = useRef(null);
   const esriSatelliteLayerRef = useRef(null);
-
-  const soilLayerRef = useRef(null);
-  const soilDataRef = useRef(null);
-  const hasFitSoilBoundsRef = useRef(false);
 
   const flyoverLayersRef = useRef([]);
   const flyoverMarkersRef = useRef([]);
@@ -108,6 +106,13 @@ export function LandUseLandCover({
   const [yearLeft, setYearLeft] = useState(defaultLeftYear);
   const [yearRight, setYearRight] = useState(defaultRightYear);
 
+  // Rainfall layer's currently-selected year. Defaults to the newest
+  // supported year. Changing this while Rainfall is enabled hot-swaps
+  // the tile URL via useOverlayLayers' Pass 1.5.
+  const [rainfallYear, setRainfallYear] = useState(
+    RAINFALL_YEARS[RAINFALL_YEARS.length - 1],
+  );
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -119,10 +124,12 @@ export function LandUseLandCover({
   const [activeLayers, setActiveLayers] = useState(["linear", "movement"]);
   const [baseLayer, setBaseLayer] = useState("streets");
 
-  const [soilData, setSoilData] = useState(null);
-  const [soilLoading, setSoilLoading] = useState(true);
-  const [soilError, setSoilError] = useState(null);
-  const [taxoValues, setTaxoValues] = useState([]);
+  // Soil is now a tile layer — no fetch, no loading state.
+  // Legend values come straight from the single source of truth.
+  // Kept as constants with the same names so MapOverlays needs no edits.
+  const taxoValues = Object.keys(SOIL_TAXO_COLORS);
+  const soilLoading = false;
+  const soilError = null;
 
   const [selectedSegmentId, setSelectedSegmentId] = useState(null);
   const [segmentData, setSegmentData] = useState([]);
@@ -138,9 +145,6 @@ export function LandUseLandCover({
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
   const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] =
     useState(null);
-
-  /* Rainfall idw */
-  const [showRainfall, setShowRainfall] = useState(false);
 
   // Keep the map hidden until the default flyover view has been applied.
   // This prevents the zoomed-out regional view from flashing before the
@@ -191,12 +195,21 @@ export function LandUseLandCover({
   } = useOverlayLayers({
     mapRef,
     isMapReadyRef,
-    refreshKey: soilData,
+    refreshKey: null, // soil is now a tile layer; nothing async to refresh on
+    rainfallYear,     // drives the year hot-swap in Pass 1.5
     ctx: {
-      dividerLineRef, hasFitBoundsRef, hasFitSoilBoundsRef, leftLayerRef,
-      lulcCreatedRef, mapContainerRef, rafIdRef, rightLayerRef,
-      setIsDividerReady, sideBySideRef, soilDataRef, soilLayerRef, tagRef,
-      yearLeft, yearRight,
+      dividerLineRef,
+      hasFitBoundsRef,
+      leftLayerRef,
+      lulcCreatedRef,
+      rafIdRef,
+      rightLayerRef,
+      setIsDividerReady,
+      sideBySideRef,
+      tagRef,
+      yearLeft,
+      yearRight,
+      rainfallYear,   // readable by rainfallOverlay.add()
     },
   });
 
@@ -344,9 +357,6 @@ export function LandUseLandCover({
     setShowTrafficPanel,
     sideBySideRef,
     streetLayerRef,
-
-    setShowRainfall,
-    showRainfall,
   });
 
   const handleLayerToggleAdapter = useCallback(
@@ -456,14 +466,6 @@ export function LandUseLandCover({
     zoomControlContainerRef,
   });
 
-  useSoilData({
-    setSoilData,
-    setSoilError,
-    setSoilLoading,
-    setTaxoValues,
-    soilDataRef,
-  });
-
   useResponsiveUI({
     mapContainerRef,
     mapRef,
@@ -550,7 +552,6 @@ export function LandUseLandCover({
     dividerReadyTimeoutRef,
     esriSatelliteLayerRef,
     flyovers,
-    hasFitSoilBoundsRef,
     isMapReadyRef,
     isMountedRef,
     leftLayerRef,
@@ -568,8 +569,6 @@ export function LandUseLandCover({
     setError,
     setLoading,
     sideBySideRef,
-    soilDataRef,
-    soilLayerRef,
     streetLayerRef,
     updateCircleWeights,
     zoomControlContainerRef,
@@ -594,9 +593,11 @@ export function LandUseLandCover({
         diffEndDate={diffEndDate}
         diffStartDate={diffStartDate}
         handleLayerChange={handleLayerChange}
+        rainfallYear={rainfallYear}
         selectedLayer={selectedLayer}
         setDiffEndDate={setDiffEndDate}
         setDiffStartDate={setDiffStartDate}
+        setRainfallYear={setRainfallYear}
         setShowOverview={setShowOverview}
         setShowSegmentTable={setShowSegmentTable}
         setYearLeft={setYearLeft}
@@ -604,6 +605,7 @@ export function LandUseLandCover({
         showDifferenceUI={showDifferenceUI}
         showLULC={showLULC}
         showOverview={showOverview}
+        showRainfall={enabled.rainfall}
         showSegmentTable={showSegmentTable}
         yearLeft={yearLeft}
         yearRight={yearRight}
@@ -666,10 +668,10 @@ export function LandUseLandCover({
             flyoverButtonsContainerRef={flyoverButtonsContainerRef}
             flyoverEntries={flyoverEntries}
             flyoversLoading={flyoversLoading}
+            gpsActive={gpsActive}
             gpsError={gpsError}
             gpsLoading={gpsLoading}
-            // gpsActive={gpsActive}                    
-            // onClearLocation={clearLocation}          // 🆕
+            onClearLocation={clearLocation}
             handleLocateMe={handleLocateMe}
             handleBaseLayerChange={handleBaseLayerChange}
             handleFlyoverButtonClick={handleFlyoverButtonClick}
@@ -722,13 +724,6 @@ export function LandUseLandCover({
             yearRight={yearRight}
             showDEM={showDEM}
           />
-
-          {showRainfall && (
-            <RainfallLayer
-              mapRef={mapRef}
-              onClose={() => setShowRainfall(false)}
-            />
-          )}
         </div>
       </div>
     </div>
@@ -736,3 +731,9 @@ export function LandUseLandCover({
 }
 
 export default LandUseLandCover;
+
+
+
+
+
+

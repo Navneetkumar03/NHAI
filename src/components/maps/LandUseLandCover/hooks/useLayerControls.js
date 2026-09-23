@@ -38,9 +38,7 @@ export function useLayerControls({
   setShowOverview,
   setShowSegmentTable,
   setShowSoil,
-  setShowRainfall,
   setShowTrafficPanel,
-  showRainfall,
   sideBySideRef,
   streetLayerRef,
 }) {
@@ -99,8 +97,6 @@ export function useLayerControls({
           return next;
         });
         setShowLULC(false);
-      } else if (layerId === "rainfall") {
-        setShowRainfall((prev) => !prev);
       } else if (layerId === "linear") {
         const isActive = activeLayers.includes("linear");
         if (isActive) {
@@ -339,3 +335,5 @@ export function useLayerControls({
     toggleFullscreen,
   };
 }
+
+

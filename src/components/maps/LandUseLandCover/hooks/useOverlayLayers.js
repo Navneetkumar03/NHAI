@@ -7,6 +7,7 @@ import {
     MANAGED_IDS,
     OVERLAY_REGISTRY,
 } from "../overlayRegistry";
+import { updateRainfallYear } from "../overlays/rainfall";
 
 /**
  * useOverlayLayers
@@ -21,6 +22,14 @@ import {
  *                                 need (refs, callbacks). Flattened and
  *                                 merged into the context passed to each
  *                                 overlay function.
+ * @param {*}        refreshKey    Optional value; when it changes, the
+ *                                 lifecycle effect re-runs. Used by data-
+ *                                 backed overlays whose `add` needs to
+ *                                 retry once async data arrives.
+ * @param {number=}  rainfallYear  Current year for the Rainfall overlay.
+ *                                 When this changes while Rainfall is
+ *                                 active, Pass 1.5 hot-swaps the tile URL
+ *                                 in place (no remove/re-add).
  *
  * Returns
  * -------
@@ -32,7 +41,13 @@ import {
  *   setMany: (patch: Record<string, boolean>) => void,
  * }}
  */
-export function useOverlayLayers({ mapRef, isMapReadyRef, ctx = {}, refreshKey }) {
+export function useOverlayLayers({
+    mapRef,
+    isMapReadyRef,
+    ctx = {},
+    refreshKey,
+    rainfallYear,
+}) {
     /* ---------------------------------------------------------------- *
      * State
      * ---------------------------------------------------------------- */
@@ -147,6 +162,26 @@ export function useOverlayLayers({ mapRef, isMapReadyRef, ctx = {}, refreshKey }
         }
 
         // ============================================================
+        // PASS 1.5 — Rainfall year hot-swap
+        // ============================================================
+        // The rainfall tile layer takes a {year} parameter baked into its
+        // URL. When the user changes the year in the top bar while the
+        // layer is already active, we swap the tile URL in place rather
+        // than tearing the layer down and re-adding it.
+        //
+        // updateRainfallYear is idempotent — it's a no-op if the year
+        // hasn't actually changed, so this block is safe to run on every
+        // effect cycle.
+        const rainfallLayer = layersRef.current["rainfall"];
+        if (rainfallLayer && enabled["rainfall"]) {
+            try {
+                updateRainfallYear(map, rainfallLayer, rainfallYear);
+            } catch (err) {
+                logError("[overlay] rainfall year swap failed:", err);
+            }
+        }
+
+        // ============================================================
         // PASS 2 — onToggle for EVERY registered overlay
         // ============================================================
         // Runs for both managed and custom overlays, so a `custom: true`
@@ -169,7 +204,8 @@ export function useOverlayLayers({ mapRef, isMapReadyRef, ctx = {}, refreshKey }
         }
         // refreshKey lets data-backed descriptors retry their `add` function when
         // their data arrives (for example Soil after its GeoJSON fetch resolves).
-    }, [enabled, mapRef, isMapReadyRef, refreshKey]);
+        // rainfallYear is in the deps so Pass 1.5 runs whenever the year changes.
+    }, [enabled, mapRef, isMapReadyRef, refreshKey, rainfallYear]);
 
     /* ---------------------------------------------------------------- *
      * Teardown on unmount — removes every managed Leaflet layer
@@ -209,3 +245,4 @@ export function useOverlayLayers({ mapRef, isMapReadyRef, ctx = {}, refreshKey }
         [enabled, isOn, toggle, set, setMany],
     );
 }
+

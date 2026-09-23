@@ -1,6 +1,11 @@
 // src/components/maps/LandUseLandCover/overlays/soil.js
-import { DEFAULT_CENTER, DEFAULT_ZOOM } from "../constants";
-import { onEachSoilFeature, soilStyle } from "../mapUtils";
+import {
+    DEFAULT_CENTER,
+    DEFAULT_ZOOM,
+    MAX_ZOOM,
+    MIN_ZOOM,
+    SOIL_LAYER_URL,
+} from "../constants";
 
 export const soilOverlay = {
     id: "soil",
@@ -10,43 +15,30 @@ export const soilOverlay = {
     defaultOn: false,
     hasLegend: true,
 
-    add({ map, soilDataRef, soilLayerRef, hasFitSoilBoundsRef, mapContainerRef }) {
-        const data = soilDataRef?.current;
-        if (!data) {
-            return null;
+    add({ map }) {
+        // Dedicated pane so soil stacks above base tiles but below
+        // vectors (LULC divider, flyover pins, movement circles).
+        if (!map.getPane("soilPane")) {
+            map.createPane("soilPane");
+            map.getPane("soilPane").style.zIndex = 300;
         }
 
-        const layer = L.geoJSON(data, {
+        return L.tileLayer(SOIL_LAYER_URL, {
             pane: "soilPane",
-            style: soilStyle,
-            onEachFeature: onEachSoilFeature,
+            tileSize: 256,
+            minZoom: MIN_ZOOM,
+            maxZoom: MAX_ZOOM,
+            opacity: 1,
+            crossOrigin: true,
         }).addTo(map);
-
-
-        if (hasFitSoilBoundsRef) {
-            hasFitSoilBoundsRef.current = true;
-        }
-
-
-        requestAnimationFrame(() => {
-            if (mapContainerRef?.current) {
-                try { map.invalidateSize(); } catch { }
-            }
-        });
-
-        if (soilLayerRef) soilLayerRef.current = layer;
-        return layer;
     },
 
-    remove({ map, soilLayerRef, hasFitSoilBoundsRef }, layer) {
+    remove({ map }, layer) {
         if (layer && map.hasLayer(layer)) {
             map.removeLayer(layer);
         }
-        if (soilLayerRef) soilLayerRef.current = null;
-        if (hasFitSoilBoundsRef) hasFitSoilBoundsRef.current = false;
     },
 
-    // 🆕 Fly to the default view whenever Soil is turned on.
     onToggle({ map }, want) {
         if (!want) return;
         map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, {
