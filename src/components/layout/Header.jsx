@@ -182,21 +182,10 @@ const Header = ({ only, onLogout, user } = {}) => {
   return (
     <div
       ref={rootRef}
-      className={`w-full bg-[#1366D9] select-none font-sans ${
-        only === "logo" ? "max-[900px]:pr-[var(--header-scrollbar-w,0px)]" : ""
-      }`}
+      className={`w-full bg-[#1366D9] select-none font-sans ${only === "logo" ? "max-[900px]:pr-[var(--header-scrollbar-w,0px)]" : ""
+        }`}
     >
-      {/*
-        Mobile spacing model:
-        - Row becomes a centered flex-column (`items-center` already centers cross-axis,
-          which is horizontal once we're in flex-col).
-        - `max-[900px]:gap-2` + `max-[900px]:py-2` give a thin, even blue margin
-          top/bottom/between cards, instead of the old thicker py-3/gap-3.
-        - Both mobile cards use the SAME explicit width (100% minus 1rem) and
-          zero margins, forced with `!`, so no desktop margin/width class can
-          make one card wider than the other. `items-center` on the row then
-          centers them, so left AND right edges line up exactly.
-      */}
+
       <div className="relative w-full min-w-[1020px] h-[100px] pb-1.5 bg-[#1366D9] flex items-center shadow-lg max-[900px]:min-w-0 max-[900px]:flex-col max-[900px]:h-auto max-[900px]:py-2 max-[900px]:gap-2">
         {showLogo && (
           <div className="relative z-10 h-full -mr-8 pr-12 flex items-center mt-3 ml-1 gap-3 shrink-0 bg-[#EEF4FA] max-[900px]:w-[calc(100%-1rem)]! max-[900px]:min-w-0! max-[900px]:ml-0! max-[900px]:mr-0! max-[900px]:mt-0 max-[900px]:px-4 max-[900px]:justify-between max-[900px]:h-auto max-[900px]:py-3 max-[900px]:rounded-xl max-[900px]:shadow-sm">
@@ -219,17 +208,13 @@ const Header = ({ only, onLogout, user } = {}) => {
               </div>
             </div>
 
-            {/* Project name + tagline, shown beside the logo ONLY on mobile.
-                Desktop keeps showing them in the center panel below, so this
-                block stays hidden until the 900px breakpoint.
-                Inline textAlign is used because some global `h2 { text-align: center }`
-                base style in the app can otherwise win over the Tailwind class. */}
+
             <div className="hidden max-[900px]:block max-[900px]:flex-1 max-[900px]:min-w-0 ml-2">
               <h2
                 className="text-[#0F172A] font-extrabold text-[11px] leading-snug max-[480px]:text-[10px]"
                 style={{ textAlign: "left" }}
               >
-                AI Risk Intelligence & Remote Monitoring System
+                INFRARISK: AI-Based Remote Monitoring
               </h2>
 
               {/* Mobile-only tagline under the title (desktop shows it in the center panel) */}
@@ -237,15 +222,15 @@ const Header = ({ only, onLogout, user } = {}) => {
                 className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[9px] font-bold max-[480px]:text-[8px] max-[480px]:gap-x-1.5"
                 style={{ textAlign: "left" }}
               >
-                <span className="text-[#1D61E8] whitespace-nowrap">
+                <span className="text-gray-800 whitespace-nowrap">
                   <span className="text-gray-400 mr-0.5">•</span>Smart
                   Monitoring
                 </span>
-                <span className="text-[#16A34A] whitespace-nowrap">
+                <span className="text-gray-800 whitespace-nowrap">
                   <span className="text-gray-400 mr-0.5">•</span>Predictive
                   Insights
                 </span>
-                <span className="text-[#EA580C] whitespace-nowrap">
+                <span className="text-gray-800 whitespace-nowrap">
                   <span className="text-gray-400 mr-0.5">•</span>Safer Highways
                 </span>
               </div>
@@ -257,26 +242,21 @@ const Header = ({ only, onLogout, user } = {}) => {
 
         {showRest && (
           <>
-            {/*
-              CHANGED: this is the center "AI Risk Intelligence..." title panel.
-              Per TL's request, it is now fully disabled on mobile with
-              `max-[900px]:hidden`. All its other max-[900px]:* reshape classes
-              are dead weight once hidden, so they've been removed for clarity.
-            */}
+
             <div className="relative z-20 flex-1 h-full mt-3 shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white flex flex-col justify-center pl-2 pr-5 rounded-bl-[125px] rounded-br-[150px] rounded-tr-[450px] shadow-[-8px_0_18px_-2px_rgba(0,0,0,0.07)] [clip-path:polygon(0_0,calc(100%_-_250px)_0,100%_160%,0_100%)] max-[900px]:hidden">
               <h2 className="text-[#0F172A] w-full font-extrabold text-xl  tracking-tight leading-none max-[900px]:text-center max-[900px]:leading-snug max-[480px]:text-base">
-                AI Risk Intelligence & Remote Monitoring System
+                INFRARISK: AI-Based Remote Monitoring
               </h2>
               <div className="flex items-start gap-2 text-xs font-bold mt-2  max-[900px]:justify-center max-[900px]:flex-wrap max-[480px]:gap-1.5 max-[480px]:text-[10px]">
-                <span className="text-[#1D61E8] flex items-start gap-1.5">
+                <span className="text-gray-800 flex items-start gap-1.5">
                   <span className="text-gray-400 text-[10px]">•</span> Smart
                   Monitoring
                 </span>
-                <span className="text-[#16A34A] flex items-start gap-1.5">
+                <span className="text-gray-800 flex items-start gap-1.5">
                   <span className="text-gray-400 text-[10px]">•</span>{" "}
                   Predictive Insights
                 </span>
-                <span className="text-[#EA580C] flex items-start gap-1.5">
+                <span className="text-gray-800 flex items-start gap-1.5">
                   <span className="text-gray-400 text-[10px]">•</span> Safer
                   Highways
                 </span>

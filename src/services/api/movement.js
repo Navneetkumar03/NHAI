@@ -1,6 +1,18 @@
 
 import { BASE_URL, authFetch } from "./client";
 
+
+
+// ============================================================
+// 🆕 MOVEMENT POINTS APIs (Only these two endpoints)
+// ============================================================
+
+/**
+ * GET /points/data
+ * Fetch all movement points (lightweight - NO timeseries)
+ * Used for map display
+ */
+
 export const fetchMovementPoints = async () => {
   try {
     const response = await authFetch(`${BASE_URL}/points/data`, {
@@ -72,12 +84,4 @@ export const fetchVelocityDiff = async (fromDate, toDate) => {
   }
 };
 
-// ============================================================
-// 🆕 FLYOVER SEGMENT APIs
-// ============================================================
 
-/**
- * POST /get_live_segment
- * Fetch live segment data (GeoJSON with LineString geometry)
- * Used for displaying road segments on the map
- */

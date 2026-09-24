@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import { useFlyoverData } from "../hooks/useFlyoverData";
+import { useObservationInfo } from "../hooks/useObservationInfo";
 import { getStatsFromFlyovers } from "../utils/geoJsonParser";
 import { sendLocationToAPI } from "../services/api/weather";
 import { sendUserActivity } from "../services/api/auth";
@@ -14,12 +15,30 @@ import WeatherPanel from "../components/dashboard/WeatherPanel";
 import { getFlyoverColor } from "../components/maps/shared/mapHelpers";
 import ObservationInfo from "../components/dashboard/ObservationInfo";
 
+// Formats an ISO date string ("2025-08-06") for the ObservationInfo bar.
+// Renders "6 Aug 2025". Falls back to "—" for null/undefined input.
+const formatDisplayDate = (iso) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 export default function DashboardPage() {
   // ===========================================================================
   // LOAD FLYOVER DATA
   // ===========================================================================
 
   const { flyovers, loading, error } = useFlyoverData();
+
+  // ===========================================================================
+  // OBSERVATION INFO
+  // ===========================================================================
+
+  const { info: observationInfo } = useObservationInfo();
 
   // ===========================================================================
   // REFS
@@ -437,9 +456,9 @@ export default function DashboardPage() {
           ------------------------------------------------------------------ */}
 
           <ObservationInfo
-            startDate="6 Aug 2025"
-            endDate="1 Sept 2026"
-            count={33}
+            startDate={formatDisplayDate(observationInfo?.startDate)}
+            endDate={formatDisplayDate(observationInfo?.lastDate)}
+            count={observationInfo?.count ?? 0}
           />
 
           {/* -----------------------------------------------------------------

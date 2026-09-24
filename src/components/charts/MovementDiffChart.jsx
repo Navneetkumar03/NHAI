@@ -1,4 +1,3 @@
-// src/components/MovementDiffChart.jsx
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { X, GripVertical, Calendar, ArrowRight } from "lucide-react";
 import {
@@ -10,6 +9,7 @@ import {
     Tooltip,
     ResponsiveContainer,
     ReferenceLine,
+    Label,
 } from "recharts";
 
 // Solve a system of linear equations (Gaussian elimination with partial pivoting)
@@ -229,24 +229,30 @@ export default function MovementDiffChart({
         });
     }, [timeseries, startDate, endDate]);
 
-    // Compute chart data with trend
+    // Compute chart data with trend — built from the FULL timeseries (not the
+    // date-filtered slice), so the chart always plots every point regardless
+    // of the selected start/end range. Only the red diff indicator below is
+    // scoped to the selection; the line/points/trend stay full-range.
     const chartData = useMemo(() => {
-        const n = filteredTimeseries.length;
+        const n = timeseries.length;
         if (n === 0) return [];
 
-        const xs = filteredTimeseries.map((_, i) => i / Math.max(1, n - 1));
-        const ys = filteredTimeseries.map((d) => d.displacement);
+        const xs = timeseries.map((_, i) => i / Math.max(1, n - 1));
+        const ys = timeseries.map((d) => d.displacement);
 
         const degree = Math.min(3, Math.max(1, n - 1));
         const predict = fitPolynomialTrend(xs, ys, degree);
 
-        return filteredTimeseries.map((d, i) => ({
+        return timeseries.map((d, i) => ({
             ...d,
             trend: predict(xs[i]),
         }));
-    }, [filteredTimeseries]);
+    }, [timeseries]);
 
     // Calculate displacement difference
+    // NOTE: this is derived from filteredTimeseries, which already reacts to
+    // startDate/endDate — so the red dashed diff indicator below is fully
+    // dynamic and re-anchors itself whenever the selected date range changes.
     const displacementDiff = useMemo(() => {
         if (filteredTimeseries.length < 2) return null;
 
@@ -400,24 +406,6 @@ export default function MovementDiffChart({
                             </span>
                         )}
 
-                        {/* 🆕 Diff value — only shown in difference mode */}
-                        {pointDiff !== undefined && pointDiff !== null && (
-                            <span className="whitespace-nowrap">
-                                Diff:{" "}
-                                <strong
-                                    className={
-                                        pointDiff > 0
-                                            ? "text-red-600"
-                                            : pointDiff < 0
-                                                ? "text-blue-600"
-                                                : "text-gray-700"
-                                    }
-                                >
-                                    {pointDiff > 0 ? "+" : ""}
-                                    {pointDiff} mm/yr
-                                </strong>
-                            </span>
-                        )}
 
                         {/* Coherence — only shown when present */}
                         {coherence !== undefined && coherence !== null && (
@@ -426,7 +414,16 @@ export default function MovementDiffChart({
                             </span>
                         )}
 
-
+                        {/* 🆕 Displacement diff over the selected date range */}
+                        {displacementDiff && (
+                            <span className="whitespace-nowrap">
+                                Diff:{" "}
+                                <strong className="text-red-600">
+                                    {displacementDiff.difference > 0 ? "+" : ""}
+                                    {displacementDiff.difference.toFixed(1)} mm
+                                </strong>
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -472,38 +469,61 @@ export default function MovementDiffChart({
                                 strokeDasharray="3 3"
                             />
 
-                            {/* Highlight the date range with a background */}
-                            {chartData.length > 0 && (
-                                <ReferenceLine
-                                    x={chartData[0]?.date}
-                                    stroke="#3b82f6"
-                                    strokeDasharray="5 5"
-                                    strokeWidth={1}
-                                    label={{
-                                        value: "Start",
-                                        position: "top",
-                                        style: {
-                                            fontSize: 9,
-                                            fill: "#3b82f6",
-                                        },
-                                    }}
-                                />
-                            )}
-                            {chartData.length > 1 && (
-                                <ReferenceLine
-                                    x={chartData[chartData.length - 1]?.date}
-                                    stroke="#3b82f6"
-                                    strokeDasharray="5 5"
-                                    strokeWidth={1}
-                                    label={{
-                                        value: "End",
-                                        position: "top",
-                                        style: {
-                                            fontSize: 9,
-                                            fill: "#3b82f6",
-                                        },
-                                    }}
-                                />
+                            {/* 🆕 Red dashed diff indicator — anchored to the
+                                SELECTED date range (displacementDiff.startDate /
+                                endDate), not the full chart's first/last point.
+                                The line/points/trend above cover the whole
+                                timeseries; this overlay only marks where the
+                                user's chosen range sits within it, so it slides
+                                along the x-axis as the range changes without
+                                resizing the rest of the chart. Drawn as an
+                                L-shape: vertical segment from the start value
+                                to the end value, then a horizontal segment at
+                                the end value spanning the selected range,
+                                labeled with the total difference. */}
+                            {chartData.length > 1 && displacementDiff && (
+                                <>
+                                    <ReferenceLine
+                                        segment={[
+                                            {
+                                                x: displacementDiff.startDate,
+                                                y: displacementDiff.startDisplacement,
+                                            },
+                                            {
+                                                x: displacementDiff.startDate,
+                                                y: displacementDiff.endDisplacement,
+                                            },
+                                        ]}
+                                        stroke="#dc2626"
+                                        strokeDasharray="6 4"
+                                        strokeWidth={1.5}
+                                        ifOverflow="extendDomain"
+                                    />
+                                    <ReferenceLine
+                                        segment={[
+                                            {
+                                                x: displacementDiff.startDate,
+                                                y: displacementDiff.endDisplacement,
+                                            },
+                                            {
+                                                x: displacementDiff.endDate,
+                                                y: displacementDiff.endDisplacement,
+                                            },
+                                        ]}
+                                        stroke="#dc2626"
+                                        strokeDasharray="6 4"
+                                        strokeWidth={1.5}
+                                        ifOverflow="extendDomain"
+                                    >
+                                        <Label
+                                            value={`${displacementDiff.difference > 0 ? "+" : ""}${displacementDiff.difference.toFixed(1)} mm`}
+                                            position="insideTop"
+                                            fill="#dc2626"
+                                            fontSize={11}
+                                            fontWeight="bold"
+                                        />
+                                    </ReferenceLine>
+                                </>
                             )}
 
                             <Line
@@ -541,5 +561,3 @@ export default function MovementDiffChart({
         </div>
     );
 }
-
-

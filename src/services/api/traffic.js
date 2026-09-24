@@ -1,6 +1,10 @@
 
 import { BASE_URL, authFetch } from "./client";
 
+
+
+// Fetch traffic data for a specific flyover with optional date filter
+
 export const fetchTrafficData = async (flyoverName, selectedDate = null) => {
   try {
     const response = await authFetch(`${BASE_URL}/traffic/data`, {
@@ -48,12 +52,4 @@ export const fetchTrafficDates = async (flyoverName) => {
   }
 };
 
-// ============================================================
-// 🆕 MOVEMENT POINTS APIs (Only these two endpoints)
-// ============================================================
 
-/**
- * GET /points/data
- * Fetch all movement points (lightweight - NO timeseries)
- * Used for map display
- */

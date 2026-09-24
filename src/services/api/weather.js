@@ -60,4 +60,40 @@ export const fetchMonthlyWeatherData = async () => {
   }
 };
 
-// Fetch traffic data for a specific flyover with optional date filter
+
+
+
+/* ============================================================
+   Observation period metadata
+   ============================================================ */
+
+/**
+ * POST /get_observation_date
+ *
+ * Response shape:
+ *   {
+ *     status: "success",
+ *     data: {
+ *       start_date: "2025-08-06",
+ *       last_date:  "2026-09-01",
+ *       obs_count:  33
+ *     }
+ *   }
+ */
+export const getObservationDate = async () => {
+  try {
+    const response = await authFetch(`${BASE_URL}/get_observation_date`, {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching observation dates:", error);
+    throw error;
+  }
+};

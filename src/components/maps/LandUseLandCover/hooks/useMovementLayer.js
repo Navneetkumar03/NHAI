@@ -38,12 +38,12 @@ export function useMovementLayer({
       if (!points || points.length === 0) {
         return;
       }
-
+      // wipe previous circles
       removeAllFromMap(map, movementMarkersRef.current);
       movementMarkersRef.current = [];
 
       selectedMovementMarkerRef.current = null;
-
+      // build new circles
       points.forEach((feature) => {
         const { id, longitude, latitude, velocity } = feature.data;
 
@@ -52,7 +52,7 @@ export function useMovementLayer({
           radius: 4,
           ...getRestingCircleStyle(selectedLayer, velocity, map.getZoom()),
         });
-
+        // stash metadata on the circle
         circle._movementVelocity = velocity;
         circle._movementId = id;
 
@@ -62,11 +62,13 @@ export function useMovementLayer({
           } else {
             this.setStyle(getHoverCircleStyle(map.getZoom()));
           }
-          //  Point ID: ${ escapeHtml(id) } <br />
+          // attach only if we're currently in velocity mode
+
+
           if (selectedLayer === "velocity") {
             const tooltipContent = `
                   <div style="padding: 2px 6px; font-size: 12px; font-weight: 600; line-height: 1.3;">
-                   
+                    ID: ${escapeHtml(id)} <br />
                     Velocity: ${escapeHtml(velocity)} mm/yr
                   </div>
                 `;

@@ -134,6 +134,10 @@ export function useMovementPoints() {
         // Cache hit — no network round-trip
         if (velocityDiffCacheRef.current.has(cacheKey)) {
             const cached = velocityDiffCacheRef.current.get(cacheKey);
+            console.log(
+                `%c[2] loadVelocityDiff CACHE HIT  ${cacheKey}  →  ${cached.data?.features?.length ?? 0} features`,
+                "color:#9333ea",
+            );
             setVelocityDiff(cached.data);
             setVelocityDiffRange(cached.min_max);
             setVelocityDiffError(null);
@@ -188,6 +192,7 @@ export function useMovementPoints() {
         fetchPoints();
     }, [fetchPoints]);
 
+    // console.log("fetched point data is: ", points)
     return {
         points,
         loading,

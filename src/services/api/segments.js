@@ -1,6 +1,18 @@
 
 import { BASE_URL, authFetch } from "./client";
 
+
+
+// ============================================================
+// 🆕 FLYOVER SEGMENT APIs
+// ============================================================
+
+/**
+ * POST /get_live_segment
+ * Fetch live segment data (GeoJSON with LineString geometry)
+ * Used for displaying road segments on the map
+ */
+
 export const fetchLiveSegments = async () => {
   try {
     const response = await authFetch(`${BASE_URL}/get_live_segment`, {
@@ -87,10 +99,3 @@ export const fetchLiveSegmentStats = async () => {
   }
 };
 
-// --- Mock auth block — remove once the real /auth/login endpoint exists ---
-// const MOCK_CREDENTIALS = {
-//   username: "admin",
-//   password: "nhai@2026",
-// };
-
-// NOTE: login must stay unauthenticated — no token exists yet at this point

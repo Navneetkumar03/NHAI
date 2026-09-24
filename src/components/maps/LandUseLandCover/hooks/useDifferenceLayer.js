@@ -22,7 +22,7 @@ export function useDifferenceLayer({
   updateCircleWeights,
   velocityDiff
 }) {
-const addDiffPointsToMap = useCallback(
+  const addDiffPointsToMap = useCallback(
     (map, geojsonData) => {
       if (
         !geojsonData ||
@@ -31,6 +31,13 @@ const addDiffPointsToMap = useCallback(
       ) {
         return;
       }
+
+
+      const inputCount = geojsonData.features.length;
+      console.log(
+        `%c[4] addDiffPointsToMap  received ${inputCount} features`,
+        "color:#f59e0b",
+      );
 
       // Wipe any previous diff circles
       removeAllFromMap(map, diffMarkersRef.current);
@@ -70,6 +77,7 @@ const addDiffPointsToMap = useCallback(
           // 🆕 Tooltip on hover, same pattern as velocity mode
           const tooltipContent = `
             <div style="padding: 2px 6px; font-size: 12px; font-weight: 600; line-height: 1.3;">
+              ID: ${escapeHtml(id)} <br />
               Diff: ${escapeHtml(diff)} mm
             </div>
           `;
@@ -181,6 +189,11 @@ const addDiffPointsToMap = useCallback(
       if (cancelled) return;
       if (!result?.data) return;
       if (!mapRef.current || !isMapReadyRef.current) return;
+
+      console.log(
+        `%c[3] useDifferenceLayer  handing  ${result.data.features?.length ?? 0} features to addDiffPointsToMap`,
+        "color:#0ea5e9",
+      );
 
       addDiffPointsToMap(mapRef.current, result.data);
     })();
