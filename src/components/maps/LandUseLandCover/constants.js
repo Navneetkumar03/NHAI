@@ -1,5 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import "leaflet-side-by-side";
+export const BASE = import.meta.env.BASE_URL;
 
 /* ============================================================================
  * CONSTANTS
@@ -21,7 +22,7 @@ export const DEM_LAYER_URL =
 export const SOIL_LAYER_URL =
   "https://mlinfomap.com/nhflyoverapi/tiles/soil/{z}/{x}/{y}.png";
 
-export const SOIL_TAXO_COLORS = {
+export const SOIL_TYPE_COLORS = {
   "Alluvial Soil": "#DAC8A0",
   "Black Soil": "#464641",
   "Desert Soil": "#E6C878",
@@ -30,6 +31,16 @@ export const SOIL_TAXO_COLORS = {
   "Problem Soil": "#BEBEAF",
   "Red  Soil": "#AF4632",
   "River": "#66CCFF",
+};
+
+
+export const SOIL_TAXO_COLORS = {
+  "Fluventic Ustochrepts": "#4CAF50",
+  "Natric Ustochrepts": "#FF5722",
+  "Typic Haplustalfs": "#C6CE3D",
+  "Typic Ustifluvents": "#4472C4",
+  "Typic Ustochrepts": "#9C27B0",
+  "Udic Ustochrepts": "#26C6DA",
 };
 
 export const DEFAULT_SOIL_COLOR = "#9E9E9E";

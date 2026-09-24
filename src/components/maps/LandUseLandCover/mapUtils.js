@@ -15,6 +15,7 @@ import {
   NEUTRAL_FILL,
   SELECT_BORDER,
   SELECT_FILL,
+  SOIL_TYPE_COLORS,
   SOIL_TAXO_COLORS,
   VELOCITY_BORDER,
   VELOCITY_RANGES,
@@ -25,10 +26,65 @@ import {
  * ==========================================================================*/
 
 // Still used by SoilLegend.jsx — maps a soil taxonomy code to its color.
-// The SOIL_TAXO_COLORS map is the single source of truth for both the legend
+// The SOIL_TYPE_COLORS map is the single source of truth for both the legend
 // and the tile server's palette.
 export function getSoilColor(props) {
+  return SOIL_TYPE_COLORS[props?.S_TAXO] || DEFAULT_SOIL_COLOR;
+}
+
+
+
+
+
+
+export function getSoilTaxoColor(props) {
   return SOIL_TAXO_COLORS[props?.S_TAXO] || DEFAULT_SOIL_COLOR;
+}
+
+export function soilBoundaryStyle(feature) {
+  return {
+    fillColor: getSoilTaxoColor(feature.properties),
+    weight: 1.5,
+    opacity: 0.9,
+    color: "#333333",
+    fillOpacity: 0.7,
+  };
+}
+
+export function soilBoundaryHighlightStyle(feature) {
+  return {
+    fillColor: getSoilTaxoColor(feature.properties),
+    weight: 3,
+    opacity: 1,
+    color: "#1f2937",
+    fillOpacity: 0.85,
+  };
+}
+
+export function onEachSoilBoundaryFeature(feature, layer) {
+  const props = feature.properties || {};
+
+  layer.bindPopup(`
+    <div style="font-size:12px; font-family:Arial,sans-serif; max-width:250px; padding:4px;">
+      <div style="font-weight:bold; font-size:14px; color:#1f2937; border-bottom:1px solid #e5e7eb; padding-bottom:4px; margin-bottom:4px;">
+        Soil ID: ${props.SOIL_ID || "N/A"}
+      </div>
+      <table style="width:100%; font-size:11px; border-collapse:collapse;">
+        <tr><td style="padding:2px 0; color:#6b7280;">Texture:</td><td style="padding:2px 0; font-weight:600;">${props.S_TEXTURE || "N/A"}</td></tr>
+        <tr><td style="padding:2px 0; color:#6b7280;">Depth:</td><td style="padding:2px 0; font-weight:600;">${props.SOIL_DEPTH || "N/A"}</td></tr>
+        <tr><td style="padding:2px 0; color:#6b7280;">Taxonomy:</td><td style="padding:2px 0; font-weight:600;">${props.S_TAXO || "N/A"}</td></tr>
+        <tr><td style="padding:2px 0; color:#6b7280;">Region:</td><td style="padding:2px 0; font-weight:600;">${props.S_REGION || "N/A"}</td></tr>
+        <tr><td style="padding:2px 0; color:#6b7280;">Sub Region:</td><td style="padding:2px 0; font-weight:600;">${props.S_SUB_REG || "N/A"}</td></tr>
+        <tr><td style="padding:2px 0; color:#6b7280;">Slope:</td><td style="padding:2px 0; font-weight:600;">${props.SL_CLASS || "N/A"}</td></tr>
+        ${props.CLASS && props.CLASS !== "Nil" ? `<tr><td style="padding:2px 0; color:#6b7280;">Class:</td><td style="padding:2px 0; font-weight:600; color:#dc2626;">${props.CLASS}</td></tr>` : ""}
+      </table>
+    </div>
+  `);
+
+  layer.on({
+    mouseover: (e) => e.target.setStyle(soilBoundaryHighlightStyle(feature)),
+    mouseout: (e) => e.target.setStyle(soilBoundaryStyle(feature)),
+  });
 }
 
 /* ============================================================================

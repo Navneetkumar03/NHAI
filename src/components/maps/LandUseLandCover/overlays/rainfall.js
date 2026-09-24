@@ -42,7 +42,7 @@ export const rainfallOverlay = {
             tileSize: 256,
             minZoom: MIN_ZOOM,
             maxZoom: MAX_ZOOM,
-            opacity: 0.75,
+            opacity: 1,
             crossOrigin: true,
         }).addTo(map);
 

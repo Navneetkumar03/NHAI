@@ -18,6 +18,7 @@ import { SoilLegend } from "../legends/SoilLegend";
 import TrafficAnalysisPanel from "../../../traffic/TrafficAnalysisPanel";
 import { VelocityDiffLegend } from "../legends/VelocityDiffLegend";
 import { VelocityLegend } from "../legends/VelocityLegend";
+import { SOIL_TYPE_COLORS, SOIL_TAXO_COLORS } from "../constants";
 
 // Shared style for every button in the joined control column
 // (Fullscreen, Layers, Locate Me). Zoom +/- is styled via global CSS.
@@ -90,6 +91,12 @@ export function MapOverlays({
   showSegmentTable,
   showSegmentsUI,
   showSoil,
+
+  showSoilBoundary,          // 🆕
+  soilBoundaryError,         // 🆕
+  soilBoundaryLoading,       // 🆕
+  soilBoundaryTaxoValues,    // 🆕
+
   showTrafficPanel,
   showVelocityUI,
   soilError,
@@ -112,14 +119,28 @@ export function MapOverlays({
               DEM has no legend of its own, so it must NOT hide these. */}
           {!showSoil && showLULC && <LULCLegend />}
 
-          {!showSoil && showVelocityUI && <VelocityLegend />}
+          {showVelocityUI && <VelocityLegend />}
 
-          {!showSoil && showDifferenceUI && velocityDiffRange && (
+          {showDifferenceUI && velocityDiffRange && (
             <VelocityDiffLegend range={velocityDiffRange} />
           )}
 
-          {showSoil && !soilLoading && <SoilLegend taxoValues={taxoValues} />}
+          {showSoil && !soilLoading && (
+            <SoilLegend
+              taxoValues={taxoValues}
+              colorMap={SOIL_TYPE_COLORS}
+              title="Soil Type"
+            />
+          )}
           {showSegmentTable && <RiskLegend />}
+
+          {showSoilBoundary && !soilBoundaryLoading && (
+            <SoilLegend
+              taxoValues={soilBoundaryTaxoValues}
+              colorMap={SOIL_TAXO_COLORS}
+              title="Soil Taxonomy"
+            />
+          )}
         </>
       )}
 

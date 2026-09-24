@@ -54,7 +54,7 @@ export const lulcOverlay = {
                 minZoom: MIN_ZOOM,
                 maxZoom: MAX_ZOOM,
                 crossOrigin: true,
-                opacity: 0,
+                opacity: 1,
                 zIndex: 10,
             },
         );

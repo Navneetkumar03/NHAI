@@ -1,12 +1,13 @@
 // src/components/maps/LandUseLandCover/overlays/soil.js
 import {
     DEFAULT_CENTER,
-    DEFAULT_ZOOM,
     MAX_ZOOM,
     MIN_ZOOM,
     SOIL_LAYER_URL,
 } from "../constants";
 
+
+const SOIL_DEFAULT_ZOOM = 6;
 export const soilOverlay = {
     id: "soil",
     name: "Soil",
@@ -41,7 +42,7 @@ export const soilOverlay = {
 
     onToggle({ map }, want) {
         if (!want) return;
-        map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, {
+        map.flyTo(DEFAULT_CENTER, SOIL_DEFAULT_ZOOM, {
             animate: true,
             duration: 1.2,
         });
