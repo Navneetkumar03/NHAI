@@ -38,6 +38,8 @@ export function LandUseLandCover({
 }) {
   /* ---------------- Refs --------------- */
 
+  console.log("useMovementPoints", useMovementPoints)
+
   const mapContainerRef = useRef(null);
   const fullscreenContainerRef = useRef(null);
   const mapWrapperRef = useRef(null); // outer map box, used for mobile auto-scroll
@@ -100,10 +102,15 @@ export function LandUseLandCover({
   const [showChart, setShowChart] = useState(false);
   const [selectedPointForChart, setSelectedPointForChart] = useState(null);
   const [selectedDetailForChart, setSelectedDetailForChart] = useState(null);
+  const [multiPointSelection, setMultiPointSelection] = useState(false);
+  const selectedPointForChartRef = useRef(null);
+  const diffPointDataRef = useRef(null);
 
   const [showDiffChart, setShowDiffChart] = useState(false);
   const [diffPointData, setDiffPointData] = useState(null);
   const [diffDetailData, setDiffDetailData] = useState(null);
+  selectedPointForChartRef.current = selectedPointForChart;
+  diffPointDataRef.current = diffPointData;
   const [diffStartDate, setDiffStartDate] = useState("");
   const [diffEndDate, setDiffEndDate] = useState("");
 
@@ -286,6 +293,8 @@ export function LandUseLandCover({
     setSelectedPointForChart,
     setShowChart,
     setShowDiffChart,
+    multiPointSelection,
+    selectedPointForChartRef,
   });
 
   /* ==========================================================================
@@ -311,6 +320,8 @@ export function LandUseLandCover({
     setShowDiffChart,
     updateCircleWeights,
     velocityDiff,
+    multiPointSelection,
+    diffPointDataRef,
   });
 
   /* ==========================================================================
@@ -462,6 +473,7 @@ export function LandUseLandCover({
    * EFFECTS
    * ========================================================================*/
 
+  console.log(" points: movementPoints", movementPoints,)
   useLayerSyncEffects({
     activeLayers,
     addFlyoverLayers,
@@ -746,6 +758,8 @@ export function LandUseLandCover({
             setShowSegmentTable={setShowSegmentTable}
             setShowTrafficPanel={setShowTrafficPanel}
             showChart={showChart}
+            multiPointSelection={multiPointSelection}
+            setMultiPointSelection={setMultiPointSelection}
             showDiffChart={showDiffChart}
             showDifferenceUI={showDifferenceUI}
             showLULC={showLULC}

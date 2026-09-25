@@ -84,6 +84,8 @@ export function MapOverlays({
   setShowSegmentTable,
   setShowTrafficPanel,
   showChart,
+  multiPointSelection,
+  setMultiPointSelection,
   showDiffChart,
   showDifferenceUI,
   showLULC,
@@ -159,6 +161,11 @@ export function MapOverlays({
             onToggle={toggleFullscreen}
             className={CTRL_BTN}
           />
+
+          <label className="flex items-center gap-1 px-2 py-2 text-[10px] text-gray-700 border-b border-gray-200 cursor-pointer whitespace-nowrap" title="Enable selecting multiple  points">
+            <input type="checkbox" checked={multiPointSelection} onChange={(e) => setMultiPointSelection(e.target.checked)} />
+           
+          </label>
 
           {/* Layer button + panel */}
           <div className="relative">

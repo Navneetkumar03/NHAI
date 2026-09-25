@@ -16,7 +16,9 @@ export function useMovementLayer({
   setSelectedDetailForChart,
   setSelectedPointForChart,
   setShowChart,
-  setShowDiffChart
+  setShowDiffChart,
+  multiPointSelection,
+  selectedPointForChartRef
 }) {
   const updateCircleWeights = useCallback(() => {
     if (!mapRef.current) return;
@@ -55,18 +57,19 @@ export function useMovementLayer({
 
         circle._movementVelocity = velocity;
         circle._movementId = id;
+        circle._isMovementSelected = false;
 
         circle.on("mouseover", function () {
-          if (selectedMovementMarkerRef.current === this) {
+          if (this._isMovementSelected) {
             this.setStyle(getSelectedCircleStyle(map.getZoom()));
           } else {
             this.setStyle(getHoverCircleStyle(map.getZoom()));
           }
-          //  Point ID: ${ escapeHtml(id) } <br />
           if (selectedLayer === "velocity") {
             const tooltipContent = `
                   <div style="padding: 2px 6px; font-size: 12px; font-weight: 600; line-height: 1.3;">
                    
+                     ID: ${ escapeHtml(id) } <br />
                     Velocity: ${escapeHtml(velocity)} mm/yr
                   </div>
                 `;
@@ -82,7 +85,7 @@ export function useMovementLayer({
         });
 
         circle.on("mouseout", function () {
-          if (selectedMovementMarkerRef.current === this) {
+          if (this._isMovementSelected) {
             this.setStyle(getSelectedCircleStyle(map.getZoom()));
           } else {
             this.setStyle(
@@ -97,12 +100,23 @@ export function useMovementLayer({
           this.closeTooltip();
         });
 
-        circle.on("click", async function () {
+        circle.on("click", async function (event) {
           if (selectedLayer === "none") {
             return;
           }
 
-          if (selectedMovementMarkerRef.current === this) {
+          const multiSelect = multiPointSelection;
+          if (!multiSelect && this._isMovementSelected) {
+            this.setStyle(getRestingCircleStyle(selectedLayer, this._movementVelocity, map.getZoom()));
+            this._isMovementSelected = false;
+            selectedMovementMarkerRef.current = null;
+            setSelectedPointForChart(null);
+            setSelectedDetailForChart(null);
+            setShowChart(false);
+            setShowDiffChart(false);
+            return;
+          }
+          if (multiSelect && this._isMovementSelected) {
             this.setStyle(
               getRestingCircleStyle(
                 selectedLayer,
@@ -111,10 +125,18 @@ export function useMovementLayer({
               ),
             );
 
-            selectedMovementMarkerRef.current = null;
-
-            setShowChart(false);
-            setShowDiffChart(false);
+            this._isMovementSelected = false;
+            setSelectedPointForChart((prev) => {
+              const list = Array.isArray(prev) ? prev : prev ? [prev] : [];
+              const next = list.filter((entry) => entry.data.id !== id);
+              return next.length > 1 ? next : next[0] || null;
+            });
+            setSelectedDetailForChart((prev) => {
+              const list = Array.isArray(prev) ? prev : prev ? [prev] : [];
+              const next = list.filter((entry) => entry.point.data.id !== id);
+              return next.length > 1 ? next : next[0]?.detail || null;
+            });
+            setShowChart(true);
 
             return;
           }
@@ -124,7 +146,7 @@ export function useMovementLayer({
             "InfraRisk",
           );
 
-          if (selectedMovementMarkerRef.current) {
+          if (!multiSelect && selectedMovementMarkerRef.current) {
             const previousMarker = selectedMovementMarkerRef.current;
 
             previousMarker.setStyle(
@@ -134,14 +156,17 @@ export function useMovementLayer({
                 map.getZoom(),
               ),
             );
+            previousMarker._isMovementSelected = false;
           }
 
           selectedMovementMarkerRef.current = this;
+          this._isMovementSelected = true;
 
           this.setStyle(getSelectedCircleStyle(map.getZoom()));
 
           try {
             const detailData = await selectPoint(id);
+            console.log("detailData",detailData)
 
             if (detailData) {
               if (
@@ -153,8 +178,25 @@ export function useMovementLayer({
                 setDiffDetailData(detailData);
                 setShowDiffChart(true);
               } else {
-                setSelectedPointForChart(feature);
-                setSelectedDetailForChart(detailData);
+                if (multiSelect) {
+                  setSelectedPointForChart((prev) => {
+                    const list = Array.isArray(prev) ? prev : prev ? [prev] : [];
+                    return [...list.filter((entry) => entry.data.id !== id), feature];
+                  });
+                  setSelectedDetailForChart((prev) => {
+                    const selectedPointForChart = selectedPointForChartRef.current;
+                    const existingPoint = Array.isArray(selectedPointForChart)
+                      ? selectedPointForChart
+                      : selectedPointForChart ? [selectedPointForChart] : [];
+                    const list = Array.isArray(prev)
+                      ? prev
+                      : prev ? [{ point: existingPoint[0], detail: prev }].filter((entry) => entry.point) : [];
+                    return [...list.filter((entry) => entry.point?.data?.id !== id), { point: feature, detail: detailData }];
+                  });
+                } else {
+                  setSelectedPointForChart(feature);
+                  setSelectedDetailForChart(detailData);
+                }
                 setShowChart(true);
               }
             }
@@ -179,6 +221,7 @@ export function useMovementLayer({
       diffStartDate,
       diffEndDate,
       updateCircleWeights,
+      multiPointSelection,
     ],
   );
 

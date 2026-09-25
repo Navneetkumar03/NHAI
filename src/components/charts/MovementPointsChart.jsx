@@ -74,9 +74,12 @@ const CustomTooltip = ({ active, payload, label }) => {
         return (
             <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
                 <p className="text-sm font-semibold text-gray-800">{label}</p>
-                <p className="text-sm text-gray-800">
-                    Displacement: <strong>{payload[0].value} mm</strong>
-                </p>
+                {payload.map((entry) => (
+                    <p key={entry.dataKey} className="flex items-center gap-2 text-sm text-gray-800">
+                        <i className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <span>{entry.name}:</span> <strong>{entry.value} mm</strong>
+                    </p>
+                ))}
             </div>
         );
     }
@@ -213,22 +216,31 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
 
     if (!pointData || !detailData) return null;
 
-    const { id, longitude, latitude, velocity, coherence } = pointData.data;
-    const timeseries = detailData?.data?.timeseries || [];
+    const points = Array.isArray(pointData) ? pointData : [pointData];
+    const details = Array.isArray(detailData)
+        ? detailData
+        : [{ point: points[0], detail: detailData }];
+    const first = points[0]?.data || {};
 
     // Compute a smooth (cubic) trend curve and merge it into the chart data
     const chartData = useMemo(() => {
-        const n = timeseries.length;
-        if (n === 0) return [];
-
-        const xs = timeseries.map((_, i) => i / Math.max(1, n - 1));
-        const ys = timeseries.map(d => d.displacement);
-
-        const degree = Math.min(3, Math.max(1, n - 1));
-        const predict = fitPolynomialTrend(xs, ys, degree);
-
-        return timeseries.map((d, i) => ({ ...d, trend: predict(xs[i]) }));
-    }, [timeseries]);
+        const rows = new Map();
+        details.forEach(({ point, detail }) => {
+            const id = point?.data?.id;
+            const series = detail?.data?.timeseries || [];
+            if (!id || !series.length) return;
+            const xs = series.map((_, i) => i / Math.max(1, series.length - 1));
+            const ys = series.map((item) => item.displacement);
+            const predict = fitPolynomialTrend(xs, ys, Math.min(3, Math.max(1, series.length - 1)));
+            series.forEach((item, i) => {
+                const row = rows.get(item.date) || { date: item.date };
+                row[`p_${id}`] = item.displacement;
+                row[`t_${id}`] = predict(xs[i]);
+                rows.set(item.date, row);
+            });
+        });
+        return [...rows.values()].sort((a, b) => new Date(a.date) - new Date(b.date));
+    }, [details]);
 
     const tickInterval = Math.max(0, Math.ceil(chartData.length / 8) - 1);
 
@@ -309,17 +321,17 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
                     {/* Row 2: Info - Full width */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-[11px] sm:text-sm text-gray-600 w-full">
                         <span className="whitespace-nowrap">
-                            <strong className="text-gray-800 text-[10px] sm:text-sm">
-                                {latitude}, {longitude}
+                                <strong className="text-gray-800 text-[10px] sm:text-sm">
+                                {points.length > 1 ? `${points.length} points selected` : `${first.latitude}, ${first.longitude}`}
                             </strong>
                         </span>
                         <span className="whitespace-nowrap">
-                            Velocity: <strong className={velocity > 0 ? 'text-green-600' : 'text-red-600'}>
-                                {velocity} mm/yr
+                            Velocity: <strong className={first.velocity > 0 ? 'text-green-600' : 'text-red-600'}>
+                                {points.length > 1 ? 'Multiple' : `${first.velocity} mm/yr`}
                             </strong>
                         </span>
                         <span className="whitespace-nowrap">
-                            Coherence: <strong>{coherence}%</strong>
+                            Coherence: <strong>{points.length > 1 ? 'Multiple' : `${first.coherence}%`}</strong>
                         </span>
                     </div>
                 </div>
@@ -350,33 +362,43 @@ export default function MovementPointsChart({ pointData, detailData, onClose }) 
                             <Tooltip content={<CustomTooltip />} />
                             <ReferenceLine y={0} stroke="#ccc" strokeDasharray="3 3" />
 
-                            <Line
+                            {points.map(({ data }, index) => {
+                              const lineColor = `hsl(${(index * 137.508 + 210) % 360} 68% 46%)`;
+                              return <Line
                                 type="monotone"
-                                dataKey="displacement"
-                                stroke={showLines ? "#3b82f6" : "transparent"}
+                                key={data.id}
+                                dataKey={`p_${data.id}`}
+                                stroke={showLines ? lineColor : "transparent"}
                                 strokeWidth={1.5}
-                                dot={showData ? { r: 2.5, fill: '#3b82f6' } : false}
+                                dot={showData ? { r: 2.5, fill: lineColor } : false}
                                 activeDot={{ r: 5 }}
-                                name="Displacement (mm)"
+                                name={`ID ${data.id}`}
                                 isAnimationActive={false}
-                            />
+                            />;})}
 
-                            {showTrend && (
+                            {showTrend && points.map(({ data }, index) => (
                                 <Line
+                                    key={`trend-${data.id}`}
                                     type="natural"
-                                    dataKey="trend"
-                                    stroke="#3b82f6"
+                                    dataKey={`t_${data.id}`}
+                                    stroke={`hsl(${(index * 137.508 + 210) % 360} 68% 46%)`}
                                     strokeWidth={1.5}
                                     strokeDasharray="4 4"
                                     dot={false}
                                     activeDot={false}
-                                    name="Trend"
+                                    name={`ID ${data.id} trend`}
                                     isAnimationActive={false}
                                 />
-                            )}
+                            ))}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
+                {points.length > 1 && <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-gray-700">
+                    {points.map(({ data }, index) => <span key={data.id} className="inline-flex items-center gap-1">
+                        <i className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: `hsl(${(index * 137.508 + 210) % 360} 68% 46%)` }} />
+                        ID {data.id}
+                    </span>)}
+                </div>}
             </div>
         </div>
     );

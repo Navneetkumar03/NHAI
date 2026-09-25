@@ -71,6 +71,7 @@ export function TopControlBar({
         border: "1px solid rgba(99, 102, 241, 0.1)",
       }}
     >
+      
       {/*
         Mobile layout (<=640px):
         - Line 1: Layer selector + Linear + Overview, all on ONE row.
@@ -95,6 +96,7 @@ export function TopControlBar({
             onLayerChange={handleLayerChange}
           />
         </div>
+        
 
         <div className="flex items-center gap-3 flex-wrap max-[640px]:contents">
           {showDifferenceUI && availableDates.length > 0 && (
@@ -147,6 +149,7 @@ export function TopControlBar({
             Overview
           </button>
         </div>
+       
       </div>
 
       {showLULC && (
@@ -182,6 +185,8 @@ export function TopControlBar({
           />
         </div>
       )}
+
+       
     </div>
   );
 }

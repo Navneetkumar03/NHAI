@@ -20,7 +20,9 @@ export function useDifferenceLayer({
   setShowChart,
   setShowDiffChart,
   updateCircleWeights,
-  velocityDiff
+  velocityDiff,
+  multiPointSelection,
+  diffPointDataRef
 }) {
 const addDiffPointsToMap = useCallback(
     (map, geojsonData) => {
@@ -58,10 +60,11 @@ const addDiffPointsToMap = useCallback(
         circle._movementDiff = diff;
         circle._movementColor = color;
         circle._movementFeature = feature;
+        circle._isMovementSelected = false;
 
         circle.on("mouseover", function () {
           // Keep the selected point yellow regardless of hover
-          if (selectedMovementMarkerRef.current === this) {
+          if (this._isMovementSelected) {
             this.setStyle(getSelectedCircleStyle(map.getZoom()));
           } else {
             this.setStyle(getHoverCircleStyle(map.getZoom()));
@@ -82,19 +85,36 @@ const addDiffPointsToMap = useCallback(
         });
 
         circle.on("mouseout", function () {
-          if (selectedMovementMarkerRef.current === this) {
+          if (this._isMovementSelected) {
             this.setStyle(getSelectedCircleStyle(map.getZoom()));
           } else {
             this.setStyle(
               getDiffRestingCircleStyle(this._movementColor, map.getZoom()),
             );
+            this._isMovementSelected = false;
           }
           this.closeTooltip();
         });
 
         circle.on("click", async function () {
+          if (multiPointSelection && this._isMovementSelected) {
+            this.setStyle(getDiffRestingCircleStyle(this._movementColor, map.getZoom()));
+            this._isMovementSelected = false;
+            setDiffPointData((prev) => {
+              const list = Array.isArray(prev) ? prev : prev ? [prev] : [];
+              const next = list.filter((item) => item.properties?.id !== id);
+              return next.length > 1 ? next : next[0] || null;
+            });
+            setDiffDetailData((prev) => {
+              const list = Array.isArray(prev) ? prev : prev ? [prev] : [];
+              const next = list.filter((item) => item.point?.properties?.id !== id);
+              return next.length > 1 ? next : next[0]?.detail || null;
+            });
+            setShowDiffChart(true);
+            return;
+          }
           // Toggle off if already selected
-          if (selectedMovementMarkerRef.current === this) {
+          if (!multiPointSelection && selectedMovementMarkerRef.current === this) {
             this.setStyle(
               getDiffRestingCircleStyle(this._movementColor, map.getZoom()),
             );
@@ -105,15 +125,18 @@ const addDiffPointsToMap = useCallback(
           }
 
           // Restore previous selection to its diff color
-          if (selectedMovementMarkerRef.current) {
+          if (!multiPointSelection && selectedMovementMarkerRef.current) {
             const prev = selectedMovementMarkerRef.current;
             prev.setStyle(
               getDiffRestingCircleStyle(prev._movementColor, map.getZoom()),
             );
+            prev._isMovementSelected = false;
           }
 
           // Highlight this one
           selectedMovementMarkerRef.current = this;
+          this._isMovementSelected = true;
+          this._isMovementSelected = true;
           this.setStyle(getSelectedCircleStyle(map.getZoom()));
 
           // 🆕 Open the difference chart for this point
@@ -126,8 +149,21 @@ const addDiffPointsToMap = useCallback(
                 diffStartDate &&
                 diffEndDate
               ) {
-                setDiffPointData(feature);
-                setDiffDetailData(detailData);
+                if (multiPointSelection) {
+                  setDiffPointData((prev) => {
+                    const list = Array.isArray(prev) ? prev : prev ? [prev] : [];
+                    return [...list.filter((item) => item.properties?.id !== id), feature];
+                  });
+                  setDiffDetailData((prev) => {
+                    const currentPoints = diffPointDataRef.current;
+                    const oldPoints = Array.isArray(currentPoints) ? currentPoints : currentPoints ? [currentPoints] : [];
+                    const list = Array.isArray(prev) ? prev : prev ? [{ point: oldPoints[0], detail: prev }].filter((item) => item.point) : [];
+                    return [...list.filter((item) => item.point?.properties?.id !== id), { point: feature, detail: detailData }];
+                  });
+                } else {
+                  setDiffPointData(feature);
+                  setDiffDetailData(detailData);
+                }
                 setShowDiffChart(true);
               } else {
                 setSelectedPointForChart(feature);
@@ -155,6 +191,7 @@ const addDiffPointsToMap = useCallback(
       diffStartDate,
       diffEndDate,
       updateCircleWeights,
+      multiPointSelection,
     ],
   );
 

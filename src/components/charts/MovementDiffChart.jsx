@@ -74,9 +74,12 @@ const CustomTooltip = ({ active, payload, label }) => {
         return (
             <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
                 <p className="text-sm font-semibold text-gray-800">{label}</p>
-                <p className="text-sm text-gray-800">
-                    Displacement: <strong>{payload[0].value} mm</strong>
-                </p>
+                {payload.map((entry) => (
+                    <p key={entry.dataKey} className="flex items-center gap-2 text-sm text-gray-800">
+                        <i className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <span>{entry.name}:</span> <strong>{entry.value} mm</strong>
+                    </p>
+                ))}
             </div>
         );
     }
@@ -219,7 +222,10 @@ export default function MovementDiffChart({
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
     // Filter timeseries between start and end dates
-    const timeseries = detailData?.data?.timeseries || [];
+    const detailEntries = Array.isArray(detailData) ? detailData : null;
+    const timeseries = detailEntries
+        ? (detailEntries[0]?.detail?.data?.timeseries || [])
+        : (detailData?.data?.timeseries || []);
 
     const filteredTimeseries = useMemo(() => {
         if (!startDate || !endDate) return timeseries;
@@ -231,6 +237,23 @@ export default function MovementDiffChart({
 
     // Compute chart data with trend
     const chartData = useMemo(() => {
+        if (detailEntries) {
+            const rows = new Map();
+            detailEntries.forEach(({ point, detail }) => {
+                const id = point?.properties?.id;
+                const series = (detail?.data?.timeseries || []).filter((item) => !startDate || !endDate || (item.date >= startDate && item.date <= endDate));
+                if (id == null || !series.length) return;
+                const xs = series.map((_, i) => i / Math.max(1, series.length - 1));
+                const predict = fitPolynomialTrend(xs, series.map((item) => item.displacement), Math.min(3, Math.max(1, series.length - 1)));
+                series.forEach((item, i) => {
+                    const row = rows.get(item.date) || { date: item.date };
+                    row[`p_${id}`] = item.displacement;
+                    row[`t_${id}`] = predict(xs[i]);
+                    rows.set(item.date, row);
+                });
+            });
+            return [...rows.values()].sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
         const n = filteredTimeseries.length;
         if (n === 0) return [];
 
@@ -244,7 +267,7 @@ export default function MovementDiffChart({
             ...d,
             trend: predict(xs[i]),
         }));
-    }, [filteredTimeseries]);
+    }, [filteredTimeseries, detailEntries, startDate, endDate]);
 
     // Calculate displacement difference
     const displacementDiff = useMemo(() => {
@@ -283,7 +306,8 @@ export default function MovementDiffChart({
     // 🆕 Defensive extraction — handles two shapes of pointData:
     //   1. Velocity mode:    { data: { id, longitude, latitude, velocity, coherence } }
     //   2. Difference mode:  { properties: { id, latitude, longitude, velocity, diff, color } }
-    const props = pointData.data ?? pointData.properties ?? {};
+    const points = Array.isArray(pointData) ? pointData : [pointData];
+    const props = points[0].data ?? points[0].properties ?? {};
     const {
         id,
         longitude,
@@ -378,7 +402,7 @@ export default function MovementDiffChart({
                         {/* Coordinates — guarded so missing lat/lng won't crash */}
                         <span className="whitespace-nowrap">
                             <strong className="text-gray-700">
-                                {hasLatLng
+                                {points.length > 1 ? `${points.length} points selected` : hasLatLng
                                     ? `${latitude}, ${longitude}`
                                     : "—, —"}
                             </strong>
@@ -506,37 +530,51 @@ export default function MovementDiffChart({
                                 />
                             )}
 
-                            <Line
+                            {points.map((point, index) => {
+                              const p = point.data ?? point.properties ?? {};
+                              const lineColor = `hsl(${(index * 137.508 + 210) % 360} 68% 46%)`;
+                              return <Line
+                                key={p.id}
                                 type="monotone"
-                                dataKey="displacement"
-                                stroke={showLines ? "#3b82f6" : "transparent"}
+                                dataKey={points.length > 1 ? `p_${p.id}` : "displacement"}
+                                stroke={showLines ? lineColor : "transparent"}
                                 strokeWidth={2}
                                 dot={
                                     showData
-                                        ? { r: 3, fill: "#3b82f6" }
+                                        ? { r: 3, fill: lineColor }
                                         : false
                                 }
                                 activeDot={{ r: 6 }}
-                                name="Displacement (mm)"
+                                name={`ID ${p.id}`}
                                 isAnimationActive={false}
-                            />
+                            />;})}
 
-                            {showTrend && (
-                                <Line
+                            {showTrend && points.map((point, index) => {
+                              const id = (point.data ?? point.properties ?? {}).id;
+                              return <Line
+                                    key={`trend-${id}`}
                                     type="monotone"
-                                    dataKey="trend"
-                                    stroke="#ef4444"
+                                    dataKey={points.length > 1 ? `t_${id}` : "trend"}
+                                    stroke={`hsl(${(index * 137.508 + 210) % 360} 68% 46%)`}
                                     strokeWidth={2}
                                     strokeDasharray="4 4"
                                     dot={false}
                                     activeDot={false}
-                                    name="Trend"
+                                    name={`ID ${id} trend`}
                                     isAnimationActive={false}
-                                />
-                            )}
+                                />;})}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
+                {points.length > 1 && <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-gray-700">
+                    {points.map((point, index) => {
+                        const p = point.data ?? point.properties ?? {};
+                        return <span key={p.id} className="inline-flex items-center gap-1">
+                            <i className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: `hsl(${(index * 137.508 + 210) % 360} 68% 46%)` }} />
+                            ID {p.id}
+                        </span>;
+                    })}
+                </div>}
             </div>
         </div>
     );
