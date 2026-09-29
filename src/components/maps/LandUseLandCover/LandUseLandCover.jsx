@@ -24,6 +24,8 @@ import { useGeolocation } from "./hooks/useGeolocation";
 import { useSoilData } from "./hooks/useSoilData"; // 🆕 restored — feeds the GeoJSON soil-boundary overlay
 import { useResponsiveUI } from "./hooks/useResponsiveUI";
 import { useLayerSyncEffects } from "./hooks/useLayerSyncEffects";
+import { useRainfallHover } from "./hooks/useRainfallHover";
+import { useSoilHover } from "./hooks/useSoilHover";
 
 import { TopControlBar } from "./sections/TopControlBar";
 import { MapOverlays } from "./sections/MapOverlays";
@@ -32,6 +34,7 @@ import { LAYER_MENU, getOverlay } from "./overlayRegistry";
 export function LandUseLandCover({
   mapCenter = DEFAULT_CENTER,
   defaultLeftYear = YEARS[0],
+  // defaultRightYear = YEARS[1],
   defaultRightYear = YEARS[YEARS.length - 1],
   className = "",
   isActive = true,
@@ -100,10 +103,15 @@ export function LandUseLandCover({
   const [showChart, setShowChart] = useState(false);
   const [selectedPointForChart, setSelectedPointForChart] = useState(null);
   const [selectedDetailForChart, setSelectedDetailForChart] = useState(null);
+  const [multiPointSelection, setMultiPointSelection] = useState(false);
+  const selectedPointForChartRef = useRef(null);
+  const diffPointDataRef = useRef(null);
 
   const [showDiffChart, setShowDiffChart] = useState(false);
   const [diffPointData, setDiffPointData] = useState(null);
   const [diffDetailData, setDiffDetailData] = useState(null);
+  selectedPointForChartRef.current = selectedPointForChart;
+  diffPointDataRef.current = diffPointData;
   const [diffStartDate, setDiffStartDate] = useState("");
   const [diffEndDate, setDiffEndDate] = useState("");
 
@@ -241,6 +249,23 @@ export function LandUseLandCover({
   const showSoilBoundary = enabled.soilBoundary; // 🆕
   const showDEM = enabled.dem;
 
+
+  // 🆕 Rainfall hover tooltip — active only while the Rainfall overlay is on.
+  useRainfallHover({
+    mapRef,
+    isMapReadyRef,
+    enabled: enabled.rainfall,
+    year: rainfallYear,
+  });
+
+  // 🆕 Soil (tile layer) hover tooltip
+  useSoilHover({
+    mapRef,
+    isMapReadyRef,
+    enabled: enabled.soil,
+  });
+
+
   /* ==========================================================================
    * SEGMENT FUNCTIONS
    * ========================================================================*/
@@ -286,6 +311,8 @@ export function LandUseLandCover({
     setSelectedPointForChart,
     setShowChart,
     setShowDiffChart,
+    multiPointSelection,
+    selectedPointForChartRef,
   });
 
   /* ==========================================================================
@@ -311,6 +338,8 @@ export function LandUseLandCover({
     setShowDiffChart,
     updateCircleWeights,
     velocityDiff,
+    multiPointSelection,
+    diffPointDataRef,
   });
 
   /* ==========================================================================
@@ -746,6 +775,8 @@ export function LandUseLandCover({
             setShowSegmentTable={setShowSegmentTable}
             setShowTrafficPanel={setShowTrafficPanel}
             showChart={showChart}
+            multiPointSelection={multiPointSelection}
+            setMultiPointSelection={setMultiPointSelection}
             showDiffChart={showDiffChart}
             showDifferenceUI={showDifferenceUI}
             showLULC={showLULC}

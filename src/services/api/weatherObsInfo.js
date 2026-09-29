@@ -40,6 +40,8 @@ export const sendLocationToAPI = async ({ flyoverId, lat, lng }) => {
 
 // api.js - Add new function
 
+
+
 export const fetchMonthlyWeatherData = async () => {
   try {
     const response = await authFetch(`${BASE_URL}/rainfall/history`, {
@@ -67,19 +69,6 @@ export const fetchMonthlyWeatherData = async () => {
    Observation period metadata
    ============================================================ */
 
-/**
- * POST /get_observation_date
- *
- * Response shape:
- *   {
- *     status: "success",
- *     data: {
- *       start_date: "2025-08-06",
- *       last_date:  "2026-09-01",
- *       obs_count:  33
- *     }
- *   }
- */
 export const getObservationDate = async () => {
   try {
     const response = await authFetch(`${BASE_URL}/get_observation_date`, {

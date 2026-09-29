@@ -149,7 +149,7 @@ body {
 .leaflet-control-zoom a.leaflet-disabled {
   background-color: #f9fafb;
   color: #9ca3af;
-  cursor: default;
+  /* cursor: default; */
 }
 
 /* Round only the top corners of the "+" button to match the column's rounded-md */
@@ -262,4 +262,28 @@ body {
     --angle: 360deg;
     transform: scale(1);
   }
+}
+
+
+
+
+
+
+
+
+
+/* src/index.css */
+
+/* Replace the default hand cursor with a standard arrow */
+.leaflet-container {
+  cursor: crosshair !important;
+}
+
+.leaflet-grab {
+  cursor: pointer !important;
+}
+
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive {
+  cursor: move !important;
 }

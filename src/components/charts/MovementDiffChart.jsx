@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback, Fragment } from "react";
 import { X, GripVertical, Calendar, ArrowRight } from "lucide-react";
 import {
     LineChart,
@@ -68,15 +68,53 @@ function fitPolynomialTrend(xs, ys, degree) {
 
 /* ============================================================
    Inlined CustomTooltip for MovementDiffChart
+   - When only a single series is present (the original, non-multi
+     case), this renders EXACTLY as the original component did:
+     just the label + "Displacement: X mm" from payload[0],
+     ignoring any other series (e.g. the trend line), same as before.
+   - When multiple points are selected (dataKeys prefixed "p_"/"t_"),
+     it renders a per-point breakdown with colored swatches.
    ============================================================ */
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+        const isMulti = payload.some(
+            (entry) =>
+                typeof entry.dataKey === "string" &&
+                (entry.dataKey.startsWith("p_") || entry.dataKey.startsWith("t_"))
+        );
+
+        if (!isMulti) {
+            // Original single-series tooltip — unchanged.
+            return (
+                <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-800">{label}</p>
+                    <p className="text-sm text-gray-800">
+                        Displacement: <strong>{payload[0].value} mm</strong>
+                    </p>
+                </div>
+            );
+        }
+
         return (
             <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
                 <p className="text-sm font-semibold text-gray-800">{label}</p>
-                <p className="text-sm text-gray-800">
-                    Displacement: <strong>{payload[0].value} mm</strong>
-                </p>
+                {payload
+                    .filter(
+                        (entry) =>
+                            typeof entry.dataKey === "string" && entry.dataKey.startsWith("p_")
+                    )
+                    .map((entry) => (
+                        <p
+                            key={entry.dataKey}
+                            className="flex items-center gap-2 text-sm text-gray-800"
+                        >
+                            <i
+                                className="inline-block w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: entry.color }}
+                            />
+                            <span>{entry.name}:</span> <strong>{entry.value} mm</strong>
+                        </p>
+                    ))}
             </div>
         );
     }
@@ -218,8 +256,17 @@ export default function MovementDiffChart({
         };
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
+    // 🆕 detailData can now EITHER be the original single-point shape
+    // ({ data: { timeseries } }) OR an array of { point, detail } pairs
+    // for multi-select. When it's not an array (or has 0/1 entries),
+    // everything below resolves to the exact same `timeseries` your
+    // original code produced.
+    const detailEntries = Array.isArray(detailData) ? detailData : null;
+
     // Filter timeseries between start and end dates
-    const timeseries = detailData?.data?.timeseries || [];
+    const timeseries = detailEntries
+        ? (detailEntries[0]?.detail?.data?.timeseries || [])
+        : (detailData?.data?.timeseries || []);
 
     const filteredTimeseries = useMemo(() => {
         if (!startDate || !endDate) return timeseries;
@@ -229,11 +276,45 @@ export default function MovementDiffChart({
         });
     }, [timeseries, startDate, endDate]);
 
-    // Compute chart data with trend — built from the FULL timeseries (not the
-    // date-filtered slice), so the chart always plots every point regardless
-    // of the selected start/end range. Only the red diff indicator below is
-    // scoped to the selection; the line/points/trend stay full-range.
+    // Compute chart data with trend.
+    // - Multi-select path (detailEntries with >1 entry): builds one row
+    //   per date with a `p_<id>` / `t_<id>` column per selected point,
+    //   built from each point's FULL series — same "always plot
+    //   everything" rule as single-select. The date range is NOT applied
+    //   here; it's only used for the red diff indicators (below).
+    // - Single path: IDENTICAL to the original implementation — built
+    //   from the FULL timeseries (not the date-filtered slice), so the
+    //   chart always plots every point regardless of the selected
+    //   start/end range. Only the red diff indicator is scoped to the
+    //   selection; the line/points/trend stay full-range.
     const chartData = useMemo(() => {
+        if (detailEntries && detailEntries.length > 1) {
+            const rows = new Map();
+            detailEntries.forEach(({ point, detail }) => {
+                const pid = point?.data?.id ?? point?.properties?.id;
+                const series = detail?.data?.timeseries || [];
+                if (pid == null || !series.length) return;
+
+                const xs = series.map((_, i) => i / Math.max(1, series.length - 1));
+                const predict = fitPolynomialTrend(
+                    xs,
+                    series.map((item) => item.displacement),
+                    Math.min(3, Math.max(1, series.length - 1)),
+                );
+
+                series.forEach((item, i) => {
+                    const row = rows.get(item.date) || { date: item.date };
+                    row[`p_${pid}`] = item.displacement;
+                    row[`t_${pid}`] = predict(xs[i]);
+                    rows.set(item.date, row);
+                });
+            });
+            return [...rows.values()].sort(
+                (a, b) => new Date(a.date) - new Date(b.date),
+            );
+        }
+
+        // Original single-series logic — unchanged.
         const n = timeseries.length;
         if (n === 0) return [];
 
@@ -247,12 +328,13 @@ export default function MovementDiffChart({
             ...d,
             trend: predict(xs[i]),
         }));
-    }, [timeseries]);
+    }, [timeseries, detailEntries]);
 
-    // Calculate displacement difference
-    // NOTE: this is derived from filteredTimeseries, which already reacts to
-    // startDate/endDate — so the red dashed diff indicator below is fully
-    // dynamic and re-anchors itself whenever the selected date range changes.
+    // Calculate displacement difference — SINGLE-SELECT mode only.
+    // Identical to the original implementation: derived from
+    // filteredTimeseries, which reacts to startDate/endDate, so the red
+    // dashed diff indicator stays fully dynamic as the selected date
+    // range changes.
     const displacementDiff = useMemo(() => {
         if (filteredTimeseries.length < 2) return null;
 
@@ -272,6 +354,45 @@ export default function MovementDiffChart({
         };
     }, [filteredTimeseries]);
 
+    // 🆕 Per-point displacement diffs — MULTI-SELECT mode only. One entry
+    // per selected point, each computed from that point's own series
+    // filtered down to the selected date range (so, unlike chartData
+    // above, THIS is scoped to startDate/endDate). Rendered as one red
+    // dashed indicator per point on the chart, colored to match that
+    // point's line — and there will be one more of these every time you
+    // select another point.
+    const multiPointDiffs = useMemo(() => {
+        if (!detailEntries || detailEntries.length <= 1) return [];
+
+        return detailEntries
+            .map(({ point, detail }, index) => {
+                const pid = point?.data?.id ?? point?.properties?.id;
+                const series = detail?.data?.timeseries || [];
+                const filtered =
+                    !startDate || !endDate
+                        ? series
+                        : series.filter(
+                            (item) => item.date >= startDate && item.date <= endDate,
+                        );
+
+                if (filtered.length < 2) return null;
+
+                const first = filtered[0];
+                const last = filtered[filtered.length - 1];
+
+                return {
+                    id: pid,
+                    index,
+                    startDate: first.date,
+                    endDate: last.date,
+                    startDisplacement: first.displacement,
+                    endDisplacement: last.displacement,
+                    difference: last.displacement - first.displacement,
+                };
+            })
+            .filter(Boolean);
+    }, [detailEntries, startDate, endDate]);
+
     // Format date for display
     const formatDate = (dateStr) => {
         if (!dateStr) return "";
@@ -283,13 +404,22 @@ export default function MovementDiffChart({
 
     // Bail out only after all hooks have run — protects against the
     // "rendered fewer hooks than expected" error when pointData arrives
-    // slightly after the component mounts.
-    if (!pointData || !detailData) return null;
+    // slightly after the component mounts. Also guards an empty array
+    // (which is truthy in JS but has nothing to show).
+    const hasNoPointData =
+        !pointData || (Array.isArray(pointData) && pointData.length === 0);
+    if (hasNoPointData || !detailData) return null;
 
-    // 🆕 Defensive extraction — handles two shapes of pointData:
-    //   1. Velocity mode:    { data: { id, longitude, latitude, velocity, coherence } }
-    //   2. Difference mode:  { properties: { id, latitude, longitude, velocity, diff, color } }
-    const props = pointData.data ?? pointData.properties ?? {};
+    // 🆕 pointData can now EITHER be a single point object (original
+    // shape) OR an array of point objects for multi-select. `points`
+    // normalizes both into an array; in the single-point case this is
+    // just `[pointData]`, identical to before.
+    //   Velocity mode:    { data: { id, longitude, latitude, velocity, coherence } }
+    //   Difference mode:  { properties: { id, latitude, longitude, velocity, diff, color } }
+    const points = Array.isArray(pointData) ? pointData : [pointData];
+    const isMultiSelect = points.length > 1;
+
+    const props = points[0].data ?? points[0].properties ?? {};
     const {
         id,
         longitude,
@@ -381,29 +511,40 @@ export default function MovementDiffChart({
 
                     {/* Row 2: Point Info - Single Line */}
                     <div className="flex items-center gap-2 sm:gap-4 mt-1 text-[10px] sm:text-xs text-gray-500 w-full border-t border-gray-100 pt-1 overflow-x-auto">
-                        {/* Coordinates — guarded so missing lat/lng won't crash */}
+                        {/* Coordinates — guarded so missing lat/lng won't crash.
+                            In multi-select mode this switches to a count instead. */}
                         <span className="whitespace-nowrap">
                             <strong className="text-gray-700">
-                                {hasLatLng
-                                    ? `${latitude}, ${longitude}`
-                                    : "—, —"}
+                                {isMultiSelect
+                                    ? `${points.length} points selected`
+                                    : hasLatLng
+                                        ? `${latitude}, ${longitude}`
+                                        : "—, —"}
                             </strong>
                         </span>
 
-                        {/* Velocity — only shown when present */}
-                        {velocity !== undefined && velocity !== null && (
+                        {/* Velocity — shows the first point's value in single-select mode,
+    or the literal "Multiple" when several points are selected. */}
+                        {isMultiSelect ? (
                             <span className="whitespace-nowrap">
-                                Velocity:{" "}
-                                <strong
-                                    className={
-                                        velocity > 0
-                                            ? "text-green-600"
-                                            : "text-red-600"
-                                    }
-                                >
-                                    {velocity} mm/yr
-                                </strong>
+                                Velocity: <strong className="text-gray-700">Multiple</strong>
                             </span>
+                        ) : (
+                            velocity !== undefined &&
+                            velocity !== null && (
+                                <span className="whitespace-nowrap">
+                                    Velocity:{" "}
+                                    <strong
+                                        className={
+                                            velocity > 0
+                                                ? "text-green-600"
+                                                : "text-red-600"
+                                        }
+                                    >
+                                        {velocity} mm/yr
+                                    </strong>
+                                </span>
+                            )
                         )}
 
 
@@ -414,8 +555,11 @@ export default function MovementDiffChart({
                             </span>
                         )}
 
-                        {/* 🆕 Displacement diff over the selected date range */}
-                        {displacementDiff && (
+                        {/* 🆕 Displacement diff over the selected date range.
+                            Single-select only — in multi-select mode each
+                            point's diff is shown directly on the chart
+                            instead (see the red dashed indicators below). */}
+                        {!isMultiSelect && displacementDiff && (
                             <span className="whitespace-nowrap">
                                 Diff:{" "}
                                 <strong className="text-red-600">
@@ -481,7 +625,7 @@ export default function MovementDiffChart({
                                 to the end value, then a horizontal segment at
                                 the end value spanning the selected range,
                                 labeled with the total difference. */}
-                            {chartData.length > 1 && displacementDiff && (
+                            {!isMultiSelect && chartData.length > 1 && displacementDiff && (
                                 <>
                                     <ReferenceLine
                                         segment={[
@@ -526,38 +670,162 @@ export default function MovementDiffChart({
                                 </>
                             )}
 
-                            <Line
-                                type="monotone"
-                                dataKey="displacement"
-                                stroke={showLines ? "#3b82f6" : "transparent"}
-                                strokeWidth={2}
-                                dot={
-                                    showData
-                                        ? { r: 3, fill: "#3b82f6" }
-                                        : false
-                                }
-                                activeDot={{ r: 6 }}
-                                name="Displacement (mm)"
-                                isAnimationActive={false}
-                            />
+                            {/* 🆕 Multi-select: one red dashed L-shape diff
+                                indicator PER selected point, each anchored to
+                                that point's own values over the selected date
+                                range (multiPointDiffs), colored to match that
+                                point's line. The chart lines above still plot
+                                each point's FULL series — only these
+                                indicators are scoped to the date range. One
+                                more indicator appears every time another
+                                point is selected. */}
+                            {isMultiSelect &&
+                                multiPointDiffs.map((diff) => {
+                                    const color = `hsl(${(diff.index * 137.508 + 210) % 360} 68% 46%)`;
+                                    return (
+                                        <Fragment key={`diff-${diff.id}`}>
+                                            <ReferenceLine
+                                                segment={[
+                                                    {
+                                                        x: diff.startDate,
+                                                        y: diff.startDisplacement,
+                                                    },
+                                                    {
+                                                        x: diff.startDate,
+                                                        y: diff.endDisplacement,
+                                                    },
+                                                ]}
+                                                stroke={color}
+                                                strokeDasharray="6 4"
+                                                strokeWidth={1.5}
+                                                ifOverflow="extendDomain"
+                                            />
+                                            <ReferenceLine
+                                                segment={[
+                                                    {
+                                                        x: diff.startDate,
+                                                        y: diff.endDisplacement,
+                                                    },
+                                                    {
+                                                        x: diff.endDate,
+                                                        y: diff.endDisplacement,
+                                                    },
+                                                ]}
+                                                stroke={color}
+                                                strokeDasharray="6 4"
+                                                strokeWidth={1.5}
+                                                ifOverflow="extendDomain"
+                                            >
+                                                <Label
+                                                    value={`ID ${diff.id}: ${diff.difference > 0 ? "+" : ""}${diff.difference.toFixed(1)} mm`}
+                                                    position="insideTop"
+                                                    fill={color}
+                                                    fontSize={12}
+                                                    fontWeight="bold"
+                                                />
+                                            </ReferenceLine>
+                                        </Fragment>
+                                    );
+                                })}
 
-                            {showTrend && (
-                                <Line
-                                    type="monotone"
-                                    dataKey="trend"
-                                    stroke="#ef4444"
-                                    strokeWidth={2}
-                                    strokeDasharray="4 4"
-                                    dot={false}
-                                    activeDot={false}
-                                    name="Trend"
-                                    isAnimationActive={false}
-                                />
-                            )}
+                            {/* 🆕 One Line per selected point. In single-select
+                                mode (points.length === 1) this renders exactly
+                                one Line with dataKey "displacement", color
+                                "#3b82f6" and name "Displacement (mm)" — the
+                                same as the original implementation. In
+                                multi-select mode, each point gets its own
+                                dataKey (p_<id>) and a distinct color. */}
+                            {points.map((point, index) => {
+                                const p = point.data ?? point.properties ?? {};
+                                const lineColor = isMultiSelect
+                                    ? `hsl(${(index * 137.508 + 210) % 360} 68% 46%)`
+                                    : "#3b82f6";
+                                const dataKey = isMultiSelect
+                                    ? `p_${p.id}`
+                                    : "displacement";
+                                const lineName = isMultiSelect
+                                    ? `ID ${p.id}`
+                                    : "Displacement (mm)";
+                                return (
+                                    <Line
+                                        key={p.id ?? index}
+                                        type="monotone"
+                                        dataKey={dataKey}
+                                        stroke={showLines ? lineColor : "transparent"}
+                                        strokeWidth={2}
+                                        dot={
+                                            showData
+                                                ? { r: 3, fill: lineColor }
+                                                : false
+                                        }
+                                        activeDot={{ r: 6 }}
+                                        name={lineName}
+                                        isAnimationActive={false}
+                                    />
+                                );
+                            })}
+
+                            {/* 🆕 One trend Line per selected point, same
+                                single-vs-multi behavior as above: single-select
+                                reproduces the original "trend"/"#ef4444"/"Trend"
+                                Line exactly. */}
+                            {showTrend &&
+                                points.map((point, index) => {
+                                    const p = point.data ?? point.properties ?? {};
+                                    const pid = p.id;
+                                    const trendColor = isMultiSelect
+                                        ? `hsl(${(index * 137.508 + 210) % 360} 68% 46%)`
+                                        : "#ef4444";
+                                    const dataKey = isMultiSelect ? `t_${pid}` : "trend";
+                                    const trendName = isMultiSelect
+                                        ? `ID ${pid} trend`
+                                        : "Trend";
+                                    return (
+                                        <Line
+                                            key={`trend-${pid ?? index}`}
+                                            type="monotone"
+                                            dataKey={dataKey}
+                                            stroke={trendColor}
+                                            strokeWidth={2}
+                                            strokeDasharray="4 4"
+                                            dot={false}
+                                            activeDot={false}
+                                            name={trendName}
+                                            isAnimationActive={false}
+                                        />
+                                    );
+                                })}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
+
+                {/* 🆕 Legend for selected points — only rendered in
+                    multi-select mode, so the single-select layout is
+                    unchanged. */}
+                {isMultiSelect && (
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-gray-700">
+                        {points.map((point, index) => {
+                            const p = point.data ?? point.properties ?? {};
+                            return (
+                                <span
+                                    key={p.id ?? index}
+                                    className="inline-flex items-center gap-1"
+                                >
+                                    <i
+                                        className="w-2.5 h-2.5 rounded-full"
+                                        style={{
+                                            backgroundColor: `hsl(${(index * 137.508 + 210) % 360} 68% 46%)`,
+                                        }}
+                                    />
+                                    ID {p.id}
+                                </span>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+
+

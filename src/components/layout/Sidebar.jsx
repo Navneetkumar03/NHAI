@@ -1,21 +1,13 @@
 // src/components/Sidebar.jsx
 import {
   LayoutDashboard,
-  Waypoints,
-  Radar,
   Bell,
-  BarChart3,
-  ClipboardCheck,
   FileText,
-  CloudSun,
-  Puzzle,
-  Settings,
   HelpCircle,
   Mountain,
-  TrafficCone,
   Activity,
 } from "lucide-react";
-import { ROUTES } from "../../app/routes";
+
 function useAuthUser() {
   try {
     return JSON.parse(sessionStorage.getItem("authUser")) || null;
@@ -24,8 +16,7 @@ function useAuthUser() {
   }
 }
 
-// NOTE: make sure these keys exist in ../router/routes.js
-// (FLYOVERS, MONITORING, ALERTS, ANALYTICS, INSPECTIONS, REPORTS, WEATHER, INTEGRATIONS, SETTINGS)
+// `id` below must match a `nav` value in ../../app/routes.jsx
 
 export default function Sidebar({ activeItem, onNavClick, onClose }) {
   const authUser = useAuthUser();
@@ -38,23 +29,23 @@ export default function Sidebar({ activeItem, onNavClick, onClose }) {
     }
   };
   const navItems = [
-    { label: "Dashboard", icon: LayoutDashboard, id: ROUTES.DASHBOARD },
-    { label: "Deformation Insights", icon: Mountain, id: ROUTES.Topography },
-    // { label: "Traffic", icon: TrafficCone, id: ROUTES.TRAFFIC },
-    // { label: "Intense RF", icon: CloudSun, id: ROUTES.WEATHER },
-    { label: "Reports", icon: FileText, id: ROUTES.REPORTS },
+    { label: "Dashboard", icon: LayoutDashboard, id: "dashboard" },
+    { label: "Deformation Insights", icon: Mountain, id: "topography" },
+    // { label: "Traffic", icon: TrafficCone, id: "traffic" },
+    // { label: "Intense RF", icon: CloudSun, id: "weather" },
+    { label: "Reports", icon: FileText, id: "reports" },
 
-    //{ label: "Monitoring", icon: Radar, id: ROUTES.MONITORING },
-    { label: "Alerts", icon: Bell, badge: 3, id: ROUTES.ALERTS },
+    //{ label: "Monitoring", icon: Radar, id: "monitoring" },
+    { label: "Alerts", icon: Bell, badge: 3, id: "alerts" },
     ...(isAdmin
       ? [
         {
           label: "Activity Log",
           icon: Activity,
-          id: ROUTES.ActivityLog,
+          id: "activity-log",
         },
       ]
-      : []), // { label: "Integrations", icon: Puzzle, id: ROUTES.INTEGRATIONS },
+      : []), // { label: "Integrations", icon: Puzzle, id: "integrations" },
   ];
   return (
     <aside className="w-37 h-screen  bg-[#0a1130] flex flex-col">
@@ -100,8 +91,8 @@ export default function Sidebar({ activeItem, onNavClick, onClose }) {
       </div>
 
       {/* Settings + Help */}
-      <div className="mt-auto px-2 pb-4">
-        <div className="h-px bg-white/5 mb-3" />
+      {/* <div className="mt-auto px-2 pb-4">
+        <div className="h-px bg-white/5 mt-1" />
 
         <button
           onClick={() => console.log("Help clicked")}
@@ -114,7 +105,8 @@ export default function Sidebar({ activeItem, onNavClick, onClose }) {
 
           <span>Help</span>
         </button>
-      </div>
+      </div> */}
+
     </aside>
   );
 }

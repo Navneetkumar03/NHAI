@@ -29,8 +29,21 @@ export const SOIL_TYPE_COLORS = {
   "Laterites and Lateritic Soil": "#B4552D",
   "Peaty, Marshy and Organic Soil": "#5F462D",
   "Problem Soil": "#BEBEAF",
-  "Red  Soil": "#AF4632",
-  "River": "#66CCFF",
+  "Red Soil": "#AF4632",
+  "Water": "#66CCFF",
+};
+
+
+export const SOIL_TYPE_DEFINITIONS = {
+  "Alluvial Soil": "Sediments deposited by rivers/streams",
+  "Black Soil": "Dark, clay-rich soil with high water retention",
+  "Desert Soil": "Dry, sandy soil from arid/semi-arid regions",
+  "Laterites and Lateritic Soil": "Highly weathered, Fe/Al-rich soil",
+  "Peaty, Marshy and Organic Soil":
+    "Waterlogged soil rich in decomposed organic matter",
+  "Problem Soil": "Soil with chemical/physical limitations",
+  "Red Soil": "Weathered soil developed from ancient rocks",
+  "Water": "Water body",
 };
 
 
@@ -63,13 +76,26 @@ export const MAX_ZOOM = 20;
 
 export const LULC_FADE_MS = 250;
 
+// export const LULC_CLASSES = [
+//   { color: "#055ac5", label: "Water" },
+//   { color: "#0b832a", label: "Trees" },
+//   { color: "#dae04e", label: "Crop" },
+//   { color: "#f14c40", label: "Builtup" },
+//   { color: "#ecfff8", label: "Bare Ground" },
+//   { color: "#99998f", label: "Rangeland" },
+// ];
+
+
+
 export const LULC_CLASSES = [
-  { color: "#055ac5", label: "Water" },
-  { color: "#0b832a", label: "Trees" },
-  { color: "#dae04e", label: "Crop" },
-  { color: "#f14c40", label: "Builtup" },
-  { color: "#ecfff8", label: "Bare Ground" },
-  { color: "#99998f", label: "Rangeland" },
+  { color: "#419BDF", label: "Water" },
+  { color: "#397D49", label: "Forest" },
+  { color: "#E49635", label: "Crop Land" },
+  { color: "#C4281B", label: "Built-up" },
+  { color: "#A59B8F", label: "Bare Land" },
+  { color: "#E3E2C3", label: "Grassland" },
+  { color: "#A8EBFF", label: "Snow" },
+  { color: "#616161", label: "Other" },
 ];
 
 

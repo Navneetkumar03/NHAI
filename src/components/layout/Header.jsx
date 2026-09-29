@@ -212,7 +212,10 @@ const Header = ({ only, onLogout, user } = {}) => {
             <div className="hidden max-[900px]:block max-[900px]:flex-1 max-[900px]:min-w-0 ml-2">
               <h2
                 className="text-[#0F172A] font-extrabold text-[11px] leading-snug max-[480px]:text-[10px]"
-                style={{ textAlign: "left" }}
+                style={{
+                  textAlign: "left",
+                  fontFamily: "'Roboto Condensed', sans-serif",
+                }}
               >
                 INFRARISK: AI-Based Remote Monitoring
               </h2>
@@ -220,10 +223,10 @@ const Header = ({ only, onLogout, user } = {}) => {
               {/* Mobile-only tagline under the title (desktop shows it in the center panel) */}
               <div
                 className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[9px] font-bold max-[480px]:text-[8px] max-[480px]:gap-x-1.5"
-                style={{ textAlign: "left" }}
-              >
+                style={{ fontFamily: "'Roboto Condensed', sans-serif" }}>
+
                 <span className="text-gray-800 whitespace-nowrap">
-                  <span className="text-gray-400 mr-0.5">•</span>Smart
+                  <span className="text-gray-400 mr-0.5"></span>Smart
                   Monitoring
                 </span>
                 <span className="text-gray-800 whitespace-nowrap">
@@ -244,12 +247,20 @@ const Header = ({ only, onLogout, user } = {}) => {
           <>
 
             <div className="relative z-20 flex-1 h-full mt-3 shadow-[-10px_0_20px_rgba(0,0,0,0.08)] bg-white flex flex-col justify-center pl-2 pr-5 rounded-bl-[125px] rounded-br-[150px] rounded-tr-[450px] shadow-[-8px_0_18px_-2px_rgba(0,0,0,0.07)] [clip-path:polygon(0_0,calc(100%_-_250px)_0,100%_160%,0_100%)] max-[900px]:hidden">
-              <h2 className="text-[#0F172A] w-full font-extrabold text-xl  tracking-tight leading-none max-[900px]:text-center max-[900px]:leading-snug max-[480px]:text-base">
+              {/* <h2 className="text-[#0F172A] w-full font-extrabold text-xl  tracking-tight leading-none max-[900px]:text-center max-[900px]:leading-snug max-[480px]:text-base">
+                INFRARISK: AI-Based Remote Monitoring
+              </h2> */}
+
+              <h2
+                className="text-[#0F172A] w-full font-extrabold text-2xl tracking-tight leading-none max-[900px]:text-center max-[900px]:leading-snug max-[480px]:text-base"
+                style={{ fontFamily: "'Roboto Condensed', sans-serif" }}
+              >
                 INFRARISK: AI-Based Remote Monitoring
               </h2>
-              <div className="flex items-start gap-2 text-xs font-bold mt-2  max-[900px]:justify-center max-[900px]:flex-wrap max-[480px]:gap-1.5 max-[480px]:text-[10px]">
-                <span className="text-gray-800 flex items-start gap-1.5">
-                  <span className="text-gray-400 text-[10px]">•</span> Smart
+              <div className="flex items-start gap-2 text-xs font-bold mt-2  max-[900px]:justify-center max-[900px]:flex-wrap max-[480px]:gap-1.5 max-[480px]:text-[10px]"
+                style={{ fontFamily: "'Roboto Condensed', sans-serif" }}>
+                <span className="text-gray-800 flex items-start ">
+                  <span className="text-gray-400 text-[10px]"></span> Smart
                   Monitoring
                 </span>
                 <span className="text-gray-800 flex items-start gap-1.5">
