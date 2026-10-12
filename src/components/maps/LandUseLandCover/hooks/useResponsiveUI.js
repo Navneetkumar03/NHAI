@@ -7,7 +7,7 @@ export function useResponsiveUI({
   setIsFullscreen,
   setIsMobile
 }) {
-useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 1024);
     };
@@ -16,7 +16,7 @@ useEffect(() => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
     /* 🆕 GPS marker pulse */
@@ -29,6 +29,9 @@ useEffect(() => {
       background: transparent !important;
       border: none !important;
     }
+      .flyover-image-popup {
+      pointer-events: auto;
+      }
 
     /* existing overrides — unchanged */
     .leaflet-interactive:focus,
@@ -57,7 +60,7 @@ useEffect(() => {
     return () => document.head.removeChild(style);
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
       setTimeout(() => {

@@ -10,7 +10,7 @@ export const demOverlay = {
     color: "#A16207",
     exclusive: true,
     defaultOn: false,
-    hasLegend: false,
+    hasLegend: true,
 
     add({ map }) {
         // Dedicated pane so DEM can sit above base tiles but below vectors.

@@ -2,7 +2,9 @@ import {
   AlertTriangle,
   Layers,
   Loader2,
+  Minus,
   Navigation,
+  Plus,
   Table,
   X,
 } from "lucide-react";
@@ -18,6 +20,10 @@ import { SoilLegend } from "../legends/SoilLegend";
 import TrafficAnalysisPanel from "../../../traffic/TrafficAnalysisPanel";
 import { VelocityDiffLegend } from "../legends/VelocityDiffLegend";
 import { VelocityLegend } from "../legends/VelocityLegend";
+import { RainfallLegend } from "../legends/RainfallLegend";
+import { DEMLegend } from "../legends/DEMLegend";
+import { EarthquakesLegend } from "../legends/EarthquakesLegend";
+
 import { SOIL_TYPE_COLORS, SOIL_TAXO_COLORS } from "../constants";
 
 // Shared style for every button in the joined control column
@@ -93,11 +99,14 @@ export function MapOverlays({
   showSegmentTable,
   showSegmentsUI,
   showSoil,
+  showRainfall,
+  showDEM,
+  showEarthquakes,
 
-  showSoilBoundary,          // 🆕
-  soilBoundaryError,         // 🆕
-  soilBoundaryLoading,       // 🆕
-  soilBoundaryTaxoValues,    // 🆕
+  showSoilBoundary,
+  soilBoundaryError,
+  soilBoundaryLoading,
+  soilBoundaryTaxoValues,
 
   showTrafficPanel,
   showVelocityUI,
@@ -106,6 +115,8 @@ export function MapOverlays({
   tagRef,
   taxoValues,
   toggleFullscreen,
+  onZoomIn,
+  onZoomOut,
   velocityDiffError,
   velocityDiffLoading,
   velocityDiffRange,
@@ -143,6 +154,11 @@ export function MapOverlays({
               title="Soil Taxonomy"
             />
           )}
+          {showRainfall && <RainfallLegend />}
+
+          {showDEM && <DEMLegend />}
+
+          {showEarthquakes && <EarthquakesLegend />}
         </>
       )}
 
@@ -156,6 +172,14 @@ export function MapOverlays({
           className="absolute top-2 left-2 z-[1500] flex flex-col items-stretch gap-0 bg-white rounded-md border border-gray-300"
           style={{ boxShadow: "0 1px 5px rgba(0,0,0,0.25)" }}
         >
+          <button type="button" onClick={onZoomIn} title="Zoom in" aria-label="Zoom in" className={CTRL_BTN}>
+            <Plus size={16} className="max-[480px]:w-3.5 max-[480px]:h-3.5" />
+          </button>
+
+          <button type="button" onClick={onZoomOut} title="Zoom out" aria-label="Zoom out" className={CTRL_BTN}>
+            <Minus size={16} className="max-[480px]:w-3.5 max-[480px]:h-3.5" />
+          </button>
+
           <FullscreenButton
             isFullscreen={isFullscreen}
             onToggle={toggleFullscreen}
@@ -164,7 +188,7 @@ export function MapOverlays({
 
           <label className="flex items-center gap-1 px-2 py-2 text-[10px] text-gray-700 border-b border-gray-200 cursor-pointer whitespace-nowrap" title="Enable selecting multiple  points">
             <input type="checkbox" checked={multiPointSelection} onChange={(e) => setMultiPointSelection(e.target.checked)} />
-           
+
           </label>
 
           {/* Layer button + panel */}
@@ -192,6 +216,8 @@ export function MapOverlays({
                   p-3
                   min-w-[140px]
                   max-w-[200px]
+                  max-h-[250px]
+                  overflow-y-auto
                   max-[480px]:min-w-[140px]
                   max-[480px]:max-w-[190px]
                   max-[480px]:p-2
@@ -425,7 +451,7 @@ export function MapOverlays({
         </div>
       )}
 
-      {/* RiskOverviewPanel — top-right on desktop, bottom-right on mobile */}
+
       {showOverview && (
         <RiskOverviewPanel onClose={() => setShowOverview(false)} />
       )}

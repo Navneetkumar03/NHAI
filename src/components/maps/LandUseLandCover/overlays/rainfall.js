@@ -28,7 +28,7 @@ export const rainfallOverlay = {
     color: "#2563EB",
     exclusive: true,
     defaultOn: false,
-    hasLegend: false,
+    hasLegend: true,
 
     add({ map, rainfallYear }) {
 

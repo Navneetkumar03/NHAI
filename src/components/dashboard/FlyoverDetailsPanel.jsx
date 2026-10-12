@@ -44,7 +44,7 @@ export default function FlyoverDetailsPanel({
                             <button
                                 type="button"
                                 onClick={() => onRiskClick?.(selectedHighway)}
-                                className="w-full rounded-md bg-gradient-to-r from-amber-400 to-warning px-1 py-1 text-[12px] font-semibold text-gray-700 transition-colors text-center whitespace-nowrap hover:brightness-95"
+                                className="w-full cursor-pointer rounded-md bg-gradient-to-r from-amber-400 to-warning px-1 py-1 text-[12px] font-semibold text-gray-700 transition-colors text-center whitespace-nowrap hover:brightness-95"
                             >
                                 Medium Risk (120 m)
                             </button>

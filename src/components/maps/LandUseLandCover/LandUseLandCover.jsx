@@ -26,10 +26,13 @@ import { useResponsiveUI } from "./hooks/useResponsiveUI";
 import { useLayerSyncEffects } from "./hooks/useLayerSyncEffects";
 import { useRainfallHover } from "./hooks/useRainfallHover";
 import { useSoilHover } from "./hooks/useSoilHover";
+import { useFlyoverImageLayer } from "./hooks/useFlyoverImageLayer";
 
 import { TopControlBar } from "./sections/TopControlBar";
 import { MapOverlays } from "./sections/MapOverlays";
-import { LAYER_MENU, getOverlay } from "./overlayRegistry";
+import { LAYER_MENU, getOverlay, OVERLAY_REGISTRY } from "./overlayRegistry";
+
+
 
 export function LandUseLandCover({
   mapCenter = DEFAULT_CENTER,
@@ -43,7 +46,7 @@ export function LandUseLandCover({
 
   const mapContainerRef = useRef(null);
   const fullscreenContainerRef = useRef(null);
-  const mapWrapperRef = useRef(null); // outer map box, used for mobile auto-scroll
+  const mapWrapperRef = useRef(null);
 
   const zoomControlContainerRef = useRef(null);
   const layerControlWrapperRef = useRef(null);
@@ -166,8 +169,11 @@ export function LandUseLandCover({
   /* ---------------- Google Traffic ---------------- */
 
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
-  const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] =
-    useState(null);
+  const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] = useState(null);
+
+  // 🆕 currently-selected flyover image point (highlighted on the map)
+  const [selectedImageId, setSelectedImageId] = useState(null);
+
 
   // Keep the map hidden until the default flyover view has been applied.
   // This prevents the zoomed-out regional view from flashing before the
@@ -246,8 +252,10 @@ export function LandUseLandCover({
 
   const showLULC = enabled.lulc;
   const showSoil = enabled.soil;
-  const showSoilBoundary = enabled.soilBoundary; // 🆕
+  const showSoilBoundary = enabled.soilBoundary;
+  const showRainfall = enabled.rainfall;
   const showDEM = enabled.dem;
+  const showEarthquakes = enabled.earthquakes;
 
 
   // 🆕 Rainfall hover tooltip — active only while the Rainfall overlay is on.
@@ -265,6 +273,19 @@ export function LandUseLandCover({
     enabled: enabled.soil,
   });
 
+
+  // 🆕 Flyover images layer — fetches /get_flyover_image when enabled,
+  // plots each feature as a point, opens the image in a popup on click.
+  useFlyoverImageLayer({
+    mapRef,
+    isMapReadyRef,
+    enabled: enabled.flyoverImages,
+    selectedId: selectedImageId,
+    onSelect: (feature) => {
+      setSelectedImageId(feature.id);
+      setIsLayerPanelOpen(false);   // 🆕
+    },
+  });
 
   /* ==========================================================================
    * SEGMENT FUNCTIONS
@@ -607,6 +628,26 @@ export function LandUseLandCover({
     };
   }, [isActive, flyoverEntries, handleFlyoverButtonClick]);
 
+
+
+
+
+  // Close the Add-on Layer panel whenever the user clicks anywhere on
+  // the map (outside the panel itself).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const handleMapClick = () => {
+      setIsLayerPanelOpen(false);
+    };
+
+    map.on("click", handleMapClick);
+    return () => {
+      map.off("click", handleMapClick);
+    };
+  }, [isMapReadyRef, loading]);
+
   /* ==========================================================================
    * INITIALIZE MAP
    * ========================================================================*/
@@ -796,17 +837,18 @@ export function LandUseLandCover({
             velocityDiffRange={velocityDiffRange}
             yearLeft={yearLeft}
             yearRight={yearRight}
+            showRainfall={showRainfall}
             showDEM={showDEM}
+            showEarthquakes={showEarthquakes}
             // 🆕 Soil-boundary (GeoJSON) props — parallel set to the
-            // showSoil/soilLoading/soilError/taxoValues props above, but for
-            // the restored polygon layer. Requires the matching additions to
-            // sections/MapOverlays.jsx discussed separately (new legend
-            // block + prop destructuring) for these to actually render.
             showSoilBoundary={showSoilBoundary}
             soilBoundaryLoading={soilBoundaryLoading}
             soilBoundaryError={soilBoundaryError}
             soilBoundaryTaxoValues={soilBoundaryTaxoValues}
+            onZoomIn={() => mapRef.current?.zoomIn()}
+            onZoomOut={() => mapRef.current?.zoomOut()}
           />
+
         </div>
       </div>
     </div>
@@ -814,4 +856,6 @@ export function LandUseLandCover({
 }
 
 export default LandUseLandCover;
+
+
 

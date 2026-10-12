@@ -5,4 +5,6 @@ export * from "./traffic";
 export * from "./movement";
 export * from "./segments";
 export * from "./rainfall";
-export * from "./soil";     // ← add
+export * from "./soil";
+export * from "./flyoverImage";
+export * from "./riskInsight";

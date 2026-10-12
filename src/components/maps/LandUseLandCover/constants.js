@@ -65,6 +65,10 @@ export const RAINFALL_LAYER_URL =
   "https://mlinfomap.com/nhflyoverapi/tiles/rainfall{year}/{z}/{x}/{y}.png";
 
 
+export const EARTHQUAKES_LAYER_URL =
+  "https://mlinfomap.com/nhflyoverapi/tiles/earthquake/{z}/{x}/{y}.png";
+
+
 
 export const DEFAULT_CENTER = [30.3, 76.7];
 

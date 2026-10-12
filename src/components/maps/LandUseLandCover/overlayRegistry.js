@@ -6,15 +6,19 @@ import { linearOverlay } from "./overlays/linear";
 import { trafficOverlay } from "./overlays/traffic";
 import { rainfallOverlay } from "./overlays/rainfall";
 import { soilBoundaryOverlay } from "./overlays/soilBoundary";
+import { earthquakesOverlay } from "./overlays/earthquakes";
+import { flyoverImagesOverlay } from "./overlays/flyoverImages";
 
 export const OVERLAY_REGISTRY = [
     linearOverlay,
     lulcOverlay,
     soilOverlay,
-    soilBoundaryOverlay, // 🆕 the restored GeoJSON layer
+    soilBoundaryOverlay,
     demOverlay,
     trafficOverlay,
     rainfallOverlay,
+    earthquakesOverlay,
+    flyoverImagesOverlay,
 ];
 
 export const LAYER_MENU = OVERLAY_REGISTRY;

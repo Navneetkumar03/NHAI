@@ -287,3 +287,18 @@ body {
 .leaflet-dragging .leaflet-grab .leaflet-interactive {
   cursor: move !important;
 }
+
+
+
+
+
+
+.flyover-image-popup .leaflet-popup-close-button {
+  color: #58634b !important;
+}
+
+.flyover-image-popup .leaflet-popup-close-button:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #dc2626 !important;
+  border-radius: 50% !important;
+}
