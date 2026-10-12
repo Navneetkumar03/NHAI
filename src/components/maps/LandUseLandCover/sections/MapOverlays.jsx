@@ -205,29 +205,28 @@ export function MapOverlays({
                 className="max-[480px]:w-3.5 max-[480px]:h-3.5"
               />
             </button>
-
             {isLayerPanelOpen && (
               <div
                 className="
-                  absolute top-0 left-full ml-2
-                  bg-white
-                  rounded-[4px]
-                  border-2 border-gray-300
-                  p-3
-                  min-w-[140px]
-                  max-w-[200px]
-                  max-h-[250px]
-                  overflow-y-auto
-                  max-[480px]:min-w-[140px]
-                  max-[480px]:max-w-[190px]
-                  max-[480px]:p-2
-                  shadow-lg
-                "
+      absolute top-0 left-full ml-2
+      bg-white
+      rounded-[4px]
+      border-2 border-gray-300
+      min-w-[140px]
+      max-w-[200px]
+      max-h-[250px]
+      flex flex-col
+      overflow-hidden
+      max-[480px]:min-w-[140px]
+      max-[480px]:max-w-[190px]
+      shadow-lg
+    "
                 style={{
                   boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
                 }}
               >
-                <div className="flex items-center justify-between mb-1 pb-1 border-b border-gray-200">
+                {/* FIXED HEADER — does not scroll */}
+                <div className="flex items-center justify-between flex-shrink-0 px-3 pt-3 pb-1 mb-1 border-b border-gray-200 bg-white max-[480px]:px-2 max-[480px]:pt-2">
                   <h3 className="text-xs font-semibold text-gray-700 max-[500px]:text-[10px] whitespace-nowrap">
                     Add-on Layer
                   </h3>
@@ -243,71 +242,72 @@ export function MapOverlays({
                   </button>
                 </div>
 
-                <div>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 max-[480px]:text-[9px]">
-                    Overlays
-                  </p>
-                  <div className="flex flex-col gap-1.5">
-                    {availableLayers.map((layer) => (
-                      <label
-                        key={layer.id}
-                        className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={
-                            layer.id === "linear"
-                              ? activeLayers.includes("linear")
-                              : layer.id === "traffic"
-                                ? activeLayers.includes("traffic")
-                                : !!enabled?.[layer.id]
-                          }
-                          onChange={() => handleLayerToggle(layer.id)}
-                          className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                        />
-                        <span className="whitespace-nowrap">{layer.name}</span>
-                      </label>
-                    ))}
+                {/* SCROLLABLE BODY — only this part scrolls */}
+                <div className="flex-1 min-h-0 overflow-y-auto px-3 pb-3 max-[480px]:px-2 max-[480px]:pb-2">
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 max-[480px]:text-[9px]">
+                      Overlays
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                      {availableLayers.map((layer) => (
+                        <label
+                          key={layer.id}
+                          className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              layer.id === "linear"
+                                ? activeLayers.includes("linear")
+                                : layer.id === "traffic"
+                                  ? activeLayers.includes("traffic")
+                                  : !!enabled?.[layer.id]
+                            }
+                            onChange={() => handleLayerToggle(layer.id)}
+                            className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
+                          />
+                          <span className="whitespace-nowrap">{layer.name}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-2 pt-1 border-t border-gray-100">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 max-[480px]:text-[9px]">
-                    Base Map
-                  </p>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
-                      <input
-                        type="radio"
-                        name="baseLayer"
-                        checked={baseLayer === "streets"}
-                        onChange={() => handleBaseLayerChange("streets")}
-                        className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                      />
-                      <span className="whitespace-nowrap">Streets</span>
-                    </label>
-                    <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
-                      <input
-                        type="radio"
-                        name="baseLayer"
-                        checked={baseLayer === "satellite"}
-                        onChange={() => handleBaseLayerChange("satellite")}
-                        className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                      />
-                      <span className="whitespace-nowrap">
-                        Google Satellite
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
-                      <input
-                        type="radio"
-                        name="baseLayer"
-                        checked={baseLayer === "esri_satellite"}
-                        onChange={() => handleBaseLayerChange("esri_satellite")}
-                        className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
-                      />
-                      <span className="whitespace-nowrap">Satellite</span>
-                    </label>
+                  <div className="mt-2 pt-1 border-t border-gray-100">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 max-[480px]:text-[9px]">
+                      Base Map
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
+                        <input
+                          type="radio"
+                          name="baseLayer"
+                          checked={baseLayer === "streets"}
+                          onChange={() => handleBaseLayerChange("streets")}
+                          className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
+                        />
+                        <span className="whitespace-nowrap">Streets</span>
+                      </label>
+                      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
+                        <input
+                          type="radio"
+                          name="baseLayer"
+                          checked={baseLayer === "satellite"}
+                          onChange={() => handleBaseLayerChange("satellite")}
+                          className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
+                        />
+                        <span className="whitespace-nowrap">Google Satellite</span>
+                      </label>
+                      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-blue-600 transition-colors max-[480px]:text-[10px] max-[480px]:gap-1.5">
+                        <input
+                          type="radio"
+                          name="baseLayer"
+                          checked={baseLayer === "esri_satellite"}
+                          onChange={() => handleBaseLayerChange("esri_satellite")}
+                          className="w-3.5 h-3.5 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer max-[480px]:w-3 max-[480px]:h-3"
+                        />
+                        <span className="whitespace-nowrap">Satellite</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>

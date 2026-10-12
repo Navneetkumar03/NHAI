@@ -95,7 +95,7 @@ export function LandUseLandCover({
   const userLocationMarkerRef = useRef(null);
   const userAccuracyCircleRef = useRef(null);
 
-  // 🆕 Soil-boundary (GeoJSON) layer refs — used only by overlays/soilBoundary.js
+  //  Soil-boundary (GeoJSON) layer refs — used only by overlays/soilBoundary.js
   const soilLayerRef = useRef(null);
   const soilDataRef = useRef(null);
   const hasFitSoilBoundsRef = useRef(false);
@@ -141,7 +141,7 @@ export function LandUseLandCover({
   const [activeLayers, setActiveLayers] = useState(["linear", "movement"]);
   const [baseLayer, setBaseLayer] = useState("streets");
 
-  // 🆕 Soil-boundary (GeoJSON) state — fed by useSoilData below.
+  // Soil-boundary (GeoJSON) state — fed by useSoilData below.
   // Kept fully separate from the tile soil layer's taxoValues/soilLoading/
   // soilError so neither layer's code path can disturb the other.
   const [soilBoundaryData, setSoilBoundaryData] = useState(null);
@@ -171,7 +171,7 @@ export function LandUseLandCover({
   const [showTrafficPanel, setShowTrafficPanel] = useState(false);
   const [selectedFlyoverForTraffic, setSelectedFlyoverForTraffic] = useState(null);
 
-  // 🆕 currently-selected flyover image point (highlighted on the map)
+  // currently-selected flyover image point (highlighted on the map)
   const [selectedImageId, setSelectedImageId] = useState(null);
 
 
@@ -224,7 +224,7 @@ export function LandUseLandCover({
   } = useOverlayLayers({
     mapRef,
     isMapReadyRef,
-    // 🆕 soilBoundaryData drives the retry: overlays/soilBoundary.js's add()
+    // soilBoundaryData drives the retry: overlays/soilBoundary.js's add()
     // returns null until soilDataRef.current is populated, so this effect
     // must re-run once the GeoJSON fetch resolves.
     refreshKey: soilBoundaryData,
@@ -242,7 +242,7 @@ export function LandUseLandCover({
       yearLeft,
       yearRight,
       rainfallYear,   // readable by rainfallOverlay.add()
-      // 🆕 needed by overlays/soilBoundary.js's add()/remove()
+      // needed by overlays/soilBoundary.js's add()/remove()
       soilDataRef,
       soilLayerRef,
       hasFitSoilBoundsRef,
@@ -258,7 +258,7 @@ export function LandUseLandCover({
   const showEarthquakes = enabled.earthquakes;
 
 
-  // 🆕 Rainfall hover tooltip — active only while the Rainfall overlay is on.
+  // Rainfall hover tooltip — active only while the Rainfall overlay is on.
   useRainfallHover({
     mapRef,
     isMapReadyRef,
@@ -266,7 +266,7 @@ export function LandUseLandCover({
     year: rainfallYear,
   });
 
-  // 🆕 Soil (tile layer) hover tooltip
+  //  Soil (tile layer) hover tooltip
   useSoilHover({
     mapRef,
     isMapReadyRef,
@@ -274,7 +274,7 @@ export function LandUseLandCover({
   });
 
 
-  // 🆕 Flyover images layer — fetches /get_flyover_image when enabled,
+  // Flyover images layer — fetches /get_flyover_image when enabled,
   // plots each feature as a point, opens the image in a popup on click.
   useFlyoverImageLayer({
     mapRef,
@@ -283,9 +283,17 @@ export function LandUseLandCover({
     selectedId: selectedImageId,
     onSelect: (feature) => {
       setSelectedImageId(feature.id);
-      setIsLayerPanelOpen(false);   // 🆕
+      setIsLayerPanelOpen(false);
     },
   });
+
+
+
+  useEffect(() => {
+    if (!enabled.flyoverImages) {
+      setSelectedImageId(null);
+    }
+  }, [enabled.flyoverImages]);
 
   /* ==========================================================================
    * SEGMENT FUNCTIONS
@@ -660,7 +668,7 @@ export function LandUseLandCover({
     dividerReadyTimeoutRef,
     esriSatelliteLayerRef,
     flyovers,
-    // 🆕 restored — useLandUseMap's unmount cleanup nulls these out
+    // restored — useLandUseMap's unmount cleanup nulls these out
     hasFitSoilBoundsRef,
     isMapReadyRef,
     isMountedRef,
@@ -679,7 +687,6 @@ export function LandUseLandCover({
     setError,
     setLoading,
     sideBySideRef,
-    // 🆕 restored
     soilDataRef,
     soilLayerRef,
     streetLayerRef,

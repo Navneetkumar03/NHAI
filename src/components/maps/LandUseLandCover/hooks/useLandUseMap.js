@@ -115,7 +115,6 @@ export function useLandUseMap({
 
       if (popupPane && mapPaneEl && popupPane.parentNode === mapPaneEl) {
         map.getContainer().appendChild(popupPane);
-        popupPane.style.zIndex = "2000";
         popupPane.style.pointerEvents = "none";
 
         const syncPopupPanePosition = () => {
